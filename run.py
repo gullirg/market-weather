@@ -241,14 +241,25 @@ def cmd_month(args):
         allposts = dict(diag["posts"])
         if nw is not None:
             allposts.update(nw["posts"])
-        ol = outlook.run(diag["preds"], allposts, synj2["series"],
-                         months, args.asof,
-                         issued=args.issued or f"{args.asof}-05")
+        # OUTLOOK-REG fixes forecaster M at one estimation per quarter.
+        # If this quarter's outlook has already been issued, the build
+        # reuses it rather than re-estimating inside the quarter: a
+        # forecast is scored as issued, not as later revised.
+        q = outlook.quarter_of(args.asof)
+        qpath = os.path.join(STATE, f"outlook_{q}.json")
+        if os.path.exists(qpath):
+            ol = json.load(open(qpath))
+            print(f"outlook {q} already issued, reused as issued")
+        else:
+            ol = outlook.run(diag["preds"], allposts, synj2["series"],
+                             months, args.asof,
+                             issued=args.issued or f"{args.asof}-05")
         ol["family_map"] = FAM_CODE
         ol["synoptic_family_map"] = SYN_FAM
         site["outlook"] = ol
-        json.dump(ol, open(os.path.join(
-            STATE, f"outlook_{ol['quarter']}.json"), "w"), indent=1)
+        json.dump({k: v for k, v in ol.items()
+                   if k not in ("family_map", "synoptic_family_map")},
+                  open(qpath, "w"), indent=1)
     except Exception as e:
         site["outlook"] = None
         print("outlook layer degraded:", e)

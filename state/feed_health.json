@@ -118,5 +118,69 @@
   "tail_zeros": 0,
   "missing_months": 0,
   "FLAG": false
+ },
+ {
+  "feed": "HY OAS",
+  "last_obs": "2026-08",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "IG OAS",
+  "last_obs": "2026-08",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "OVX",
+  "last_obs": "2026-08",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "claims",
+  "last_obs": "2026-08",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "mortgage 30y",
+  "last_obs": "2026-08",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "Fed balance sheet",
+  "last_obs": "2026-08",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "bitcoin",
+  "last_obs": "2026-08",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "EU equities",
+  "last_obs": "2026-01",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
  }
 ]

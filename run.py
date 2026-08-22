@@ -70,6 +70,8 @@ def cmd_month(args):
                "GS10": F["gs10"], "Baa": F["baa"], "dollar": F["usd"],
                "stocks": F["stocks"], "futures C1": F["c1"],
                "futures C4": F["c4"]}
+    monitored = health.load_monitored(DATA)
+    monthly.update(monitored)
     report, flagged = health.run_all(F, monthly)
     degraded = sorted(set(flagged) - {"shiller CPI", "shiller GS10"})
     if args.kill_feed:

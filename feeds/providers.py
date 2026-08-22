@@ -13,7 +13,20 @@ FRED_SERIES = {"cpi_fred.csv": ("CPIAUCSL", "cpi", "m"),
                "baa_yield.csv": ("BAA", "baa", "m"),
                "usd_broad.csv": ("TWEXBGSMTH", "usd", "m"),
                "ovx.csv": ("OVXCLS", "ovx", "d"),
-               "hy_oas.csv": ("BAMLH0A0HYM2", "hy_oas", "d")}
+               "hy_oas.csv": ("BAMLH0A0HYM2", "hy_oas", "d"),
+               "ig_oas.csv": ("BAMLC0A0CM", "ig_oas", "d"),
+               "claims.csv": ("ICSA", "claims", "d"),
+               "mortgage.csv": ("MORTGAGE30US", "mortgage", "d"),
+               "fed_bs.csv": ("WALCL", "fed_bs", "d"),
+               "btc.csv": ("CBBTCUSD", "btc", "d"),
+               "eu_equities.csv": ("SPASTT01EZM661N", "eu_equities", "m"),
+               "yen.csv": ("EXJPUS", "yen", "m"),
+               "yuan.csv": ("EXCHUS", "yuan", "m"),
+               "sterling.csv": ("EXUSUK", "sterling", "m"),
+               "em_dollar.csv": ("TWEXEMEGSMTH", "em_usd", "m"),
+               "wei.csv": ("WEI", "wei", "d"),
+               "houst.csv": ("HOUST", "houst", "m"),
+               "m2.csv": ("M2SL", "m2", "m")}
 EIA_SERIES = {"us_total_stocks_exspr.csv": "PET.MTESTUS1.M"}
 FRED_URL = ("https://api.stlouisfed.org/fred/series/observations"
             "?series_id={sid}&api_key={key}&file_type=json")

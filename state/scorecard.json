@@ -1113,5 +1113,41 @@
   "window": "2026-08",
   "note": "three held-out checks fixed before the first decode: CJ1 2008-11..2009-06 contraction dominant, CJ2 2020-03..2020-05 contraction present, CJ3 2022-01..2022-06 expansion present; chosen from labour-market history, the series was not decoded before these were written; membership rule unchanged at 2 of 3",
   "hash": "ec8f5e32222b81c8"
+ },
+ {
+  "id": "CJ1",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "initial claims name the 2008-09 layoff wave",
+  "window": "held-out",
+  "note": "dominant contraction at share 1.00",
+  "hash": "6ad898a9cf6235b7"
+ },
+ {
+  "id": "CJ2",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "initial claims see the March 2020 claims explosion",
+  "window": "held-out",
+  "note": "present at share 1.00, dominant contraction",
+  "hash": "cc68544aee3cae43"
+ },
+ {
+  "id": "CJ3",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "initial claims see the 2022 labour shortage lows",
+  "window": "held-out",
+  "note": "present at share 1.00, dominant expansion",
+  "hash": "2075119a555864ef"
+ },
+ {
+  "id": "JOIN-claims",
+  "group": "network membership, rule: 2 of 3",
+  "status": "hit",
+  "claim": "claims joins the public network",
+  "window": "2026-08",
+  "note": "3 of 3 registered checks, registered as REG-claims before the scored run",
+  "hash": "09fd2766b7a15e00"
  }
 ]

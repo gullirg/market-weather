@@ -2,8 +2,20 @@
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>The Market Weather Report</title>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Market Weather Report">
+<meta property="og:title" content="The Market Weather Report">
+<meta property="og:description" content="__OGDESC__">
+<meta property="og:url" content="https://gullirg.github.io/market-weather/">
+<meta property="og:image" content="https://gullirg.github.io/market-weather/share.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The Market Weather Report">
+<meta name="twitter:description" content="__OGDESC__">
+<meta name="twitter:image" content="https://gullirg.github.io/market-weather/share.png">
 <style>
-:root{--bg:#0e1118;--panel:#141826;--line:#2a3040;--ink:#dfe4f2;
+:root{--bg:#0b0e14;--panel:#141826;--line:#2a3040;--ink:#dfe4f2;
 --dim:#8b93a7;--faint:#5b6478;--calm:#5b6478;--up:#37c98b;
 --hot:#e05555;--warn:#e0a03c;--glut:#e08b3c;--ease:#6ea8ff;
 --down:#e05555;--fear:#c86bd8}
@@ -16,20 +28,28 @@ align-items:baseline;flex-wrap:wrap;gap:6px}
 #ttl{font-weight:700;letter-spacing:.16em;font-size:12px;color:var(--dim)}
 #syn{font-size:15px}
 #syn b{font-weight:700}
+#since{font-size:11.5px;color:var(--faint);margin-top:3px;
+letter-spacing:.01em}
 #pins{display:flex;gap:6px;padding:8px 18px 2px;flex-wrap:wrap}
 .pin{font:600 10px system-ui;letter-spacing:.08em;color:var(--dim);
 border:1px solid var(--line);border-radius:14px;padding:4px 10px;
-cursor:pointer;background:none}
+cursor:pointer;background:none;transition:box-shadow .25s,color .25s}
 .pin.on{color:var(--ink);border-color:var(--dim);background:#1a2030}
 #scrubrow{display:flex;align-items:center;gap:10px;padding:4px 18px}
 #scrub{flex:1;accent-color:#6ea8ff;height:3px}
 #when{font:600 11px system-ui;color:var(--dim);min-width:120px;
 text-align:right;letter-spacing:.06em}
-#stage{flex:1;position:relative}
-#g{position:absolute;inset:0;width:100%;height:100%}
-#card{display:none;position:absolute;z-index:40;background:var(--panel);
-border:1px solid var(--line);border-radius:12px;padding:12px 14px;
-min-width:210px;max-width:280px;font-size:12px}
+#stage{flex:1;position:relative;background:var(--bg)}
+#g{position:absolute;inset:0;width:100%;height:100%;display:block}
+#card{display:none;position:absolute;z-index:40;
+background:rgb(20,24,38);
+background:rgba(20,24,38,.72);
+border:1px solid rgba(255,255,255,.08);border-radius:12px;
+padding:12px 14px;min-width:210px;max-width:280px;font-size:12px;
+box-shadow:0 8px 30px rgba(0,0,0,.45)}
+@supports ((backdrop-filter:blur(14px)) or (-webkit-backdrop-filter:blur(14px))){
+  #card{-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+}
 #card .hd{font-weight:700;letter-spacing:.1em;margin-bottom:6px}
 #card .mut{color:var(--faint);font-size:11px;margin-top:6px}
 #ftr{padding:8px 18px 12px;color:var(--faint);font-size:11px;
@@ -37,11 +57,28 @@ display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
 #ftr a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--line)}
 .lamp{display:inline-block;width:7px;height:7px;border-radius:50%;
 margin-right:4px}
+#legendbtn{position:absolute;right:14px;bottom:14px;z-index:45;
+width:26px;height:26px;border-radius:50%;cursor:pointer;
+border:1px solid rgba(255,255,255,.10);background:rgba(20,24,38,.72);
+color:var(--dim);font:600 12px system-ui;line-height:1}
+#legendpanel{display:none;position:absolute;right:14px;bottom:48px;
+z-index:46;max-width:320px;font-size:11.5px;color:var(--dim);
+background:rgb(20,24,38);background:rgba(20,24,38,.72);
+border:1px solid rgba(255,255,255,.08);border-radius:12px;
+padding:12px 14px;box-shadow:0 8px 30px rgba(0,0,0,.45)}
+@supports ((backdrop-filter:blur(14px)) or (-webkit-backdrop-filter:blur(14px))){
+  #legendbtn,#legendpanel{-webkit-backdrop-filter:blur(14px);
+    backdrop-filter:blur(14px)}
+}
+#legendpanel div{margin-bottom:5px}
+#legendpanel a{color:var(--dim);border-bottom:1px solid var(--line);
+text-decoration:none}
 </style></head><body>
 <div id=hdr>
   <div>
     <div id=ttl>THE MARKET WEATHER REPORT</div>
     <div id=syn></div>
+    <div id=since></div>
   </div>
   <div id=asof style="color:var(--faint);font-size:11px"></div>
 </div>
@@ -50,7 +87,22 @@ margin-right:4px}
   <input id=scrub type=range min=0 max=1 value=0 step=1>
   <div id=when></div>
 </div>
-<div id=stage><svg id=g></svg><div id=card></div></div>
+<div id=stage><canvas id=g></canvas><div id=card></div>
+  <button id=legendbtn aria-label="what am I looking at">?</button>
+  <div id=legendpanel>
+    <div>A node is one block of the economy, holding the instruments
+      that belong to it.</div>
+    <div>Colour is the family that block is reading now, from calm
+      through easing, up, strained and hot.</div>
+    <div>An edge percentage is the share of one block's forecast error
+      variance that another block explains.</div>
+    <div>Breathing is confidence: the surer the reading, the slower and
+      deeper the pulse.</div>
+    <div>Every instrument passes registered checks before it joins, and
+      failures publish beside the hits in
+      <a href="report.html">the record</a>.</div>
+  </div>
+</div>
 <div id=ftr>
   <div id=health></div>
   <div id=honesty></div>
@@ -58,6 +110,7 @@ margin-right:4px}
 </div>
 <script>
 const DATA = __DATA__;
+const CHANGES = __CHANGES__;
 function getCss(v){return getComputedStyle(document.documentElement)
   .getPropertyValue(v).trim()||'#5b6478';}
 const FAMCOL=[getCss('--calm'),getCss('--ease'),getCss('--up'),
@@ -69,7 +122,11 @@ const LABEL={energy:'ENERGY',rates_expectations:'RATES',credit:'CREDIT',
   fx:'FX',equities:'EQUITIES',metals:'METALS',activity:'ACTIVITY',
   liquidity:'LIQUIDITY'};
 const WORD={0:'calm',1:'easing',2:'up',3:'strained',4:'hot'};
-let V3=null,FR=[],fi=0,liveMonthIdx=0;
+const R_ORB=46,R_HALO=52,PARTICLE_CEIL=400,PARTICLE_SPEED=90;
+let V3=null,FR=[],fi=0;
+let cv=null,cx=null,W=980,H=500,DPR=1,vign=null;
+let reduced=false,selected=null,hoverEdge=-1;
+let edges=[],parts=[],lastT=0;
 function monthIdx(label){return DATA.months.indexOf(label);}
 function nodeFam(node,mi){
   if(V3.fam_strip[node])return V3.fam_strip[node][mi];
@@ -83,21 +140,101 @@ function frameMonthIdx(k){return monthIdx(FR[k].end);}
 function stateWordLive(m){
   const c=DATA.current[m]||(DATA.network&&DATA.network.current[m]);
   return c?{s:(c.word||c.state).replace('_',' '),p:c.prob}:null;}
-function render(){
-  const f=FR[fi],mi=frameMonthIdx(fi),live=(fi===FR.length-1);
-  const g=document.getElementById('g');
-  const r=g.getBoundingClientRect(),W=r.width||980,H=r.height||500;
-  let s='';
+function hexRgba(h,a){
+  h=String(h||'').trim();
+  if(h.charAt(0)!=='#'||h.length<7)return 'rgba(91,100,120,'+a+')';
+  const r=parseInt(h.substr(1,2),16),g=parseInt(h.substr(3,2),16),
+    b=parseInt(h.substr(5,2),16);
+  if(!(r>=0)||!(g>=0)||!(b>=0))return 'rgba(91,100,120,'+a+')';
+  return 'rgba('+r+','+g+','+b+','+a+')';}
+function isLive(){return fi===FR.length-1;}
+function blockConf(b,members){
+  if(!isLive())return 0.6;
+  let p=0;
+  for(const m of members){const st=stateWordLive(m);
+    if(st&&st.p>p)p=st.p;}
+  return p>0?p:0.6;}
+function frameFamColor(k){
+  const mi=frameMonthIdx(k),f=FR[k],tally={};
+  for(const b of Object.keys(POS)){
+    if(!f.members[b])continue;
+    const fam=blockFam(b,mi,V3.members[b]||[]);
+    if(fam>0)tally[fam]=(tally[fam]||0)+1;}
+  let best=-1,bn=0;
+  for(const k2 in tally)if(tally[k2]>bn){bn=tally[k2];best=+k2;}
+  return best>0?FAMCOL[best]:getCss('--faint');}
+function resize(){
+  if(!cv)return;
+  const r=cv.getBoundingClientRect();
+  W=r.width||980;H=r.height||500;
+  DPR=Math.min(2,(typeof devicePixelRatio!=='undefined'&&
+    devicePixelRatio)||1);
+  cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);
+  if(cx.setTransform)cx.setTransform(DPR,0,0,DPR,0,0);
+  vign=cx.createRadialGradient(W/2,H/2,0,W/2,H/2,
+    Math.max(W,H)*0.72);
+  vign.addColorStop(0,'#161c28');
+  vign.addColorStop(1,'#0b0e14');
+  layout();}
+function bez(e,u){
+  const v=1-u;
+  return [v*v*e.x1+2*v*u*e.cx+u*u*e.x2,
+          v*v*e.y1+2*v*u*e.cy+u*u*e.y2];}
+function layout(){
+  if(!FR.length)return;
+  const f=FR[fi];
+  edges=[];
   for(const e of f.edges){
     const a=POS[e.src],b=POS[e.dst];if(!a||!b)continue;
-    const w=Math.min(6,.5+e.pct/6);
     const x1=a[0]*W,y1=a[1]*H,x2=b[0]*W,y2=b[1]*H;
-    s+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+
-      '" stroke="#39415a" stroke-opacity=".55" stroke-width="'+w+
-      '" stroke-dasharray="7 9" class=flow />';
-    s+='<text x="'+(x1*.42+x2*.58)+'" y="'+(y1*.42+y2*.58-4)+
-      '" fill="#7d86a0" font-size="9" text-anchor="middle">'+
-      e.pct+'%</text>';}
+    const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy)||1;
+    const off=0.08*len;
+    const cxp=(x1+x2)/2+(-dy/len)*off,cyp=(y1+y2)/2+(dx/len)*off;
+    const chord=len;
+    const net=Math.sqrt((cxp-x1)*(cxp-x1)+(cyp-y1)*(cyp-y1))+
+      Math.sqrt((x2-cxp)*(x2-cxp)+(y2-cyp)*(y2-cyp));
+    edges.push({src:e.src,dst:e.dst,pct:e.pct,x1:x1,y1:y1,x2:x2,y2:y2,
+      cx:cxp,cy:cyp,w:Math.min(6,.5+e.pct/6),L:(chord+net)/2});}
+  let want=edges.map(e=>Math.max(1,Math.round(e.pct/2)));
+  let tot=want.reduce((a,b)=>a+b,0);
+  if(tot>PARTICLE_CEIL){
+    const sp=edges.reduce((a,e)=>a+e.pct,0)||1;
+    want=edges.map(e=>Math.max(1,Math.floor(
+      PARTICLE_CEIL*e.pct/sp)));
+    tot=want.reduce((a,b)=>a+b,0);
+    let i=0;
+    while(tot>PARTICLE_CEIL&&i<want.length){
+      if(want[i]>1){want[i]--;tot--;}
+      i=(i+1)%want.length;
+      if(want.every(v=>v<=1))break;}}
+  parts=[];
+  for(let i=0;i<edges.length;i++)
+    for(let j=0;j<want[i];j++)parts.push({e:i,u:j/want[i]});}
+function drawEdges(t){
+  for(let i=0;i<edges.length;i++){
+    const e=edges[i];
+    cx.beginPath();cx.moveTo(e.x1,e.y1);
+    cx.quadraticCurveTo(e.cx,e.cy,e.x2,e.y2);
+    cx.strokeStyle='rgba(57,65,90,.35)';cx.lineWidth=e.w;
+    cx.stroke();}
+  if(!reduced){
+    cx.fillStyle='rgba(207,214,234,.9)';
+    for(const p of parts){
+      const e=edges[p.e];if(!e)continue;
+      const pt=bez(e,p.u);
+      cx.beginPath();cx.arc(pt[0],pt[1],1.5,0,Math.PI*2);cx.fill();}}
+  const showFor={};
+  if(selected)for(let i=0;i<edges.length;i++)
+    if(edges[i].src===selected||edges[i].dst===selected)showFor[i]=1;
+  if(hoverEdge>=0)showFor[hoverEdge]=1;
+  cx.font='9px system-ui,sans-serif';cx.textAlign='center';
+  cx.fillStyle='#7d86a0';
+  for(const i in showFor){
+    const e=edges[i];if(!e)continue;
+    const pt=bez(e,0.5);
+    cx.fillText(e.pct+'%',pt[0],pt[1]-4);}}
+function drawOrbs(t){
+  const f=FR[fi],mi=frameMonthIdx(fi);
   for(const b of Object.keys(POS)){
     const p=POS[b],x=p[0]*W,y=p[1]*H;
     const members=V3.members[b]||[];
@@ -107,28 +244,48 @@ function render(){
     const col=fam>=0?FAMCOL[fam]:getCss('--line');
     const young=members.some(m=>V3.joined[m]&&V3.joined[m]!=='founding'
       &&(inFrame||[]).includes(m));
-    s+='<g class=blk data-b="'+b+'">';
-    s+='<circle cx="'+x+'" cy="'+y+'" r="40" fill="'+col+
-      '" fill-opacity=".14"/>';
-    s+='<circle cx="'+x+'" cy="'+y+'" r="40" fill="none" stroke="'+col+
-      '" stroke-width="2"'+(liveBlock?'':' stroke-dasharray="4 5"')+'/>';
-    if(young)s+='<circle cx="'+x+'" cy="'+y+
-      '" r="46" fill="none" stroke="'+col+
-      '" stroke-opacity=".35" stroke-width="1"/>';
-    s+='<text x="'+x+'" y="'+(y+3)+'" fill="var(--ink)" font-size="10" '+
-      'font-weight="600" letter-spacing=".08em" text-anchor="middle">'+
-      LABEL[b]+'</text>';
-    if(liveBlock&&fam>0)s+='<text x="'+x+'" y="'+(y+16)+
-      '" fill="'+col+'" font-size="9" text-anchor="middle">'+
-      WORD[fam]+'</text>';
-    s+='</g>';}
-  g.innerHTML=s;
+    let sc=1;
+    if(!reduced){
+      const per=1.6+2.2*blockConf(b,members);
+      sc=1.025+0.025*Math.sin(2*Math.PI*(t/1000)/per);}
+    const rr=R_ORB*sc;
+    const gr=cx.createRadialGradient(x,y,0,x,y,rr);
+    gr.addColorStop(0,hexRgba(col,0.5));
+    gr.addColorStop(1,hexRgba(col,0));
+    cx.fillStyle=gr;
+    cx.beginPath();cx.arc(x,y,rr,0,Math.PI*2);cx.fill();
+    cx.strokeStyle=col;cx.lineWidth=1;
+    if(cx.setLineDash)cx.setLineDash(liveBlock?[]:[4,5]);
+    cx.beginPath();cx.arc(x,y,rr,0,Math.PI*2);cx.stroke();
+    if(cx.setLineDash)cx.setLineDash([]);
+    if(young){
+      cx.strokeStyle=hexRgba(col,0.35);cx.lineWidth=1;
+      cx.beginPath();cx.arc(x,y,R_HALO*sc,0,Math.PI*2);cx.stroke();}
+    cx.textAlign='center';
+    cx.fillStyle=getCss('--ink');
+    cx.font='600 10px system-ui,sans-serif';
+    cx.fillText(LABEL[b],x,y+3);
+    if(liveBlock&&fam>0){
+      cx.fillStyle=col;cx.font='9px system-ui,sans-serif';
+      cx.fillText(WORD[fam],x,y+16);}}}
+function draw(t){
+  if(!cx)return;
+  cx.clearRect(0,0,W,H);
+  if(vign){cx.fillStyle=vign;cx.fillRect(0,0,W,H);}
+  drawEdges(t);
+  drawOrbs(t);}
+function render(){
+  const f=FR[fi],live=isLive();
+  layout();
+  draw(lastT);
   document.getElementById('when').textContent=f.end+(live?'  LIVE':'');
   document.querySelectorAll('.pin').forEach(el=>{
-    el.classList.toggle('on',String(el.dataset.f)===String(fi));});
-}
-function openCard(b,cx,cy){
-  const f=FR[fi],mi=frameMonthIdx(fi),live=(fi===FR.length-1);
+    const on=String(el.dataset.f)===String(fi);
+    el.classList.toggle('on',on);
+    if(el.style)el.style.boxShadow=on?
+      ('0 0 10px '+hexRgba(frameFamColor(fi),0.55)):'none';});}
+function openCard(b,cxp,cyp){
+  const f=FR[fi],mi=frameMonthIdx(fi),live=isLive();
   const members=V3.members[b]||[],inFrame=f.members[b]||[];
   const c=document.getElementById('card');
   let h='<div class=hd>'+LABEL[b]+' <span style="color:var(--faint)">'+
@@ -137,11 +294,12 @@ function openCard(b,cx,cy){
     const fam=nodeFam(m,mi);
     const known=fam!==null&&fam>=0;
     const col=known?FAMCOL[fam]:getCss('--line');
-    let line='<span class=lamp style="background:'+col+'"></span>'+m;
+    let line='<span class=lamp style="background:'+col+
+      ';box-shadow:0 0 3px '+col+'"></span>'+m;
     if(live){const st=stateWordLive(m);
-      if(st)line+=' &mdash; '+st.s+' ('+st.p.toFixed(2)+')';
-      else line+=' &mdash; awaiting data';}
-    else{line+=known?' &mdash; '+WORD[fam]:' &mdash; no data yet';}
+      if(st)line+=' &middot; '+st.s+' ('+st.p.toFixed(2)+')';
+      else line+=' &middot; awaiting data';}
+    else{line+=known?' &middot; '+WORD[fam]:' &middot; no data yet';}
     if(V3.joined[m]&&V3.joined[m]!=='founding')
       line+=' <span style="color:var(--faint)">joined '+
         V3.joined[m]+'</span>';
@@ -151,17 +309,18 @@ function openCard(b,cx,cy){
   if(TKEY&&TD[TKEY]){
     const hv=V3.tree.heat[TKEY]?V3.tree.heat[TKEY][mi]:null;
     h+='<div class=mut style="margin-top:8px;border-top:1px solid var(--line);padding-top:6px"><b>composition</b>'+
-      (hv!==null&&hv!==undefined?' &mdash; heat '+Number(hv).toFixed(2)+' of 4':'')+'</div>';
+      (hv!==null&&hv!==undefined?' &middot; heat '+Number(hv).toFixed(2)+' of 4':'')+'</div>';
     for(const cn in TD[TKEY].children){
-      const c=TD[TKEY].children[cn];
-      const lf=c.leaf;
+      const c2=TD[TKEY].children[cn];
+      const lf=c2.leaf;
       let fam=lf?nodeFam(lf,mi):null;
       const known=fam!==null&&fam>=0;
       const col=known?FAMCOL[fam]:getCss('--line');
-      h+='<div><span class=lamp style="background:'+col+'"></span>'+cn+
-        ' <span style="color:var(--faint)">'+Math.round(c.share*100)+'%</span>'+
-        (lf?(known?' &mdash; '+WORD[fam]:' &mdash; awaiting data'):
-         ' &mdash; share only, no honest price')+'</div>';}
+      h+='<div><span class=lamp style="background:'+col+
+        ';box-shadow:0 0 3px '+col+'"></span>'+cn+
+        ' <span style="color:var(--faint)">'+Math.round(c2.share*100)+'%</span>'+
+        (lf?(known?' &middot; '+WORD[fam]:' &middot; awaiting data'):
+         ' &middot; share only, no honest price')+'</div>';}
     if(TKEY==='currencies')h+='<div class=mut>the dollar is the numeraire; every major is priced against it</div>';}
   if(b==='energy'&&live&&DATA.hazard&&DATA.hazard.lampline)
     h+='<div class=mut>'+DATA.hazard.lampline+'</div>';
@@ -171,18 +330,31 @@ function openCard(b,cx,cy){
   if(!f.members[b])h+='<div class=mut>no data in this window</div>';
   c.innerHTML=h;c.style.display='block';
   const iw=(typeof innerWidth!=='undefined'&&innerWidth)||980;
-  c.style.left=Math.min(cx+12,iw-300)+'px';
+  c.style.left=Math.min(cxp+12,iw-300)+'px';
   const ih=(typeof innerHeight!=='undefined'&&innerHeight)||600;
-  c.style.top=Math.min(cy+12,ih-220)+'px';}
-function hitBlock(cx,cy){
+  c.style.top=Math.min(cyp+12,ih-220)+'px';}
+function hitBlock(cxp,cyp){
   const g=document.getElementById('g');
-  const r=g.getBoundingClientRect(),W=r.width||980,H=r.height||500;
+  const r=g.getBoundingClientRect(),w=r.width||980,h=r.height||500;
   for(const b of Object.keys(POS)){
-    const x=POS[b][0]*W+r.left,y=POS[b][1]*H+r.top;
-    if((cx-x)*(cx-x)+(cy-y)*(cy-y)<=46*46)return b;}
+    const x=POS[b][0]*w+r.left,y=POS[b][1]*h+r.top;
+    if((cxp-x)*(cxp-x)+(cyp-y)*(cyp-y)<=46*46)return b;}
   return null;}
+function hitEdge(cxp,cyp){
+  const g=document.getElementById('g');
+  const r=g.getBoundingClientRect();
+  const px=cxp-r.left,py=cyp-r.top;
+  for(let i=0;i<edges.length;i++){
+    const pt=bez(edges[i],0.5);
+    if((px-pt[0])*(px-pt[0])+(py-pt[1])*(py-pt[1])<=18*18)return i;}
+  return -1;}
 function init(){
   V3=DATA.v3;
+  cv=document.getElementById('g');
+  cx=cv.getContext?cv.getContext('2d'):null;
+  const mm=(typeof matchMedia==='function')?
+    matchMedia('(prefers-reduced-motion: reduce)'):null;
+  reduced=!!(mm&&mm.matches);
   if(!V3||!V3.block_frames||!V3.block_frames.frames.length){
     document.getElementById('syn').textContent=
       'network layer unavailable';return;}
@@ -195,6 +367,7 @@ function init(){
     syn.innerHTML='Weather system: <b style="color:'+
       getCss(SC[DATA.synoptic.current.state]||'--calm')+'">'+
       DATA.synoptic.current.word+'</b>.';}
+  document.getElementById('since').textContent=CHANGES||'';
   document.getElementById('asof').textContent='data to '+
     DATA.months[DATA.months.length-1]+' · issued '+DATA.issued;
   const pr=document.getElementById('pins');
@@ -208,33 +381,56 @@ function init(){
   pr.innerHTML=ph;
   document.querySelectorAll('.pin').forEach(el=>{
     el.addEventListener('click',()=>{fi=parseInt(el.dataset.f)||0;
-      document.getElementById('scrub').value=String(fi);render();});});
+      document.getElementById('scrub').value=String(fi);
+      selected=null;render();});});
   const sc=document.getElementById('scrub');
   sc.max=String(FR.length-1);sc.value=String(fi);
   sc.addEventListener('input',ev=>{
     let v=parseInt(ev.target.value);if(!(v>=0))v=0;
-    fi=Math.min(FR.length-1,v);render();});
-  document.getElementById('g').addEventListener('click',ev=>{
+    fi=Math.min(FR.length-1,v);selected=null;render();});
+  cv.addEventListener('click',ev=>{
     const b=hitBlock(ev.clientX,ev.clientY);
-    if(b)openCard(b,ev.clientX,ev.clientY);
-    else document.getElementById('card').style.display='none';});
+    if(b){selected=b;openCard(b,ev.clientX,ev.clientY);}
+    else{selected=null;
+      document.getElementById('card').style.display='none';}});
+  cv.addEventListener('mousemove',ev=>{
+    hoverEdge=hitEdge(ev.clientX,ev.clientY);});
+  const lb=document.getElementById('legendbtn'),
+    lp=document.getElementById('legendpanel');
+  lb.addEventListener('click',ev=>{
+    if(ev&&ev.stopPropagation)ev.stopPropagation();
+    if(lp.style)lp.style.display=
+      (lp.style.display==='block')?'none':'block';});
+  document.addEventListener('click',ev=>{
+    const tg=ev&&ev.target;
+    if(lp.style&&lp.style.display==='block'&&tg!==lb&&tg!==lp)
+      lp.style.display='none';});
   const hl=document.getElementById('health');
   let hh='';
   for(const f of (DATA.health||[]))
     hh+='<span class=lamp style="background:'+
+      (f.ok?getCss('--up'):getCss('--hot'))+';box-shadow:0 0 3px '+
       (f.ok?getCss('--up'):getCss('--hot'))+'"></span>'+f.feed+' ';
   hl.innerHTML=hh;
   document.getElementById('honesty').textContent=
     'block replay: '+FR.length+' windows, '+V3.block_frames.window+
     'm each; edges shown at 3%+; each card states what its window '+
     'is computed from';
-  let t0=0;
-  function anim(t){
-    const dash=document.querySelectorAll('.flow');
-    dash.forEach(el=>{if(el.style)el.style.strokeDashoffset=
-      String(-(t/60)%16);});
-    requestAnimationFrame(anim);}
+  addEventListener('resize',()=>{resize();draw(lastT);});
+  resize();
   render();
+  function anim(t){
+    lastT=t||0;
+    if(!(document&&document.hidden)){
+      if(!reduced){
+        const dt=Math.min(0.05,Math.max(0,(lastT-(anim.prev||lastT))/1000));
+        anim.prev=lastT;
+        for(const p of parts){
+          const e=edges[p.e];if(!e)continue;
+          p.u+=PARTICLE_SPEED*dt/(e.L||1);
+          if(p.u>=1)p.u-=Math.floor(p.u);}}
+      draw(lastT);}
+    requestAnimationFrame(anim);}
   requestAnimationFrame(anim);}
 init();
 </script>

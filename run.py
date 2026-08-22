@@ -53,6 +53,36 @@ def _raw_shiller(data_dir, col):
     return s
 
 
+def _since_last_bulletin(site):
+    """One line, in words and with no numerals, naming the instruments
+    whose state moved since the last published bulletin. Page only: it
+    is never written into site_data.json or the bulletin."""
+    p = os.path.join(STATE, "prev_states.json")
+    if not os.path.exists(p):
+        return ""
+    prev = json.load(open(p))
+    cur = {n: c["state"] for n, c in site["current"].items()}
+    for n, c in (site.get("network") or {}).get("current", {}).items():
+        cur[n] = c["state"]
+    moved = []
+    for n in sorted(cur):
+        if n in prev and prev[n] != cur[n]:
+            moved.append(f"{n} moved {B.STATE_WORD.get(prev[n], prev[n])}"
+                         f" to {B.STATE_WORD.get(cur[n], cur[n])}")
+    return ("Since last bulletin: "
+            + (", ".join(moved) if moved else "no state changes"))
+
+
+def _og_description(site):
+    """The live banner sentence, worded without numerals."""
+    tail = ("Regime instruments decoded from public data, every "
+            "registered check scored in public.")
+    syn = site.get("synoptic")
+    if syn and syn.get("gate") == "open":
+        return f"Weather system: {syn['current']['word']}. {tail}"
+    return tail
+
+
 def cmd_month(args):
     masked = [args.kill_feed] if args.kill_feed else []
     site, diag = nodes.decode_all(DATA, args.asof, masked=tuple(
@@ -233,12 +263,23 @@ def cmd_month(args):
               sort_keys=True)
     # site build: minimal animated graph as index, full record alongside
     payload = json.dumps(site, sort_keys=True)
+    # Page-only injections. Neither touches site_data.json, the decoders
+    # or the bulletin: they are strings substituted into the templates
+    # at build time so crawlers and the resting view see words rather
+    # than script output.
+    changes_line = _since_last_bulletin(site)
+    og_desc = _og_description(site)
+    import html as _html
     for src, dst in [("graph_v3.html", "index.html"),
                      ("template.html", "report.html")]:
         tpl = open(os.path.join(SITE, src)).read()
-        html = tpl.replace("__DATA__", payload)
-        assert "__DATA__" not in html
-        open(os.path.join(ROOT, dst), "w").write(html)
+        page = tpl.replace("__DATA__", payload)
+        page = page.replace("__CHANGES__", json.dumps(changes_line))
+        page = page.replace("__OGDESC__", _html.escape(og_desc,
+                                                       quote=True))
+        for tok in ("__DATA__", "__CHANGES__", "__OGDESC__"):
+            assert tok not in page, tok
+        open(os.path.join(ROOT, dst), "w").write(page)
     # bulletin
     import re as _re
     published = sorted(f[:-5] for f in os.listdir(BULL)
@@ -281,8 +322,14 @@ def cmd_publish(args):
                     os.path.join(BULL, f"{args.asof}_record.html"))
     shutil.copy(draft, os.path.join(BULL, f"{args.asof}.md"))
     site = json.load(open(os.path.join(STATE, "site_data.json")))
+    states = {n: c["state"] for n, c in site["current"].items()}
+    for n, c in (site.get("network") or {}).get("current", {}).items():
+        states[n] = c["state"]
     json.dump({n: c["state"] for n, c in site["current"].items()},
               open(os.path.join(STATE, "last_states.json"), "w"))
+    # the published month's state map, read by the next month's build
+    # to render the page-only "since last bulletin" line
+    json.dump(states, open(os.path.join(STATE, "prev_states.json"), "w"))
     print(f"published bulletin {no} for {args.asof}: "
           f"bulletins/{args.asof}.html and .md frozen")
 

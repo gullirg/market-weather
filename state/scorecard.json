@@ -888,5 +888,41 @@
   "window": "2026-08",
   "note": "chained before the first yuan decode; rolling_z divides by a rolling standard deviation and the 1995 to 2005 hard peg supplies none; no template, window or check was touched",
   "hash": "c47d5c18824f3fb4"
+ },
+ {
+  "id": "CN1",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "yuan names the 2015-16 devaluation and capital-outflow slide",
+  "window": "held-out",
+  "note": "dominant yuan_weak at share 1.00",
+  "hash": "5400b5030b1cbf73"
+ },
+ {
+  "id": "CN2",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "yuan names the 2020-21 post-Covid appreciation",
+  "window": "held-out",
+  "note": "dominant yuan_strong at share 1.00",
+  "hash": "06027c41ee2d8c31"
+ },
+ {
+  "id": "CN3",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "yuan names the 2022 rate-divergence depreciation",
+  "window": "held-out",
+  "note": "dominant yuan_weak at share 1.00",
+  "hash": "6a17b5b754cdd1a5"
+ },
+ {
+  "id": "JOIN-yuan",
+  "group": "network membership, rule: 2 of 3",
+  "status": "hit",
+  "claim": "yuan joins the public network",
+  "window": "2026-08",
+  "note": "3 of 3 registered checks, decoded from 2006 per REG-yuan-2006",
+  "hash": "641a9e3c87a1d720"
  }
 ]

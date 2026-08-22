@@ -1149,5 +1149,14 @@
   "window": "2026-08",
   "note": "3 of 3 registered checks, registered as REG-claims before the scored run",
   "hash": "09fd2766b7a15e00"
+ },
+ {
+  "id": "REG-G12",
+  "group": "registration, recorded before estimation",
+  "status": "note",
+  "claim": "the daily oil clock is registered as its own instrument: business-day grid, filtered causal decode, features mom 63bd real Brent momentum, rv 21bd realized volatility, ovx daily level masked before 2007-05, inv monthly crude stocks ex-SPR carried forward causally, all z-scored on a rolling 2520-day window with a 504-day minimum; four family-level states calm, boom, fear and downturn with fixed templates and stay probability 0.995; nothing fitted",
+  "window": "2026-08",
+  "note": "three held-out checks fixed before any estimation of this instrument: D1 episode capture within 25 business days for at least 4 of the 5 pinned episodes with families 1990-08 fear, 2008-10 downturn, 2014-11 downturn, 2020-03 downturn, 2026-03 fear; D2 at most 6 family flips per decade outside the pinned months and their 3-month halos; D3 median family run length at least 40 business days; public gate registered as D1 and D2 both hit, otherwise the daily clock stays shadow permanently on this architecture; agreement with the monthly clock is not retried in any form",
+  "hash": "1303beee0971a9a5"
  }
 ]

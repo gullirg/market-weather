@@ -879,5 +879,14 @@
   "window": "2026-08",
   "note": "3 of 3 registered checks",
   "hash": "4c5e6ed07e6ca0f2"
+ },
+ {
+  "id": "REG-yuan-2006",
+  "group": "registration, recorded before estimation",
+  "status": "note",
+  "claim": "the registered yuan construction, EXCHUS from 2006 only with the pre-reform peg excluded, is now enforced in the build rather than only stated in the docstring",
+  "window": "2026-08",
+  "note": "chained before the first yuan decode; rolling_z divides by a rolling standard deviation and the 1995 to 2005 hard peg supplies none; no template, window or check was touched",
+  "hash": "c47d5c18824f3fb4"
  }
 ]

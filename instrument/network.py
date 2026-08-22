@@ -72,7 +72,9 @@ Awaiting (spec complete, CSV absent): yen EXJPUS (sign flipped so up
   2013-05 yen_weak dom, JP3 2022-03..2022-10 yen_weak dom); yuan
   EXCHUS from 2006 only, pre-reform peg excluded by construction
   (CN1 2015-08..2016-12 yuan_weak dom, CN2 2020-07..2021-05
-  yuan_strong dom, CN3 2022-04..2022-10 yuan_weak dom); sterling
+  yuan_strong dom, CN3 2022-04..2022-10 yuan_weak dom); the 2006
+  start is enforced in build by YUAN_START, since a decade of hard
+  peg has no dispersion for rolling_z to divide by; sterling
   EXUSUK (GB1 2008-08..2009-01 gbp_weak dom, GB2 2016-06..2016-10
   gbp_weak dom, GB3 2022-09 gbp_weak present).
 
@@ -91,6 +93,8 @@ import pandas as pd
 
 from instrument.hmm import TemplateHMM, rolling_z
 from instrument import nodes
+
+YUAN_START = pd.Period("2006-01", "M")
 
 CODES = {"calm": 0, "boom": 1, "steepening": 1, "reflation": 1,
          "expansion": 1, "em_bid": 1, "real_easing": 2, "bust": 2,
@@ -213,11 +217,13 @@ REGISTRY = {
         "checks": [("JP1", "2008-09", "2009-01", "yen_strong", "dom"), ("JP2", "2012-11", "2013-05", "yen_weak", "dom"), ("JP3", "2022-03", "2022-10", "yen_weak", "dom")]},
     "yuan": {
         "block": "fx",
+        # registered above as "EXCHUS from 2006 only, pre-reform peg
+        # excluded by construction"; the slice enforces that clause.
         "build": lambda F, defl: pd.DataFrame({
-            "m3": rolling_z((-100 * np.log(F["_yuan"])).diff(3),
-                            120, 24),
-            "m12": rolling_z((-100 * np.log(F["_yuan"]))
-                             .diff(12), 120, 24)}),
+            "m3": rolling_z((-100 * np.log(
+                F["_yuan"].loc[YUAN_START:])).diff(3), 120, 24),
+            "m12": rolling_z((-100 * np.log(
+                F["_yuan"].loc[YUAN_START:])).diff(12), 120, 24)}),
         "needs": ["yuan.csv"],
         "states": ["calm", "yuan_strong",
                    "yuan_weak"],

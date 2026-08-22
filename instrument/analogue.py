@@ -21,10 +21,16 @@ Registered check, scored once, published as it falls:
 import numpy as np
 import pandas as pd
 
+# The registered rule is "oil weight 2, others 1, synoptic 1.5". This
+# map is the roster at weight 1; any node not listed is an "other" and
+# takes the registered default, so the panel can grow without the
+# similarity rule changing.
+OTHER_W = 1.0
 W = {"oil": 2.0, "gas": 1.0, "dollar": 1.0, "credit": 1.0,
      "curve": 1.0, "real_yield": 1.0, "breakevens": 1.0, "copper": 1.0,
      "coal": 1.0, "uranium": 1.0, "euro": 1.0, "yen": 1.0,
-     "yuan": 1.0, "sterling": 1.0,
+     "yuan": 1.0, "sterling": 1.0, "em_dollar": 1.0, "activity": 1.0,
+     "housing": 1.0, "money": 1.0,
      "inflation": 1.0, "equities": 1.0, "gold": 1.0, "synoptic": 1.5}
 
 
@@ -42,7 +48,7 @@ def similarity(tab, i, j):
         a, b = tab.iloc[i][n], tab.iloc[j][n]
         if not (isinstance(a, str) and isinstance(b, str)):
             continue
-        w = W[n]
+        w = W.get(n, OTHER_W)
         tot += w
         if a == b:
             got += w

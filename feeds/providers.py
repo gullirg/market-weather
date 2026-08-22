@@ -31,6 +31,27 @@ def fred_json_to_series(payload, col, freq="m"):
     return pd.Series(vals, index=idx, name=col)
 
 
+def fred_csv_to_series(text, col, freq="m"):
+    """Parse the fredgraph.csv download shape into a monthly series.
+
+    Two columns, `observation_date` and the FRED series id, with "."
+    for a missing observation. Daily and weekly series are collapsed
+    to monthly means, matching fred_json_to_series."""
+    import io
+    df = pd.read_csv(io.StringIO(text))
+    df.columns = [c.strip() for c in df.columns]
+    datec, valc = df.columns[0], df.columns[1]
+    vals = pd.to_numeric(df[valc].astype(str).str.strip()
+                         .replace(".", "nan"), errors="coerce")
+    idx = pd.to_datetime(df[datec])
+    s = pd.Series(vals.to_numpy(float), index=idx, name=col)
+    if freq in ("d", "w"):
+        s = s.dropna()
+        return s.groupby(s.index.to_period("M")).mean().rename(col)
+    s.index = idx.dt.to_period("M")
+    return s.rename(col)
+
+
 def jodi_csv_to_series(text, country="TOTAL", product="CRUDEOIL",
                        flow="TOTPROD"):
     """Parse a JODI world primary CSV extract into a monthly series."""

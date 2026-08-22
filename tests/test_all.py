@@ -181,6 +181,21 @@ def test_fred_daily_fixture_aggregates_monthly():
     assert s.loc[pd.Period("2026-07", "M")] == 32.0
 
 
+def test_fred_csv_fixture_parses_and_aggregates():
+    """The fredgraph.csv download shape: monthly passes through, weekly
+    and daily collapse to monthly means, "." becomes NaN."""
+    monthly = ("observation_date,EXJPUS\n1971-01-01,358.0200\n"
+               "1971-02-01,357.5450\n1971-03-01,.\n")
+    s = providers.fred_csv_to_series(monthly, "yen")
+    assert len(s) == 3 and s.iloc[0] == 358.02
+    assert s.index[1] == pd.Period("1971-02", "M") and pd.isna(s.iloc[2])
+    weekly = ("observation_date,WEI\n2026-07-04,2.0\n2026-07-11,4.0\n"
+              "2026-08-01,9.0\n")
+    w = providers.fred_csv_to_series(weekly, "wei", "w")
+    assert w.loc[pd.Period("2026-07", "M")] == 3.0
+    assert w.loc[pd.Period("2026-08", "M")] == 9.0
+
+
 def test_jodi_and_cot_fixtures_parse():
     jodi = ("REF_AREA,ENERGY_PRODUCT,FLOW_BREAKDOWN,TIME_PERIOD,"
             "OBS_VALUE\nTOTAL,CRUDEOIL,TOTPROD,2026-06,76000\n"

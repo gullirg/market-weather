@@ -996,5 +996,77 @@
   "window": "2026-08",
   "note": "3 of 3 registered checks, index begins 2006 so decoding begins 2008-03",
   "hash": "a5c0417497a91efa"
+ },
+ {
+  "id": "AC1",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "weekly activity names the 2020 Covid contraction",
+  "window": "held-out",
+  "note": "dominant contraction at share 1.00",
+  "hash": "3c5ddd741bb9268e"
+ },
+ {
+  "id": "AC2",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "weekly activity names the 2021 reopening expansion",
+  "window": "held-out",
+  "note": "dominant expansion at share 1.00",
+  "hash": "a1a37ec48b63f9f5"
+ },
+ {
+  "id": "AC3",
+  "group": "network membership checks, registered before estimation",
+  "status": "miss",
+  "claim": "weekly activity names the 2008-09 recession contraction",
+  "window": "held-out",
+  "note": "no data in window, scored not-hit: WEI begins 2008-01 and the registered rolling windows put the first decoded print at 2009-12",
+  "hash": "0ff05359dcacb1f2"
+ },
+ {
+  "id": "JOIN-activity",
+  "group": "network membership, rule: 2 of 3",
+  "status": "hit",
+  "claim": "activity joins the public network",
+  "window": "2026-08",
+  "note": "2 of 3 registered checks, AC3 predates the series",
+  "hash": "817746c4f6c3f51c"
+ },
+ {
+  "id": "HS1",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "housing starts name the 2006-09 housing bust",
+  "window": "held-out",
+  "note": "dominant bust at share 0.97",
+  "hash": "0a404ca6f5439f24"
+ },
+ {
+  "id": "HS2",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "housing starts see the April 2020 Covid stop",
+  "window": "held-out",
+  "note": "present at share 1.00, dominant bust",
+  "hash": "c6ca82e5140e2aba"
+ },
+ {
+  "id": "HS3",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "housing starts see the 2012-13 recovery boom",
+  "window": "held-out",
+  "note": "present at share 1.00, dominant boom",
+  "hash": "66fbd50884665d7a"
+ },
+ {
+  "id": "JOIN-housing",
+  "group": "network membership, rule: 2 of 3",
+  "status": "hit",
+  "claim": "housing joins the public network",
+  "window": "2026-08",
+  "note": "3 of 3 registered checks",
+  "hash": "a2d776a350bcf0e6"
  }
 ]

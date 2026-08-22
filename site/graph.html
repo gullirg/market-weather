@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Market Weather Report</title>
+<style>
+  :root{
+    --bg:#060809; --ink:#E8EAED; --dim:#8B939A; --faint:#3A4046;
+    --line:#171C20; --mono:'JetBrains Mono',ui-monospace,monospace;
+    --calm:#495158; --up:#3FB950; --down:#58A6FF; --hot:#F85149;
+    --glut:#F0883E; --fear:#A371F7;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{background:var(--bg);color:var(--ink);
+    font:15px/1.55 Inter,-apple-system,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased}
+  a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--faint)}
+  a:hover{color:var(--ink)}
+  .wrap{max-width:980px;margin:0 auto;padding:34px 22px 60px}
+  header{display:flex;justify-content:space-between;align-items:baseline;
+    border-bottom:1px solid var(--line);padding-bottom:14px}
+  .wordmark{font-weight:650;letter-spacing:.01em}
+  .wordmark span{color:var(--dim);font-weight:400}
+  .issued{font-family:var(--mono);font-size:11.5px;color:var(--dim)}
+  .syn{margin:22px 0 4px;font-size:21px;font-weight:550;letter-spacing:-.01em}
+  .syn b{font-weight:550}
+  .subsyn{color:var(--dim);font-size:13.5px}
+  #graphbox{position:relative;margin:10px 0 0}
+  canvas{display:block;width:100%;height:auto}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:2px;
+    font-size:11.5px;color:var(--dim)}
+  .legend i{display:inline-block;width:8px;height:8px;border-radius:50%;
+    margin-right:5px;vertical-align:0}
+  .foot{margin-top:26px;border-top:1px solid var(--line);padding-top:14px;
+    display:flex;flex-wrap:wrap;gap:8px 26px;align-items:baseline;
+    font-size:12.5px;color:var(--dim)}
+  .foot .rec{font-family:var(--mono);font-size:11.5px}
+  .foot .rec b{color:var(--ink);font-weight:600}
+  .note{font-size:11.5px;color:var(--faint);margin-top:10px}
+  #card{position:absolute;display:none;width:280px;background:#0E1113;
+    border:1px solid var(--line);border-radius:10px;padding:14px 16px;
+    box-shadow:0 12px 40px rgba(0,0,0,.55);z-index:5}
+  #card.on{display:block}
+  #card h3{font-size:13px;font-weight:650;letter-spacing:.02em}
+  #card .st{font-size:12.5px;font-weight:600;margin-top:1px}
+  #card .meta{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+  #card p{font-size:12.5px;color:var(--ink);margin:8px 0 10px;line-height:1.5}
+  #card .mini{display:flex;gap:2px;margin:4px 0 10px}
+  #card .mini i{flex:1;height:10px;border-radius:2px;display:block}
+  #card .k{font-size:10px;color:var(--faint);text-transform:uppercase;
+    letter-spacing:.08em;margin-top:8px}
+  #card .fl{font-family:var(--mono);font-size:11px;color:var(--dim);
+    line-height:1.7}
+  #card .fl b{color:var(--ink);font-weight:600}
+  #card .x{position:absolute;top:8px;right:12px;color:var(--faint);
+    cursor:pointer;font-size:14px}
+  #card .x:hover{color:var(--ink)}
+  .scrub{display:flex;align-items:center;gap:12px;margin-top:6px}
+  .scrub input[type=range]{flex:1;appearance:none;height:3px;
+    background:var(--line);border-radius:2px;outline:none}
+  .scrub input[type=range]::-webkit-slider-thumb{appearance:none;
+    width:13px;height:13px;border-radius:50%;background:var(--ink);
+    cursor:pointer}
+  .scrub .mo{font-family:var(--mono);font-size:11.5px;color:var(--dim);
+    min-width:118px;text-align:right}
+  .scrub .mo b{color:var(--ink);font-weight:600}
+  .evt{font-size:11px;color:var(--fear);min-height:15px;margin-top:2px;
+    font-family:var(--mono)}
+  .lights{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+  .lights i{width:7px;height:7px;border-radius:50%;display:inline-block}
+  @media(max-width:640px){.syn{font-size:18px}
+    #card{position:fixed;left:10px;right:10px;bottom:10px;top:auto;
+      width:auto;transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="wordmark">The Market Weather Report <span>· a scored instrument</span></div>
+    <div class="issued" id="issued"></div>
+  </header>
+  <div class="syn" id="syn"></div>
+  <div class="subsyn" id="subsyn"></div>
+  <div id="graphbox"><canvas id="g" width="1960" height="1210"></canvas><div id="card"></div></div>
+  <div class="legend" id="legend"></div>
+  <div class="scrub">
+    <input type="range" id="scrub" min="0" max="1" value="1" step="1">
+    <div class="mo" id="scrubmo"></div>
+  </div>
+  <div class="evt" id="evt"></div>
+  <div class="note">Arrows carry share of a market's variance explained by the
+    sender, estimated 1999 to 2026 across all seven instruments; the dollar
+    enters with its 1973-spliced history. Edges of four per cent and above
+    shown. Node size and pulse follow the instrument's confidence.</div>
+  <div class="foot">
+    <div class="rec" id="rec"></div>
+    <div><a href="bulletins/">bulletins</a></div>
+    <div><a href="report.html">full record and methods</a></div>
+    <div>history, not forecasts · not investment advice</div>
+    <div class="lights" id="lights" title="feed health"></div>
+  </div>
+</div>
+<script>
+const DATA = __DATA__;
+
+const COLOR = {calm:getCss('--calm'), boom:getCss('--up'), rally:getCss('--up'),
+  real_rate_bid:getCss('--up'), collapse:getCss('--down'), stress:getCss('--down'),
+  easing:getCss('--down'), selloff:getCss('--down'), usd_down:getCss('--down'),
+  squeeze:getCss('--hot'), surge:getCss('--hot'), usd_up:getCss('--hot'),
+  glut:getCss('--glut'), precautionary:getCss('--fear'), fear_bid:getCss('--fear'),
+  correction:getCss('--fear'), no_data:getCss('--faint')};
+const WORD = {calm:'calm', boom:'demand boom', rally:'rally',
+  real_rate_bid:'real-rate bid', collapse:'demand collapse', stress:'stress',
+  easing:'easing', selloff:'selloff', usd_down:'dollar down', squeeze:'supply squeeze',
+  surge:'surge', usd_up:'dollar up', glut:'glut', precautionary:'hoarding',
+  fear_bid:'fear bid', correction:'correction', no_data:'feed down'};
+function getCss(v){return getComputedStyle(document.documentElement)
+  .getPropertyValue(v).trim();}
+
+// fixed layout, 980x605 logical
+const P = {oil:[300,305], gas:[175,470], inflation:[655,305],
+  equities:[625,155], gold:[845,455], dollar:[165,140], credit:[860,170]};
+const LABEL_SIDE = {oil:'left', gas:'left', inflation:'right', equities:'top',
+  gold:'right', dollar:'left', credit:'right'};
+
+const cur = DATA.current;
+const nodes = Object.keys(P).filter(n=>cur[n]);
+const EDGE_MIN = 4.0;
+const edges = Object.entries(DATA.spill||{})
+  .map(([k,v])=>{const [a,b]=k.split('->');return {a,b,v};})
+  .filter(e=>e.v>=EDGE_MIN && P[e.a] && P[e.b])
+  .sort((x,y)=>y.v-x.v);
+
+// synopsis assembled from data only
+const calmish = nodes.filter(n=>cur[n].state==='calm').length;
+const oilw = WORD[cur.oil.state]||cur.oil.state;
+document.getElementById('syn').innerHTML =
+  `Oil in <b style="color:${COLOR[cur.oil.state]}">${oilw}</b>.`;
+document.getElementById('subsyn').textContent =
+  `${calmish} of ${nodes.length} instruments calm. Data to ${DATA.months[DATA.months.length-1]}.`;
+if(DATA.synoptic&&DATA.synoptic.gate==='open'){
+  const SYNCOLOR={risk_on_calm:'--up',financial_stress:'--down',
+    demand_collapse:'--down',inflation_shock:'--hot',
+    commodity_shock:'--fear',post_shock_glut:'--glut'};
+  document.getElementById('syn').innerHTML='Weather system: <b style="color:'+
+    getCss(SYNCOLOR[DATA.synoptic.current.state]||'--calm')+'">'+
+    DATA.synoptic.current.word+'</b>.';
+}
+document.getElementById('issued').textContent =
+  (DATA.issued? 'issued '+DATA.issued : '');
+if (DATA.score){
+  const s = DATA.score;
+  document.getElementById('rec').innerHTML =
+    `record <b>${s.hit}</b> hits · <b>${s.miss}</b> misses · ` +
+    `<b>${s.fail}</b> failed upgrades · <b>${s.pending}</b> pending`;
+}
+const LEG = [['calm','calm'],['boom, rally','boom'],['collapse, stress, selloff','stress'],
+  ['squeeze, surge','squeeze'],['glut','glut'],['fear, correction','correction']];
+document.getElementById('legend').innerHTML = LEG.map(([t,s])=>
+  `<span><i style="background:${COLOR[s]||COLOR.calm}"></i>${t}</span>`).join('');
+
+// ------------------------------------------------ canvas animation
+const cv = document.getElementById('g'), cx = cv.getContext('2d');
+const W = 980, H = 605, DPR = 2;
+function edgePath(e){
+  const [x1,y1]=P[e.a], [x2,y2]=P[e.b];
+  const mx=(x1+x2)/2, my=(y1+y2)/2;
+  const dx=x2-x1, dy=y2-y1, L=Math.hypot(dx,dy);
+  const bend = 30 * (e.a<e.b?1:-1);
+  return {x1,y1,x2,y2,cxp:mx-dy/L*bend,cyp:my+dx/L*bend};
+}
+function qpoint(p,t){
+  const a=(1-t)*(1-t), b=2*(1-t)*t, c=t*t;
+  return [a*p.x1+b*p.cxp+c*p.x2, a*p.y1+b*p.cyp+c*p.y2];
+}
+// paths are initialized after the scrubber block below
+let sel=null;
+const M=DATA.months, LAST=M.length-1;
+let scrubIdx=LAST;
+const FRAMES=(DATA.frames||[]).map(f=>({i:M.indexOf(f.end),spill:f.spill}))
+  .filter(f=>f.i>=0).sort((a,b)=>a.i-b.i);
+const FAMWORD={0:'calm',1:'boom · rally',2:'stress · easing',
+  3:'squeeze · surge',4:'glut',5:'fear · correction'};
+const CMAPI={0:getCss('--calm'),1:getCss('--up'),2:getCss('--down'),
+  3:getCss('--hot'),4:getCss('--glut'),5:getCss('--fear')};
+const EVENTS={'1990-08':'Gulf war (A1)','1997-10':'Asia crisis (A8)',
+  '2002-12':'Venezuela strike (A2)','2008-09':'Global financial crisis (A4)',
+  '2011-02':'Libya, the standing miss (A5)','2014-11':'OPEC opens the taps (A6)',
+  '2020-03':'Covid (A7)','2021-10':'Inflation surge (C-21)',
+  '2026-03':'Hormuz war, called live (B1)'};
+function frameFor(i){let best=null;
+  for(const f of FRAMES){if(f.i<=i)best=f;else break;}
+  return best;}
+function edgesAt(i){
+  const src=(i>=LAST||!FRAMES.length)?DATA.spill:(frameFor(i)?frameFor(i).spill:null);
+  if(!src)return [];
+  return Object.entries(src).map(([k,v])=>{const [a,b]=k.split('->');
+    return {a,b,v};}).filter(e=>e.v>=EDGE_MIN&&P[e.a]&&P[e.b])
+    .sort((x,y)=>y.v-x.v);
+}
+let livePaths=null;
+function rebuildPaths(i){
+  livePaths=edgesAt(i).map(e=>({...e,p:edgePath(e),
+    dots:Math.max(2,Math.round(e.v/2.2)),speed:.0022+e.v*.00012,
+    phase:Math.random()}));
+}
+const scrubEl=document.getElementById('scrub');
+scrubEl.max=LAST; scrubEl.value=LAST;
+const scrubMo=document.getElementById('scrubmo');
+const evtEl=document.getElementById('evt');
+function setScrub(i){
+  scrubIdx=i; hideCard(); rebuildPaths(i);
+  scrubMo.innerHTML=(i>=LAST?'<b>now</b> · '+M[LAST]:'<b>'+M[i]+'</b>');
+  let ev='';
+  for(let d=-1;d<=1;d++){const k=M[i+d];if(k&&EVENTS[k]){ev=M[i+d]+' · '+EVENTS[k];}}
+  evtEl.textContent=(i<LAST?ev:'');
+}
+scrubEl.addEventListener('input',e=>setScrub(+e.target.value));
+const BLURB={
+ oil:"The war squeeze has unwound into oversupply; the classic hangover after a panic.",
+ gas:"Quiet and mildly disinflationary; a bystander through the oil war.",
+ dollar:"Soft through the war, an unusual absence of the safe-haven bid, quietly supportive of commodity prices.",
+ credit:"Never blinked; spreads at the calm end of their range. The war stayed a commodity story.",
+ inflation:"Watching underlying inflation on live data. The pump price jumped; the core slept.",
+ equities:"A shallow correction in the war months, then a strong rally; the upgraded instrument names both.",
+ gold:"Unwinding the fear trade that front-ran the war, pressured by rising real yields."};
+const card=document.getElementById('card');
+function edgesOf(n,dir){
+  return Object.entries(DATA.spill||{})
+    .map(([k,v])=>{const [a,b]=k.split('->');return {a,b,v};})
+    .filter(e=>dir==='out'? e.a===n : e.b===n)
+    .sort((x,y)=>y.v-x.v).slice(0,3);
+}
+function mini(n){
+  const codes=DATA.strip[n].slice(-12);
+  const CMAP={0:getCss('--calm'),1:getCss('--up'),2:getCss('--down'),
+    3:getCss('--hot'),4:getCss('--glut'),5:getCss('--fear')};
+  return codes.map(c=>'<i style="background:'+(c<0?'#14181B':CMAP[c])+'"></i>').join('');
+}
+function showCard(n){
+  sel=n;
+  const c=cur[n], col=COLOR[c.state]||'#666';
+  const out=edgesOf(n,'out').map(e=>'<b>'+e.v.toFixed(0)+'%</b> to '+e.b).join(' &nbsp; ');
+  const inn=edgesOf(n,'in').map(e=>'<b>'+e.v.toFixed(0)+'%</b> from '+e.a).join(' &nbsp; ');
+  card.innerHTML='<span class="x">&times;</span>'+
+    '<h3>'+n.toUpperCase()+'</h3>'+
+    '<div class="st" style="color:'+col+'">'+(WORD[c.state]||c.state)+'</div>'+
+    '<div class="meta">'+Math.round(c.prob*100)+'% confidence &middot; as of '+c.asof+'</div>'+
+    '<p>'+(BLURB[n]||'')+'</p>'+
+    '<div class="k">last twelve months</div><div class="mini">'+mini(n)+'</div>'+
+    (out?'<div class="k">sends</div><div class="fl">'+out+'</div>':'')+
+    (inn?'<div class="k">takes</div><div class="fl">'+inn+'</div>':'');
+  const [x,y]=P[n], box=document.getElementById('graphbox');
+  const px=x/980*100, py=y/605*100;
+  card.style.left = (x>560? 'auto' : 'calc('+px+'% + 30px)');
+  card.style.right = (x>560? 'calc('+(100-px)+'% + 30px)' : 'auto');
+  card.style.top = 'min(calc('+py+'% - 40px), calc(100% - 240px))';
+  card.classList.add('on');
+  card.querySelector('.x').onclick=(ev)=>{ev.stopPropagation();hideCard();};
+}
+function hideCard(){sel=null;card.classList.remove('on');}
+cv.addEventListener('click',ev=>{
+  const r=cv.getBoundingClientRect();
+  const mx=(ev.clientX-r.left)*980/r.width, my=(ev.clientY-r.top)*605/r.height;
+  let hit=null;
+  for(const n of nodes){const [x,y]=P[n];
+    if(Math.hypot(mx-x,my-y)<15+16*cur[n].prob+8) hit=n;}
+  if(hit&&scrubIdx>=LAST) showCard(hit); else hideCard();
+});
+if(DATA.health){
+  document.getElementById('lights').innerHTML='feeds '+DATA.health.map(h=>
+    '<i title="'+h.feed+'" style="background:'+
+    (h.ok?getCss('--up'):getCss('--hot'))+'"></i>').join('');
+}
+let t0=performance.now();
+function draw(now){
+  const t=(now-t0)/1000;
+  cx.setTransform(DPR,0,0,DPR,0,0);
+  cx.clearRect(0,0,W,H);
+  cx.globalAlpha=1;
+  // edges
+  for(const e of (livePaths||[])){
+    const col = COLOR[cur[e.a].state]||'#666';
+    const dimmed = sel && e.a!==sel && e.b!==sel;
+    cx.globalAlpha = dimmed? .12 : 1;
+    cx.strokeStyle = 'rgba(139,147,154,'+(0.10+e.v/140)+')';
+    cx.lineWidth = 0.8 + e.v/9;
+    cx.beginPath(); cx.moveTo(e.p.x1,e.p.y1);
+    cx.quadraticCurveTo(e.p.cxp,e.p.cyp,e.p.x2,e.p.y2); cx.stroke();
+    // flowing information
+    for(let i=0;i<e.dots;i++){
+      const u=((t*e.speed*60)+(i/e.dots)+e.phase)%1;
+      const [x,y]=qpoint(e.p,u);
+      cx.globalAlpha = (dimmed? .06 : .25+.6*Math.sin(Math.PI*u));
+      cx.fillStyle = col;
+      cx.beginPath(); cx.arc(x,y,1.4+e.v/22,0,7); cx.fill();
+      cx.globalAlpha = 1;
+    }
+    // numeric label at midpoint
+    const [mx,my]=qpoint(e.p,.5);
+    cx.font='10.5px JetBrains Mono,monospace';
+    cx.fillStyle='rgba(139,147,154,'+(dimmed? .15 : .85)+')';
+    cx.textAlign='center';
+    cx.fillText(e.v.toFixed(0)+'%', mx, my-6);
+  }
+  // nodes
+  cx.textAlign='left';
+  for(const n of nodes){
+    const [x,y]=P[n];
+    const hist=scrubIdx<LAST;
+    const code=hist?DATA.strip[n][scrubIdx]:null;
+    const c=cur[n];
+    const col=hist?(code>=0?CMAPI[code]:getCss('--faint')):(COLOR[c.state]||'#666');
+    const base=hist?24:15+16*c.prob;
+    const pulse=1+.10*Math.sin(t*2.1+x*.05);
+    // glow
+    const g=cx.createRadialGradient(x,y,base*.3,x,y,base*2.5*pulse);
+    g.addColorStop(0,col+'55'); g.addColorStop(1,col+'00');
+    cx.fillStyle=g;
+    cx.beginPath(); cx.arc(x,y,base*2.5*pulse,0,7); cx.fill();
+    // ring + core
+    cx.strokeStyle=col; cx.lineWidth=(sel===n? 2.6 : 1.4);
+    cx.beginPath(); cx.arc(x,y,base*pulse,0,7); cx.stroke();
+    cx.fillStyle=col;
+    cx.beginPath(); cx.arc(x,y,base*.42,0,7); cx.fill();
+    // labels
+    const side=LABEL_SIDE[n];
+    const hist2=scrubIdx<LAST;
+    const code2=hist2?DATA.strip[n][scrubIdx]:null;
+    const name=n.toUpperCase();
+    const word=hist2?(code2>=0?FAMWORD[code2]:'no data')
+      :(WORD[cur[n].state]||cur[n].state);
+    const info=hist2?M[scrubIdx]
+      :(Math.round(cur[n].prob*100)+'% · '+cur[n].asof);
+    let lx=x, ly=y, align='left';
+    if(side==='left'){lx=x-base*2.6-8; align='right';}
+    if(side==='right'){lx=x+base*2.6+8;}
+    if(side==='top'){ly=y-base*2.7-24; lx=x; align='center';}
+    cx.textAlign=align;
+    cx.font='600 12.5px Inter,sans-serif'; cx.fillStyle='#E8EAED';
+    cx.fillText(name, lx, ly-8);
+    cx.font='600 12px Inter,sans-serif'; cx.fillStyle=col;
+    cx.fillText(word, lx, ly+7);
+    cx.font='10.5px JetBrains Mono,monospace'; cx.fillStyle='#8B939A';
+    cx.fillText(info, lx, ly+21);
+  }
+  requestAnimationFrame(draw);
+}
+rebuildPaths(LAST); setScrub(LAST);
+requestAnimationFrame(draw);
+</script>
+
+<div id=netbtn style="position:fixed;top:14px;right:14px;z-index:60;
+ font:600 11px system-ui;letter-spacing:.12em;color:#8b93a7;cursor:pointer;
+ border:1px solid #2a3040;border-radius:20px;padding:6px 14px;
+ background:rgba(14,17,24,.85)">NETWORK</div>
+<div id=netview style="display:none;position:fixed;inset:0;z-index:50;
+ background:#0e1118;overflow:hidden"></div>
+<script>
+(function(){
+const NB=document.getElementById('netbtn'),NV=document.getElementById('netview');
+let on=false;
+function famColor(st){
+ const F={calm:'#5b6478',boom:'#37c98b',expansion:'#37c98b',reflation:'#37c98b',
+  steepening:'#37c98b',em_bid:'#37c98b',rally:'#37c98b',
+  bust:'#e05555',contraction:'#e05555',deflation_scare:'#e05555',
+  demand_collapse:'#e05555',selloff:'#e05555',real_easing:'#6ea8ff',
+  supply_glut:'#e08b3c',inversion:'#c86bd8',real_tightening:'#e0c23c',
+  em_stress:'#e0c23c',supply_squeeze:'#e05555',precautionary:'#e0a03c',
+  surge:'#e05555',stress:'#e05555',fear_bid:'#e0c23c',correction:'#e0a03c'};
+ return F[st]||'#5b6478';}
+function render(){
+ const N=DATA.network; if(!N){NV.innerHTML='<div style="color:#8b93a7;padding:40px;font:13px system-ui">Network layer unavailable.</div>';return;}
+ const blocks=(N.blocks&&N.blocks.blocks)||[];
+ const P={energy:[0.50,0.16],rates_expectations:[0.82,0.38],credit:[0.76,0.74],
+  fx:[0.24,0.74],equities:[0.50,0.90],metals:[0.18,0.38],
+  activity:[0.10,0.12],liquidity:[0.90,0.12]};
+ const MEM={energy:['oil','gas'],rates_expectations:['curve','real_yield','breakevens','inflation'],
+  credit:['credit'],fx:['dollar','em_dollar'],equities:['equities'],
+  metals:['gold','copper'],activity:['activity','housing'],liquidity:['money']};
+ function stOf(m){
+  if(DATA.current[m])return{s:DATA.current[m].state,p:DATA.current[m].prob};
+  if(N.current[m])return{s:N.current[m].state,p:N.current[m].prob};
+  return null;}
+ function blockState(b){
+  let best=null;
+  for(const m of MEM[b]||[]){const st=stOf(m);
+   if(st&&st.s!=='calm'&&(!best||st.p>best.p))best={m:m,...st};}
+  return best;}
+ const W=NV.clientWidth||innerWidth,H=NV.clientHeight||innerHeight;
+ let svg='<svg width="'+W+'" height="'+H+'" style="position:absolute;inset:0">';
+ const eg=(N.blocks&&N.blocks.edges)||[];
+ for(const e of eg){
+  const a=P[e.src],b=P[e.dst];if(!a||!b)continue;
+  const w=Math.min(5,.6+e.pct/8);
+  svg+='<line x1="'+a[0]*W+'" y1="'+a[1]*H+'" x2="'+b[0]*W+'" y2="'+
+   b[1]*H+'" stroke="#39415a" stroke-opacity="0.5" stroke-width="'+w+'"/>';
+  const mx=(a[0]*.4+b[0]*.6)*W,my=(a[1]*.4+b[1]*.6)*H;
+  svg+='<text x="'+mx+'" y="'+my+'" fill="#8b93a7" font-size="9" '+
+   'font-family="system-ui" text-anchor="middle">'+e.pct+'%</text>';}
+ svg+='</svg>';
+ let nodes='';
+ for(const b of blocks.concat(['activity','liquidity'].filter(x=>!blocks.includes(x)))){
+  const p=P[b];if(!p)continue;
+  const live=blocks.includes(b);
+  const bs=live?blockState(b):null;
+  const col=live?(bs?famColor(bs.s):'#5b6478'):'#2a3040';
+  const lab=b.replace('_',' &amp; ').replace('rates &amp; expectations','rates');
+  nodes+='<div class=bnode data-b="'+b+'" style="position:absolute;left:'+
+   (p[0]*100)+'%;top:'+(p[1]*100)+'%;transform:translate(-50%,-50%);'+
+   'width:86px;height:86px;border-radius:50%;background:radial-gradient(circle,'+
+   col+'33,'+col+'11);border:2px '+(live?'solid':'dashed')+' '+col+
+   ';display:flex;align-items:center;justify-content:center;cursor:pointer;'+
+   'font:600 10px system-ui;color:#dfe4f2;text-align:center;letter-spacing:.06em">'+
+   lab.toUpperCase()+'</div>';}
+ NV.innerHTML=svg+nodes+
+  '<div style="position:absolute;left:16px;top:14px;color:#dfe4f2;'+
+  'font:600 12px system-ui;letter-spacing:.14em">THE NETWORK <span style="color:#5b6478">'+
+  '&nbsp;blocks at rest, capillaries on tap</span></div>'+
+  '<div style="position:absolute;left:16px;bottom:12px;color:#5b6478;'+
+  'font:11px system-ui;max-width:75%">Block spillovers 1990-2026. Dashed blocks await their data. '+
+  'Instrument map: '+((N.sparse&&N.sparse.edges)||[]).length+
+  ' stability-selected edges over '+((N.sparse&&N.sparse.windows)||0)+' rolling windows.</div>'+
+  '<div id=bcard style="display:none;position:absolute;z-index:70;'+
+  'background:#141826;border:1px solid #2a3040;border-radius:12px;'+
+  'padding:12px 14px;min-width:190px;color:#dfe4f2;font:12px system-ui"></div>';
+ NV.querySelectorAll('.bnode').forEach(el=>{
+  el.onclick=ev=>{ev.stopPropagation();
+   const b=el.dataset.b,c=NV.querySelector('#bcard');
+   let h='<b style="letter-spacing:.1em">'+b.replace('_',' ').toUpperCase()+'</b><br>';
+   for(const m of MEM[b]||[]){const st=stOf(m);
+    if(st){h+='<span style="color:'+famColor(st.s)+'">&#9679;</span> '+m+
+     ' &mdash; '+st.s.replace('_',' ')+' ('+st.p.toFixed(2)+')<br>';}
+    else{h+='<span style="color:#2a3040">&#9675;</span> '+m+
+     ' &mdash; awaiting data<br>';}}
+   c.innerHTML=h;
+   c.style.display='block';
+   const r=el.getBoundingClientRect();
+   c.style.left=Math.min(r.left,innerWidth-220)+'px';
+   c.style.top=Math.min(r.bottom+8,innerHeight-160)+'px';};});
+ NV.onclick=()=>{const c=NV.querySelector('#bcard');if(c)c.style.display='none';};}
+NB.onclick=()=>{on=!on;NV.style.display=on?'block':'none';
+ NB.textContent=on?'INSTRUMENTS':'NETWORK';if(on)render();};
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Weather</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060809; --card:#0E1113; --card2:#14181B; --line:rgba(255,255,255,.07);
+  --t1:#F2F4F5; --t2:#8B939A; --t3:#565E66;
+  --calm:#495158; --boom:#3FB950; --collapse:#58A6FF;
+  --squeeze:#F85149; --glut:#F0883E; --hoard:#A371F7;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--t1);
+  font-family:Inter,-apple-system,system-ui,sans-serif;font-size:15.5px;line-height:1.6;
+  -webkit-font-smoothing:antialiased}
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.wrap{max-width:1000px;margin:0 auto;padding:0 20px}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--t1);outline-offset:3px;border-radius:4px}
+.label{font:600 11px Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--t3)}
+
+/* top bar */
+.top{display:flex;align-items:center;gap:12px;padding:22px 0}
+.mark{width:10px;height:10px;border-radius:50%;background:var(--glut)}
+.wordmark{font:700 14px Inter,sans-serif;letter-spacing:.02em}
+.top .meta{margin-left:auto;font:500 11px "JetBrains Mono",monospace;color:var(--t3);text-align:right}
+
+/* sticky */
+#sticky{position:fixed;top:0;left:0;right:0;z-index:40;
+  background:rgba(6,8,9,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+  transform:translateY(-110%);transition:transform .22s;
+  display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;
+  padding:9px 20px;font:600 11px "JetBrains Mono",monospace;color:var(--t2)}
+#sticky.show{transform:none}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
+@media(prefers-reduced-motion:reduce){#sticky{transition:none}}
+
+/* hero */
+.hero{padding:34px 0 8px}
+.hero h1{font-weight:700;font-size:clamp(38px,7.4vw,72px);letter-spacing:-.035em;line-height:1.02}
+.hero .sub{margin-top:16px;max-width:62ch;color:var(--t2);font-size:clamp(15px,2vw,17px)}
+.statusline{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;
+  font:500 11.5px "JetBrains Mono",monospace;color:var(--t3)}
+.statusline b{color:var(--t2);font-weight:600}
+.seg{display:inline-flex;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:3px;margin-top:22px}
+.seg button{border:0;background:transparent;color:var(--t2);cursor:pointer;
+  padding:7px 16px;border-radius:999px;font:600 12px Inter,sans-serif}
+.seg button.on{background:var(--t1);color:#000}
+
+/* tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:10px;margin-top:26px}
+@media(max-width:860px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 16px 14px;position:relative}
+.tile .n{font:600 12px Inter,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--t2)}
+.state{margin-top:10px;font:700 17px Inter,sans-serif;letter-spacing:-.01em}
+.pct{margin-top:2px;font:600 13px "JetBrains Mono",monospace;color:var(--t2)}
+.pbar{margin-top:10px;height:3px;border-radius:2px;background:var(--card2);overflow:hidden}
+.pbar i{display:block;height:100%;border-radius:2px}
+.spark{display:flex;margin-top:12px;height:10px;border-radius:2px;overflow:hidden}
+.spark i{flex:1}
+.asof{margin-top:8px;font:500 10px "JetBrains Mono",monospace;color:var(--t3)}
+.stalebadge{display:inline-block;margin-top:10px;padding:3px 9px;border-radius:999px;
+  background:rgba(139,147,154,.12);color:var(--t2);font:600 10px "JetBrains Mono",monospace;letter-spacing:.06em}
+
+/* transmission */
+.flows{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.flows .row{display:grid;grid-template-columns:170px 1fr 52px;gap:12px;align-items:center;padding:5px 0;
+  font:500 12px "JetBrains Mono",monospace;color:var(--t2)}
+.flows .bar{height:3px;background:var(--card2);border-radius:2px;overflow:hidden}
+.flows .bar i{display:block;height:100%;background:var(--t2);border-radius:2px}
+.flows .row:first-child i{background:var(--glut)}
+.flows .v{text-align:right;color:var(--t1)}
+.flownote{margin-top:8px;font-size:12px;color:var(--t3)}
+
+/* sections */
+section{margin-top:72px}
+.shead{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
+.shead h2{font:700 clamp(20px,3vw,26px) Inter,sans-serif;letter-spacing:-.02em}
+.lede{margin-top:8px;color:var(--t2);max-width:66ch;font-size:14px}
+.card{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+
+/* strip */
+#strip{width:100%;display:block;cursor:crosshair;border-radius:8px}
+.readout{margin-top:10px;font:500 11.5px "JetBrains Mono",monospace;color:var(--t2);min-height:18px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;font:500 11px "JetBrains Mono",monospace;color:var(--t3)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+
+/* node panels */
+details{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-top:10px;overflow:hidden}
+summary{list-style:none;display:flex;align-items:center;gap:14px;padding:15px 18px;cursor:pointer}
+summary::-webkit-details-marker{display:none}
+summary .n{font:600 12px Inter,sans-serif;letter-spacing:.1em;text-transform:uppercase;min-width:96px;color:var(--t2)}
+.chip{display:inline-block;padding:4px 11px;border-radius:999px;font:600 11.5px Inter,sans-serif}
+summary .mini{font:500 11px "JetBrains Mono",monospace;color:var(--t3)}
+summary .caret{margin-left:auto;color:var(--t3);transition:transform .16s}
+details[open] .caret{transform:rotate(90deg)}
+.bodyx{border-top:1px solid var(--line);padding:16px 18px 20px;display:grid;gap:16px}
+.bodyx p{color:var(--t2);font-size:14px;max-width:70ch}
+.bodyx h4{font:600 11px Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--t3)}
+.ev{display:grid;gap:7px}
+.ev div{padding-left:12px;border-left:2px solid var(--line);font-size:13.5px;color:var(--t2)}
+.hist .bar{display:grid;grid-template-columns:130px 1fr 116px;gap:12px;align-items:center;
+  font:500 11.5px "JetBrains Mono",monospace;color:var(--t2);margin-top:7px}
+.hist .track{position:relative;height:8px;background:var(--card2);border-radius:2px}
+.hist .fill{position:absolute;top:0;bottom:0;border-radius:2px}
+.hist .zero{position:absolute;top:-3px;bottom:-3px;width:1px;background:var(--t3)}
+canvas.area{width:100%;height:110px;display:block;border-radius:6px}
+
+/* scorecard */
+.summaryline{margin-top:14px;font:600 12px "JetBrains Mono",monospace;color:var(--t2)}
+.batting{display:flex;height:8px;border-radius:99px;overflow:hidden;margin-top:12px;max-width:520px;background:var(--card2)}
+.batting i{display:block;height:100%}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.filters button{border:1px solid var(--line);background:var(--card);border-radius:999px;
+  padding:7px 14px;font:600 11.5px Inter,sans-serif;color:var(--t2);cursor:pointer}
+.filters button.on{background:var(--t1);border-color:var(--t1);color:#000}
+.ghead{margin-top:26px;font:600 11px Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--t3)}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+th,td{padding:11px 10px 11px 0;text-align:left;font-size:13px;vertical-align:top;border-bottom:1px solid var(--line)}
+th{font:600 10.5px Inter,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);border-bottom-color:rgba(255,255,255,.14)}
+td.id{font:600 11px "JetBrains Mono",monospace;color:var(--t3);white-space:nowrap;padding-right:12px}
+td.win{font:500 11px "JetBrains Mono",monospace;color:var(--t3);white-space:nowrap}
+td.note{color:var(--t2)}
+.res{display:inline-block;padding:3px 10px;border-radius:999px;font:600 10.5px "JetBrains Mono",monospace;letter-spacing:.03em;white-space:nowrap}
+.r-hit{background:rgba(63,185,80,.14);color:var(--boom)}
+.r-oos{background:rgba(63,185,80,.22);color:#5BD672}
+.r-miss,.r-fail{background:rgba(248,81,73,.14);color:var(--squeeze)}
+.r-null{background:rgba(139,147,154,.14);color:var(--t2)}
+.r-un{background:rgba(139,147,154,.10);color:var(--t3)}
+.r-ret{border:1px solid var(--hoard);color:var(--hoard);background:transparent}
+.r-pen{border:1px solid var(--t3);color:var(--t2);background:transparent}
+tr.hidden{display:none}
+@media(max-width:640px){td.note,th.note{display:none}}
+
+/* boundary + footer */
+.rules{display:grid;gap:0;margin-top:16px}
+.rules div{padding:14px 0;border-bottom:1px solid var(--line);font-size:14px;color:var(--t2)}
+.rules b{color:var(--t1)}
+footer{margin-top:88px;border-top:1px solid var(--line);padding:22px 0 56px;font-size:12px;color:var(--t3)}
+@media(prefers-reduced-motion:no-preference){
+  .hero>*{opacity:0;transform:translateY(10px);animation:up .5s ease forwards}
+  .hero .sub{animation-delay:.06s}.hero .statusline{animation-delay:.1s}
+  .hero .seg{animation-delay:.12s}.tiles{opacity:0;animation:up .5s .16s ease forwards}
+  @keyframes up{to{opacity:1;transform:none}}
+}
+</style>
+</head>
+<body>
+<div id="sticky" aria-hidden="true"></div>
+<div class="wrap">
+  <div class="top">
+    <span class="mark"></span><span class="wordmark">Market Weather</span>
+    <div class="meta">DATA TO AUG 2026<br>NEXT UPDATE SEP 2026</div>
+  </div>
+
+  <div class="hero">
+    <h1>Post-shock glut.</h1>
+    <p class="sub" id="synText"></p>
+    <div class="statusline mono" id="statusline"></div>
+    <div class="seg" role="group" aria-label="Reading register">
+      <button id="btnPlain" class="on" onclick="setReg('plain')">Plain words</button>
+      <button id="btnTech" onclick="setReg('tech')">Technical</button>
+    </div>
+  </div>
+
+  <div class="tiles" id="stations"></div>
+  <div class="flows" id="flows"></div>
+
+  <section id="history">
+    <div class="shead"><h2>Twenty-eight years of weather</h2><span class="label">1998 to 2026</span></div>
+    <p class="lede">Each row is one instrument, each column one month, the same six regimes throughout. The cascades of 2008, 2020 and 2022 read left to right.</p>
+    <div class="card">
+      <canvas id="strip" height="252" aria-label="Monthly regime history for five market nodes, 1998 to 2026"></canvas>
+      <div class="readout mono" id="readout">hover or tap for a monthly reading</div>
+      <div class="legend">
+        <span><i style="background:#22272B"></i>calm</span>
+        <span><i style="background:var(--boom)"></i>boom, rally</span>
+        <span><i style="background:var(--squeeze)"></i>squeeze, surge, stress</span>
+        <span><i style="background:var(--collapse)"></i>collapse, easing, selloff</span>
+        <span><i style="background:var(--glut)"></i>glut</span>
+        <span><i style="background:var(--hoard)"></i>hoarding, fear, correction</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="nodes">
+    <div class="shead"><h2>The instruments</h2><span class="label">Evidence per call</span></div>
+    <p class="lede">Every call carries its evidence and its data-as-of date. A blind instrument says so instead of guessing.</p>
+    <div id="nodePanels"></div>
+  </section>
+
+  <section id="scorecard">
+    <div class="shead"><h2>Scorecard</h2><span class="label">Every registered claim</span></div>
+    <p class="lede">Scored after the fact, misses and retractions published with the same prominence as the hits. The paper trail is the product.</p>
+    <div class="summaryline" id="scoreSummary"></div>
+    <div class="batting" id="batting" title="hits, misses, nulls, other"></div>
+    <div class="filters" role="group" aria-label="Filter the scorecard">
+      <button class="on" data-f="all">All</button><button data-f="hit">Hits</button>
+      <button data-f="miss">Misses &amp; fails</button><button data-f="other">Nulls, corrections, pending</button>
+    </div>
+    <div id="scoreGroups"></div>
+  </section>
+
+  <section id="boundary">
+    <div class="shead"><h2>What this never does</h2><span class="label">Tested limits</span></div>
+    <div class="rules">
+      <div><b>No price forecasts.</b> Tested twice against the random walk. No edge found, none claimed. Records N1, N2.</div>
+      <div><b>No cross-market fortune telling.</b> The coupled-prediction upgrade failed all three registered tests, T1 to T3, and is reported as such.</div>
+      <div><b>No investment advice.</b> Conditional statistics are history with intervals, not recommendations.</div>
+    </div>
+  </section>
+
+  <section id="method">
+    <div class="shead"><h2>Method, briefly</h2><span class="label">Sources and lineage</span></div>
+    <p class="lede">Six economically defined oil regimes plus four smaller instruments, each a fixed-template hidden Markov classifier over standardised fundamentals: prices, volatility, spreads, inventories, a commodity demand factor. State meanings are fixed; only realistic state spreads are estimated. Identification follows Kilian and Kilian-Murphy, connectedness follows Diebold-Yilmaz, validation is pre-registered held-out episode scoring with published failures. Sources: EIA, FRED, Shiller, IMF public series.</p>
+  </section>
+</div>
+
+<footer><div class="wrap">Market Weather · a scored diagnostic instrument · not investment advice<br>
+<span class="mono">provenance: stage 1-5 pipelines · results_stage{2,3,4,5}.json · issued 2026-08-18</span></div></footer>
+
+<script>
+const DATA = __DATA__;
+const REGC = ["#22272B","#3FB950","#58A6FF","#F85149","#F0883E","#A371F7"];
+const NODE_ORDER = ["oil","gas","dollar","credit","inflation","equities","gold"];
+const NODE_LABEL = {oil:"Oil",gas:"Gas",dollar:"Dollar",credit:"Credit",inflation:"Inflation",equities:"Equities",gold:"Gold"};
+const STATE_COLOR = {calm:"#8B939A",boom:"#3FB950",rally:"#3FB950",real_rate_bid:"#3FB950",
+  collapse:"#58A6FF",stress:"#58A6FF",easing:"#58A6FF",selloff:"#58A6FF",
+  squeeze:"#F85149",surge:"#F85149",glut:"#F0883E",
+  precautionary:"#A371F7",fear_bid:"#A371F7",inverted:"#A371F7",usd_up:"#F85149",usd_down:"#58A6FF",correction:"#A371F7"};
+const STATE_WORD = {calm:"Calm",boom:"Demand boom",rally:"Rally",collapse:"Demand collapse",
+  stress:"Stress",easing:"Easing",squeeze:"Supply squeeze",surge:"Surge",glut:"Glut",
+  precautionary:"Hoarding",fear_bid:"Fear bid",real_rate_bid:"Real-rate bid",selloff:"Selloff",inverted:"Inverted",usd_up:"Dollar up",usd_down:"Dollar down",correction:"Correction"};
+
+const SYN = {
+ plain:"The storm has passed and nothing broke. Oil sits in a post-war glut, stocks are rallying, the dollar is soft, credit never blinked, gold is unwinding its fear trade, and underlying inflation slept straight through the war.",
+ tech:"August 2026, seven instruments live: oil in supply glut at 1.00 posterior since June after the March-May squeeze (May rereads squeeze, not hoarding, under the corrected deflator). Equities in rally at 0.96 after a March-April correction. Dollar calm-to-soft, credit calm at a 1.6 spread, core inflation calm at 0.99 with 2.5% yoy throughout the war. Gold in selloff at 1.00, gas calm."
+};
+const NODE_TEXT = {
+ oil:{plain:"The war shock is over in this instrument's eyes. Prices have fallen back to the high $80s and the market reads as oversupplied relative to demand, the classic hangover after a panic. One correction from the latest audit: with prices properly deflated, May was still the squeeze, not a separate fear spike.",
+      tech:"Smoothed P(glut) = 1.00 since Jun 2026 under the spliced live deflator. Sequence Mar to Aug: squeeze, squeeze, squeeze, glut, glut, glut. The earlier May hoarding read was a frozen-deflator artifact; revision logged as F2."},
+ gas:{plain:"Quiet. Gas is not adding to inflation right now; if anything it is leaning the other way.",
+      tech:"Calm at 0.76. Gas-specific momentum relative to oil unremarkable; fitted 2026 CPI contribution from gas is negative."},
+ inflation:{plain:"Rebuilt and back online, now watching underlying inflation on live data. The verdict on the war: prices at the pump jumped, but underlying inflation never moved. It slept through the whole thing.",
+      tech:"Node v2 on live CPILFESL core and GS10; inverted state deleted. Core 2.5% yoy every month Jan to Jul 2026, calm at 0.99. Headline peaked in May and fell outright in June with the glut. The old blind node and its retracted outputs are records C-26c and F1."},
+ equities:{plain:"Rallying hard, after a genuine but shallow dip in March and April that the upgraded instrument now names properly: a correction, not a crisis.",
+      tech:"Node v2 adds a correction state and estimated covariances. 2026: correction Mar-Apr, rally at 0.96 since May with Jun momentum z +1.37. Both historical stress calls preserved at share 1.00; the old miss is repaired as record H5."},
+ gold:{plain:"Gold is selling off. The fear trade ran up before the war and has been unwinding ever since, straight through it.",
+      tech:"Selloff at 0.92. Peak $5,020 in Feb 2026 to $4,073 in Jul, -19%, with rising real-yield pressure. The registered war-means-fear-bid prior failed; the node's read matched the tape."}
+};
+const HIST_OIL = [
+ ["Supply squeeze","-9.6%","[-17.3,-2.6]",-9.6,"#F85149"],
+ ["Hoarding","+7.6%","[+2.9,+12.4]",7.6,"#A371F7"],
+ ["Glut","+2.3%","",2.3,"#F0883E"],
+ ["Demand boom","+2.6%","",2.6,"#3FB950"],
+ ["Calm","+0.4%","",0.4,"#8B939A"],
+ ["Demand collapse","-0.6%","",-0.6,"#58A6FF"]];
+
+const SCORE = [
+ {g:"A · Identification, held-out episodes",rows:[
+  ["A1","Asia crisis / OPEC glut read as glut or collapse","1997-11..1998-12","hit","dominant: demand collapse, 86% coverage"],
+  ["A2","Venezuela + Iraq read as squeeze or hoarding","2002-12..2003-03","hit","squeeze, 100% coverage"],
+  ["A3","China boom era read as boom or calm","2004-01..2007-09","hit","calm-dominant, 98% coverage"],
+  ["A4","2008 H1 spike read as boom, squeeze or hoarding","2007-10..2008-06","hit","squeeze, 89%; resolved by product inventories"],
+  ["A5","Libya disruption read as squeeze","2011-02..2011-04","miss","read as the 2011 commodity boom; below resolution"],
+  ["A6","Covid read as collapse or glut","2020-03..2020-05","hit","collapse, 100%"],
+  ["A7","Reopening read as demand boom","2020-11..2021-06","hit","boom, 88%"],
+  ["A8","Invasion read as squeeze or hoarding","2022-02..2022-06","hit","squeeze, 100%"]]},
+ {g:"B · Out of sample, never in any training or label set",rows:[
+  ["B1","2026 war: supply squeeze called at full probability","2026-03..2026-05","oos","squeeze 1.00 Mar-Apr; hoarding at the May price peak; glut from June"]]},
+ {g:"C · Graph nodes, registered before estimation",rows:[
+  ["C-08a","Equities in stress through the GFC","2008-09..2009-02","hit","stress 100%"],
+  ["C-08b","Rates easing through the GFC","2008-10..2009-06","hit","easing dominant"],
+  ["C-08c","Gold fear bid appears in the GFC window","2008-09..2009-03","hit","fear bid 71% of months"],
+  ["C-20a","Equities in stress through Covid","2020-03..2020-05","hit","stress 100%"],
+  ["C-20b","Rates easing through Covid","2020-03..2020-06","hit","easing 100%"],
+  ["C-20c","Gold fear bid in the Covid window","2020-03..2020-06","hit","fear bid 100%"],
+  ["C-21","Inflation node in surge through 2021-22","2021-06..2022-09","hit","surge 81%"],
+  ["C-22","Gas node in squeeze through the Henry Hub tripling","2022-04..2022-09","hit","squeeze 100%"],
+  ["C-26a","Equity stress during the 2026 war window","2026-03..2026-05","miss","one-month correction below the stress template; then a rally"],
+  ["C-26b","Gold fear bid during the war","2026-03..2026-05","miss","gold fell 19% through the war; the node read it, the prior was wrong"],
+  ["C-26c","Inflation surge after the oil shock","2026-05..2026-07","un","feeds end 2025-09; cannot be scored"]]},
+ {g:"D · Graph edges, registered before estimation",rows:[
+  ["D1","Oil transmits to inflation more than the reverse","1998-2026","hit","26.4% vs 10.8% of variance"],
+  ["D2","Gas-to-inflation spillover peaks in 2021-23","rolling 84m","hit","11.2% pre-2020 mean; 29.6% peak"],
+  ["D3","Gas adds CPI effect beyond oil, direction","full sample","hit","positive at both horizons; weak, as expected for the US"],
+  ["D4","2026 inflation routed through oil, not gas","2026-03..2026-07","hit","oil +0.42pp/m, gas -0.16; 2022 was joint, 0.16 and 0.10"]]},
+ {g:"E · Prediction upgrades and forecasting claims",rows:[
+  ["T1","Coupled transitions beat fixed transitions out of sample","2015-2026","fail","0 of 3 nodes; broken by 2020, wrong-sign crisis, and 2022, event-rule mismatch"],
+  ["T2","Graph states improve HAR volatility forecasts","2010-2026","fail","+0.9% RMSE"],
+  ["T3","Graph features improve the 3m equity-stress hazard","2010-2026","fail","AUROC 0.764 vs 0.791"],
+  ["N1","Regime drift beats the random walk for oil","2000-2026","null","no; RMSE 21.0 vs 20.5, as registered"],
+  ["N2","Crack spreads add oil forecast power, simplified BKZ","2000-2026","null","no; MSE ratio 1.017"]]},
+ {g:"F · Corrections and retractions",rows:[
+  ["F1","Spread-based 2026 recession probabilities, 49% May peak","2026","ret","retracted: yield feed carried zero placeholders from 2025-10, fabricating an inversion. Regime-only readings stand: about 20% Jun falling to 10% Aug at 12m; 4% at 3m"],
+  ["F2","May 2026 read as hoarding, the fear climax","2026-05","rev","revised to squeeze: the hoarding read was a frozen-deflator artifact; with live deflation the squeeze ran March through May"]]},
+ {g:"H · Stage 6, the audit implemented (registered before estimation)",rows:[
+  ["H1","Oil keeps 7 of 8 held-out episodes with a futures-slope feature","1997-2022","fail","5 of 8: the fear-means-contango prior was wrong (2002-03 was backwardated) and deep backwardation was demanded where 2008 H1 was flat. Slope kept as diagnostic; corrected spec registered as G3. Deflator spliced, restoring 7 of 8"],
+  ["H2","Dollar node: 2014-15 and 2022 surges dominant, GFC flight present","2008-2022","hit","0.78, 0.86, 1.00"],
+  ["H3","Credit node: GFC dominant, Covid present, 2015-16 present","2008-2020","miss","2 of 3: GFC and Covid at 1.00; 2015-16 read calm because it was a high-yield energy event invisible to an investment-grade index. HY feed registered as G4"],
+  ["H4","Inflation v2 on live core: 2021-22 surge dominant, GFC easing dominant","2008-2022","hit","1.00 and 0.89; the node is live again and 2026 reads calm throughout, core never surged"],
+  ["H5","Equity v2: both stress calls preserved, March 2026 reads stress or correction","2008-2026","hit","1.00, 1.00, and March 2026 = correction: the C-26a miss repaired at the registered granularity"],
+  ["H6","Feed monitor flags the two corrupt feeds with zero price false alarms","all feeds","hit","both Shiller tails flagged; 0 false alarms; the Oct 2025 shutdown gap reported as a gap"]]},
+ {g:"G · Registered next tests, not yet run",rows:[
+  ["G1","Two-driver coupling: supply stress and demand collapse, separate signs","pending","pen","designed after the T1 autopsy; deliberately unrun"],
+  ["G2","Semi-Markov episode targets instead of point events","pending","pen","addresses the 2022 event-rule failure"],
+  ["G3","Corrected slope templates: fear as mild backwardation","pending","pen","one evaluation, no tuning, when re-run"],
+  ["G4","High-yield OAS feed for sectoral credit stress","pending","pen","the Baa index cannot and should not see it"]]}
+];
+
+let REG="plain";
+function setReg(r){REG=r;
+  document.getElementById("btnPlain").classList.toggle("on",r==="plain");
+  document.getElementById("btnTech").classList.toggle("on",r==="tech");
+  document.getElementById("synText").textContent=SYN[r];
+  NODE_ORDER.forEach(n=>{const el=document.getElementById("txt-"+n);
+    if(el)el.textContent=NODE_TEXT[n][r];});
+}
+function spark(n){
+  const tail=DATA.strip[n].slice(-18);
+  return `<span class="spark" aria-hidden="true">`+tail.map(s=>
+    `<i style="background:${s<0?"#101315":REGC[s]}"></i>`).join("")+`</span>`;
+}
+function chip(state){
+  const c=STATE_COLOR[state]||"#8B939A";
+  return `<span class="chip" style="background:${c}1f;color:${c}">${STATE_WORD[state]||state}</span>`;
+}
+function buildTiles(){
+  const live=NODE_ORDER.filter(n=>!DATA.current[n].stale).length;
+  document.getElementById("statusline").innerHTML=
+    `<span><b>${live} of ${NODE_ORDER.length}</b> instruments live</span>
+     <span>audit v2 applied <b>18 Aug</b></span>
+     <span>strongest current <b>oil &rarr; inflation ${DATA.spill["oil->inflation"]}%</b></span>
+     <span>updated <b>18 Aug 2026</b></span>`;
+  document.getElementById("stations").innerHTML=NODE_ORDER.map(n=>{
+    const c=DATA.current[n];const col=STATE_COLOR[c.state]||"#8B939A";
+    const p=c.stale?`<span class="stalebadge">FEED STALE · LAST ${c.asof}</span>`:
+      `<div class="pct">${Math.round(c.prob*100)}%</div>
+       <div class="pbar"><i style="width:${Math.round(c.prob*100)}%;background:${col}"></i></div>`;
+    return `<div class="tile">
+      <div class="n">${NODE_LABEL[n]}</div>
+      <div class="state" style="color:${col}">${STATE_WORD[c.state]||c.state}</div>
+      ${p}${spark(n)}
+      <div class="asof">as of ${c.asof}</div></div>`;
+  }).join("");
+  const st=document.getElementById("sticky");
+  st.innerHTML=NODE_ORDER.map(n=>{const c=DATA.current[n];
+    const col=STATE_COLOR[c.state]||"#8B939A";
+    return `<span><span class="dot" style="background:${col}"></span>${NODE_LABEL[n]} ${c.stale?"stale":(STATE_WORD[c.state]||c.state)}</span>`;}).join("");
+  if("IntersectionObserver" in window){
+    new IntersectionObserver(([e])=>st.classList.toggle("show",!e.isIntersecting),
+      {rootMargin:"-60px"}).observe(document.getElementById("stations"));}
+  const pairs=[["oil","inflation"],["oil","gas"],["oil","equities"],["equities","gold"]];
+  const mx=Math.max(...pairs.map(([a,b])=>DATA.spill[`${a}->${b}`]||0));
+  document.getElementById("flows").innerHTML=
+   `<div class="label" style="margin-bottom:8px">Transmission</div>`+
+   pairs.map(([a,b])=>{const v=DATA.spill[`${a}->${b}`]||0;
+    return `<div class="row"><span>${NODE_LABEL[a]} &rarr; ${NODE_LABEL[b]}</span>
+      <span class="bar"><i style="width:${Math.round(100*v/mx)}%"></i></span>
+      <span class="v">${v}%</span></div>`;}).join("")+
+   `<div class="flownote">Share of the receiver's variance explained by the sender, estimated on the original five-node graph. Dollar and credit join at the next estimation. Oil is the system's main transmitter; inflation its main receiver.</div>`;
+}
+function buildStrip(){
+  const cv=document.getElementById("strip");
+  const M=DATA.months.length,rows=NODE_ORDER.length;
+  const dpr=window.devicePixelRatio||1;
+  const cssW=cv.parentElement.clientWidth-4,cssH=252;
+  cv.style.width=cssW+"px";cv.width=cssW*dpr;cv.height=cssH*dpr;
+  const ctx=cv.getContext("2d");ctx.scale(dpr,dpr);
+  const labW=62,cw=(cssW-labW)/M,rh=(cssH-22)/rows;
+  ctx.font="600 10px JetBrains Mono, monospace";
+  NODE_ORDER.forEach((n,r)=>{ctx.fillStyle="#565E66";
+    ctx.fillText(NODE_LABEL[n].toUpperCase(),0,r*rh+rh/2+3);
+    DATA.strip[n].forEach((s,j)=>{
+      ctx.fillStyle=s<0?"#0B0D0F":REGC[s];
+      ctx.fillRect(labW+j*cw,r*rh+1,Math.ceil(cw),rh-2);});});
+  ctx.strokeStyle="rgba(255,255,255,.4)";ctx.lineWidth=1;
+  NODE_ORDER.forEach((n,r)=>DATA.strip[n].forEach((sv,j)=>{if(sv===3){
+    const x=labW+j*cw;ctx.beginPath();ctx.moveTo(x,r*rh+rh-3);ctx.lineTo(x+cw,r*rh+2);ctx.stroke();}}));
+  ctx.fillStyle="#565E66";
+  DATA.months.forEach((mm,j)=>{if(mm.endsWith("-01")&&(+mm.slice(0,4))%4===2){
+    ctx.fillRect(labW+j*cw,rows*rh,1,5);
+    ctx.fillText(mm.slice(0,4),labW+j*cw-12,cssH-4);}});
+  const ANN=[["2008-09","GFC"],["2011-02","Libya"],["2014-11","shale"],
+             ["2020-03","Covid"],["2022-02","invasion"],["2026-03","war"]];
+  ANN.forEach(([mm,lab])=>{const j=DATA.months.indexOf(mm);if(j<0)return;
+    const x=labW+j*cw;ctx.strokeStyle="rgba(242,244,245,.5)";ctx.setLineDash([2,4]);
+    ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,rows*rh);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle="#F2F4F5";ctx.fillText(lab,Math.min(x+2,cssW-50),9);});
+  ctx.fillStyle="#F2F4F5";ctx.fillRect(labW+(M-1)*cw+cw,0,1.5,rows*rh);
+  ctx.fillStyle="#565E66";ctx.fillText("now",Math.max(labW,cssW-28),rows*rh+12);
+  const rd=document.getElementById("readout");
+  function report(clientX){
+    const rect=cv.getBoundingClientRect();
+    const j=Math.max(0,Math.min(M-1,Math.floor((clientX-rect.left-labW)/cw)));
+    if(clientX-rect.left<labW)return;
+    const names=["calm","boom","collapse","squeeze","glut","hoard"];
+    rd.textContent=DATA.months[j]+" · "+NODE_ORDER.map(n=>{
+      const s=DATA.strip[n][j];return `${n}:${s<0?"no data":names[s]}`;}).join("  ");
+  }
+  cv.addEventListener("mousemove",e=>report(e.clientX));
+  cv.addEventListener("click",e=>report(e.clientX));
+}
+function histBars(){
+  const min=-18,max=13,span=max-min,z=((0-min)/span*100);
+  return `<div class="hist"><h4>What has historically followed each oil regime, next 3 months, Brent</h4>`+
+   HIST_OIL.map(([n,v,ci,x,c])=>{
+    const w=Math.abs(x)/span*100,l=x<0?((x-min)/span*100):z;
+    return `<div class="bar"><span>${n}</span>
+      <span class="track"><span class="zero" style="left:${z}%"></span>
+      <span class="fill" style="left:${l}%;width:${w}%;background:${c}"></span></span>
+      <span>${v} ${ci}</span></div>`;}).join("")+
+   `<div class="asof" style="margin-top:10px">history with 90% intervals where the sample allows; not a forecast</div></div>`;
+}
+function oilArea(){
+  const cv=document.getElementById("oilarea");if(!cv)return;
+  const dpr=window.devicePixelRatio||1;
+  const cssW=cv.parentElement.clientWidth-4,cssH=110;
+  cv.style.width=cssW+"px";cv.width=cssW*dpr;cv.height=cssH*dpr;
+  const ctx=cv.getContext("2d");ctx.scale(dpr,dpr);
+  const S=DATA.oil36,keys=["calm","demand_boom","demand_collapse","supply_squeeze","supply_glut","precautionary"];
+  const n=S.months.length,cw=cssW/n;
+  const AREAC=["#22272B","#3FB950","#58A6FF","#F85149","#F0883E","#A371F7"];
+  for(let j=0;j<n;j++){let y=0;
+    keys.forEach((k,ki)=>{const v=S.series[k][j]*cssH;
+      ctx.fillStyle=AREAC[ki];ctx.fillRect(j*cw,y,Math.ceil(cw),v);y+=v;});}
+  ctx.fillStyle="#8B939A";ctx.font="600 10px JetBrains Mono,monospace";
+  ctx.fillText(S.months[0],2,cssH-4);ctx.fillText(S.months[n-1],cssW-54,cssH-4);
+}
+function buildNodes(){
+  const EV={
+   oil:["3-month real price change deeply negative after the May peak","Realized volatility still elevated","Brent-WTI spread unusually wide: Atlantic-basin stress","Futures curve diagnostic offline after 2024-04 (EIA discontinued); live curve needs CME"],
+   gas:["Gas-specific momentum vs oil unremarkable","Fitted 2026 CPI contribution from gas: negative"],
+   inflation:["Core CPI 2.5% yoy every month of 2026, live to July","Headline peaked in May, fell outright in June as oil glutted","10y yield drifting up mildly, 4.1 to 4.6 over the year"],
+   dollar:["Broad index ~120 vs the 128.8 peak of Jan 2025","No wartime dollar bid: 2026 trough 117.9 in February","Soft dollar leans supportive for commodity prices"],
+   credit:["Baa minus 10y near 1.6, the calm end of its range","No widening at any point in the war window","2008 read 1.00 stress; 2026 reads nothing"],
+   equities:["March-April: correction state, the new intermediate regime","Summer: rally at 0.96, June momentum z +1.37","Stress reserved for jointly extreme readings, as in 2008 and 2020"],
+   gold:["-19% from the February $5,020 peak","Real-yield pressure rising through the window","The node's selloff read matched the tape; the registered fear-bid prior did not"]};
+  document.getElementById("nodePanels").innerHTML=NODE_ORDER.map((n,i)=>{
+    const c=DATA.current[n];
+    const extra=n==="oil"?`<div><h4>Regime probabilities, last three years</h4><canvas class="area" id="oilarea"></canvas></div>${histBars()}`:"";
+    return `<details ${i===0?"open":""}><summary>
+      <span class="n">${NODE_LABEL[n]}</span>
+      ${chip(c.state)}
+      <span class="mini">${c.stale?"feed stale · last "+c.asof:("p = "+c.prob+" · as of "+c.asof)}</span>
+      <span class="caret">&#9656;</span></summary>
+      <div class="bodyx">
+        <p id="txt-${n}"></p>
+        <div class="ev"><h4>Evidence behind the call</h4>${EV[n].map(e=>`<div>${e}</div>`).join("")}</div>
+        ${extra}
+      </div></details>`;
+  }).join("");
+}
+function buildScore(){
+  const cls={hit:"r-hit",oos:"r-oos",miss:"r-miss",fail:"r-fail",null:"r-null",un:"r-un",ret:"r-ret",rev:"r-ret",pen:"r-pen"};
+  const word={hit:"HIT",oos:"OOS HIT",miss:"MISS",fail:"FAIL",null:"NULL, AS REGISTERED",un:"UNSCOREABLE",ret:"RETRACTED",rev:"REVISED",pen:"PENDING"};
+  let counts={hit:0,oos:0,miss:0,fail:0,null:0,un:0,ret:0,rev:0,pen:0};
+  document.getElementById("scoreGroups").innerHTML=SCORE.map(g=>
+    `<div class="ghead">${g.g}</div><table><tr><th>ID</th><th>Registered claim</th><th>Window</th><th>Result</th><th class="note">Note</th></tr>`+
+    g.rows.map(([id,claim,win,res,note])=>{counts[res]++;
+      return `<tr data-f="${res==="hit"||res==="oos"?"hit":(res==="miss"||res==="fail"?"miss":"other")}">
+      <td class="id">${id}</td><td>${claim}</td><td class="win">${win}</td>
+      <td><span class="res ${cls[res]}">${word[res]}</span></td><td class="note">${note}</td></tr>`;}).join("")+`</table>`).join("");
+  document.getElementById("scoreSummary").textContent=
+   `${counts.hit+counts.oos} hits, incl. 1 fully out of sample · ${counts.miss} misses · ${counts.fail} failed upgrades · ${counts.null} registered nulls · ${counts.un} unscoreable · ${counts.ret} retraction · ${counts.rev} revision · ${counts.pen} pending`;
+  const tot=Object.values(counts).reduce((a,b)=>a+b,0);
+  const seg=[["#3FB950",counts.hit+counts.oos],["#F85149",counts.miss+counts.fail],
+             ["#8B939A",counts.null],["#2A3036",counts.un+counts.ret+counts.rev+counts.pen]];
+  document.getElementById("batting").innerHTML=seg.map(([c,v])=>
+    `<i style="width:${(100*v/tot).toFixed(1)}%;background:${c}"></i>`).join("");
+  document.querySelectorAll(".filters button").forEach(b=>b.addEventListener("click",()=>{
+    document.querySelectorAll(".filters button").forEach(x=>x.classList.toggle("on",x===b));
+    const f=b.dataset.f;
+    document.querySelectorAll("#scoreGroups tr").forEach(tr=>{
+      if(!tr.dataset.f)return;tr.classList.toggle("hidden",f!=="all"&&tr.dataset.f!==f);});}));
+}
+setReg("plain");buildTiles();buildStrip();buildNodes();buildScore();oilArea();
+let rT;window.addEventListener("resize",()=>{clearTimeout(rT);rT=setTimeout(()=>{buildStrip();oilArea();},180)});
+</script>
+</body>
+</html>

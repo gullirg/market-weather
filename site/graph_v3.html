@@ -1,0 +1,241 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Market Weather Report</title>
+<style>
+:root{--bg:#0e1118;--panel:#141826;--line:#2a3040;--ink:#dfe4f2;
+--dim:#8b93a7;--faint:#5b6478;--calm:#5b6478;--up:#37c98b;
+--hot:#e05555;--warn:#e0a03c;--glut:#e08b3c;--ease:#6ea8ff;
+--down:#e05555;--fear:#c86bd8}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);
+font:14px/1.5 system-ui,-apple-system,sans-serif;overflow:hidden;
+height:100vh;display:flex;flex-direction:column}
+#hdr{padding:14px 18px 6px;display:flex;justify-content:space-between;
+align-items:baseline;flex-wrap:wrap;gap:6px}
+#ttl{font-weight:700;letter-spacing:.16em;font-size:12px;color:var(--dim)}
+#syn{font-size:15px}
+#syn b{font-weight:700}
+#pins{display:flex;gap:6px;padding:8px 18px 2px;flex-wrap:wrap}
+.pin{font:600 10px system-ui;letter-spacing:.08em;color:var(--dim);
+border:1px solid var(--line);border-radius:14px;padding:4px 10px;
+cursor:pointer;background:none}
+.pin.on{color:var(--ink);border-color:var(--dim);background:#1a2030}
+#scrubrow{display:flex;align-items:center;gap:10px;padding:4px 18px}
+#scrub{flex:1;accent-color:#6ea8ff;height:3px}
+#when{font:600 11px system-ui;color:var(--dim);min-width:120px;
+text-align:right;letter-spacing:.06em}
+#stage{flex:1;position:relative}
+#g{position:absolute;inset:0;width:100%;height:100%}
+#card{display:none;position:absolute;z-index:40;background:var(--panel);
+border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+min-width:210px;max-width:280px;font-size:12px}
+#card .hd{font-weight:700;letter-spacing:.1em;margin-bottom:6px}
+#card .mut{color:var(--faint);font-size:11px;margin-top:6px}
+#ftr{padding:8px 18px 12px;color:var(--faint);font-size:11px;
+display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#ftr a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--line)}
+.lamp{display:inline-block;width:7px;height:7px;border-radius:50%;
+margin-right:4px}
+</style></head><body>
+<div id=hdr>
+  <div>
+    <div id=ttl>THE MARKET WEATHER REPORT</div>
+    <div id=syn></div>
+  </div>
+  <div id=asof style="color:var(--faint);font-size:11px"></div>
+</div>
+<div id=pins></div>
+<div id=scrubrow>
+  <input id=scrub type=range min=0 max=1 value=0 step=1>
+  <div id=when></div>
+</div>
+<div id=stage><svg id=g></svg><div id=card></div></div>
+<div id=ftr>
+  <div id=health></div>
+  <div id=honesty></div>
+  <div><a href="report.html">the record</a></div>
+</div>
+<script>
+const DATA = __DATA__;
+function getCss(v){return getComputedStyle(document.documentElement)
+  .getPropertyValue(v).trim()||'#5b6478';}
+const FAMCOL=[getCss('--calm'),getCss('--ease'),getCss('--up'),
+  getCss('--warn'),getCss('--hot')];
+const POS={energy:[.50,.14],rates_expectations:[.84,.34],
+  credit:[.78,.76],fx:[.22,.76],equities:[.50,.92],metals:[.16,.34],
+  activity:[.08,.10],liquidity:[.92,.10]};
+const LABEL={energy:'ENERGY',rates_expectations:'RATES',credit:'CREDIT',
+  fx:'FX',equities:'EQUITIES',metals:'METALS',activity:'ACTIVITY',
+  liquidity:'LIQUIDITY'};
+const WORD={0:'calm',1:'easing',2:'up',3:'strained',4:'hot'};
+let V3=null,FR=[],fi=0,liveMonthIdx=0;
+function monthIdx(label){return DATA.months.indexOf(label);}
+function nodeFam(node,mi){
+  if(V3.fam_strip[node])return V3.fam_strip[node][mi];
+  return -1;}
+function blockFam(b,mi,members){
+  let best=-1;
+  for(const m of members){const f=nodeFam(m,mi);
+    if(f!==null&&f>best)best=f;}
+  return best;}
+function frameMonthIdx(k){return monthIdx(FR[k].end);}
+function stateWordLive(m){
+  const c=DATA.current[m]||(DATA.network&&DATA.network.current[m]);
+  return c?{s:(c.word||c.state).replace('_',' '),p:c.prob}:null;}
+function render(){
+  const f=FR[fi],mi=frameMonthIdx(fi),live=(fi===FR.length-1);
+  const g=document.getElementById('g');
+  const r=g.getBoundingClientRect(),W=r.width||980,H=r.height||500;
+  let s='';
+  for(const e of f.edges){
+    const a=POS[e.src],b=POS[e.dst];if(!a||!b)continue;
+    const w=Math.min(6,.5+e.pct/6);
+    const x1=a[0]*W,y1=a[1]*H,x2=b[0]*W,y2=b[1]*H;
+    s+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+
+      '" stroke="#39415a" stroke-opacity=".55" stroke-width="'+w+
+      '" stroke-dasharray="7 9" class=flow />';
+    s+='<text x="'+(x1*.42+x2*.58)+'" y="'+(y1*.42+y2*.58-4)+
+      '" fill="#7d86a0" font-size="9" text-anchor="middle">'+
+      e.pct+'%</text>';}
+  for(const b of Object.keys(POS)){
+    const p=POS[b],x=p[0]*W,y=p[1]*H;
+    const members=V3.members[b]||[];
+    const inFrame=f.members[b];
+    const liveBlock=!!inFrame;
+    const fam=liveBlock?blockFam(b,mi,members):-1;
+    const col=fam>=0?FAMCOL[fam]:getCss('--line');
+    const young=members.some(m=>V3.joined[m]&&V3.joined[m]!=='founding'
+      &&(inFrame||[]).includes(m));
+    s+='<g class=blk data-b="'+b+'">';
+    s+='<circle cx="'+x+'" cy="'+y+'" r="40" fill="'+col+
+      '" fill-opacity=".14"/>';
+    s+='<circle cx="'+x+'" cy="'+y+'" r="40" fill="none" stroke="'+col+
+      '" stroke-width="2"'+(liveBlock?'':' stroke-dasharray="4 5"')+'/>';
+    if(young)s+='<circle cx="'+x+'" cy="'+y+
+      '" r="46" fill="none" stroke="'+col+
+      '" stroke-opacity=".35" stroke-width="1"/>';
+    s+='<text x="'+x+'" y="'+(y+3)+'" fill="var(--ink)" font-size="10" '+
+      'font-weight="600" letter-spacing=".08em" text-anchor="middle">'+
+      LABEL[b]+'</text>';
+    if(liveBlock&&fam>0)s+='<text x="'+x+'" y="'+(y+16)+
+      '" fill="'+col+'" font-size="9" text-anchor="middle">'+
+      WORD[fam]+'</text>';
+    s+='</g>';}
+  g.innerHTML=s;
+  document.getElementById('when').textContent=f.end+(live?'  LIVE':'');
+  document.querySelectorAll('.pin').forEach(el=>{
+    el.classList.toggle('on',String(el.dataset.f)===String(fi));});
+}
+function openCard(b,cx,cy){
+  const f=FR[fi],mi=frameMonthIdx(fi),live=(fi===FR.length-1);
+  const members=V3.members[b]||[],inFrame=f.members[b]||[];
+  const c=document.getElementById('card');
+  let h='<div class=hd>'+LABEL[b]+' <span style="color:var(--faint)">'+
+    f.end+'</span></div>';
+  for(const m of members){
+    const fam=nodeFam(m,mi);
+    const known=fam!==null&&fam>=0;
+    const col=known?FAMCOL[fam]:getCss('--line');
+    let line='<span class=lamp style="background:'+col+'"></span>'+m;
+    if(live){const st=stateWordLive(m);
+      if(st)line+=' &mdash; '+st.s+' ('+st.p.toFixed(2)+')';
+      else line+=' &mdash; awaiting data';}
+    else{line+=known?' &mdash; '+WORD[fam]:' &mdash; no data yet';}
+    if(V3.joined[m]&&V3.joined[m]!=='founding')
+      line+=' <span style="color:var(--faint)">joined '+
+        V3.joined[m]+'</span>';
+    h+='<div>'+line+'</div>';}
+  const TD=(V3.tree&&V3.tree.structure)||{};
+  const TKEY=b==='energy'?'energy':(b==='fx'?'currencies':null);
+  if(TKEY&&TD[TKEY]){
+    const hv=V3.tree.heat[TKEY]?V3.tree.heat[TKEY][mi]:null;
+    h+='<div class=mut style="margin-top:8px;border-top:1px solid var(--line);padding-top:6px"><b>composition</b>'+
+      (hv!==null&&hv!==undefined?' &mdash; heat '+Number(hv).toFixed(2)+' of 4':'')+'</div>';
+    for(const cn in TD[TKEY].children){
+      const c=TD[TKEY].children[cn];
+      const lf=c.leaf;
+      let fam=lf?nodeFam(lf,mi):null;
+      const known=fam!==null&&fam>=0;
+      const col=known?FAMCOL[fam]:getCss('--line');
+      h+='<div><span class=lamp style="background:'+col+'"></span>'+cn+
+        ' <span style="color:var(--faint)">'+Math.round(c.share*100)+'%</span>'+
+        (lf?(known?' &mdash; '+WORD[fam]:' &mdash; awaiting data'):
+         ' &mdash; share only, no honest price')+'</div>';}
+    if(TKEY==='currencies')h+='<div class=mut>the dollar is the numeraire; every major is priced against it</div>';}
+  if(b==='energy'&&live&&DATA.hazard&&DATA.hazard.lampline)
+    h+='<div class=mut>'+DATA.hazard.lampline+'</div>';
+  if(inFrame.length&&inFrame.length<members.length)
+    h+='<div class=mut>this window computed from: '+
+      inFrame.join(', ')+'</div>';
+  if(!f.members[b])h+='<div class=mut>no data in this window</div>';
+  c.innerHTML=h;c.style.display='block';
+  const iw=(typeof innerWidth!=='undefined'&&innerWidth)||980;
+  c.style.left=Math.min(cx+12,iw-300)+'px';
+  const ih=(typeof innerHeight!=='undefined'&&innerHeight)||600;
+  c.style.top=Math.min(cy+12,ih-220)+'px';}
+function hitBlock(cx,cy){
+  const g=document.getElementById('g');
+  const r=g.getBoundingClientRect(),W=r.width||980,H=r.height||500;
+  for(const b of Object.keys(POS)){
+    const x=POS[b][0]*W+r.left,y=POS[b][1]*H+r.top;
+    if((cx-x)*(cx-x)+(cy-y)*(cy-y)<=46*46)return b;}
+  return null;}
+function init(){
+  V3=DATA.v3;
+  if(!V3||!V3.block_frames||!V3.block_frames.frames.length){
+    document.getElementById('syn').textContent=
+      'network layer unavailable';return;}
+  FR=V3.block_frames.frames;fi=FR.length-1;
+  const syn=document.getElementById('syn');
+  if(DATA.synoptic&&DATA.synoptic.gate==='open'){
+    const SC={risk_on_calm:'--up',financial_stress:'--down',
+      demand_collapse:'--down',inflation_shock:'--hot',
+      commodity_shock:'--fear',post_shock_glut:'--glut'};
+    syn.innerHTML='Weather system: <b style="color:'+
+      getCss(SC[DATA.synoptic.current.state]||'--calm')+'">'+
+      DATA.synoptic.current.word+'</b>.';}
+  document.getElementById('asof').textContent='data to '+
+    DATA.months[DATA.months.length-1]+' · issued '+DATA.issued;
+  const pr=document.getElementById('pins');
+  let ph='';
+  for(const p of V3.pins){
+    let best=0,bd=1e9;
+    for(let k=0;k<FR.length;k++){
+      const d=Math.abs(monthIdx(FR[k].end)-monthIdx(p[0]));
+      if(d<bd){bd=d;best=k;}}
+    ph+='<button class=pin data-f="'+best+'">'+p[1]+'</button>';}
+  pr.innerHTML=ph;
+  document.querySelectorAll('.pin').forEach(el=>{
+    el.addEventListener('click',()=>{fi=parseInt(el.dataset.f)||0;
+      document.getElementById('scrub').value=String(fi);render();});});
+  const sc=document.getElementById('scrub');
+  sc.max=String(FR.length-1);sc.value=String(fi);
+  sc.addEventListener('input',ev=>{
+    let v=parseInt(ev.target.value);if(!(v>=0))v=0;
+    fi=Math.min(FR.length-1,v);render();});
+  document.getElementById('g').addEventListener('click',ev=>{
+    const b=hitBlock(ev.clientX,ev.clientY);
+    if(b)openCard(b,ev.clientX,ev.clientY);
+    else document.getElementById('card').style.display='none';});
+  const hl=document.getElementById('health');
+  let hh='';
+  for(const f of (DATA.health||[]))
+    hh+='<span class=lamp style="background:'+
+      (f.ok?getCss('--up'):getCss('--hot'))+'"></span>'+f.feed+' ';
+  hl.innerHTML=hh;
+  document.getElementById('honesty').textContent=
+    'block replay: '+FR.length+' windows, '+V3.block_frames.window+
+    'm each; edges shown at 3%+; each card states what its window '+
+    'is computed from';
+  let t0=0;
+  function anim(t){
+    const dash=document.querySelectorAll('.flow');
+    dash.forEach(el=>{if(el.style)el.style.strokeDashoffset=
+      String(-(t/60)%16);});
+    requestAnimationFrame(anim);}
+  render();
+  requestAnimationFrame(anim);}
+init();
+</script>
+</body></html>

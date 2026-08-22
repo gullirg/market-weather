@@ -1,0 +1,847 @@
+[
+ {
+  "id": "A1",
+  "group": "held-out identification",
+  "status": "hit",
+  "claim": "see site scorecard A1",
+  "window": "historical",
+  "hash": "14e313709cbe29b9"
+ },
+ {
+  "id": "A2",
+  "group": "held-out identification",
+  "status": "hit",
+  "claim": "see site scorecard A2",
+  "window": "historical",
+  "hash": "f6421b629232fd85"
+ },
+ {
+  "id": "A3",
+  "group": "held-out identification",
+  "status": "hit",
+  "claim": "see site scorecard A3",
+  "window": "historical",
+  "hash": "1987a033b58dd19b"
+ },
+ {
+  "id": "A4",
+  "group": "held-out identification",
+  "status": "hit",
+  "claim": "see site scorecard A4",
+  "window": "historical",
+  "hash": "c61359716d38f634"
+ },
+ {
+  "id": "A5",
+  "group": "held-out identification",
+  "status": "miss",
+  "claim": "see site scorecard A5",
+  "window": "historical",
+  "hash": "35b169799d8d5538"
+ },
+ {
+  "id": "A6",
+  "group": "held-out identification",
+  "status": "hit",
+  "claim": "see site scorecard A6",
+  "window": "historical",
+  "hash": "740e12b58501f18a"
+ },
+ {
+  "id": "A7",
+  "group": "held-out identification",
+  "status": "hit",
+  "claim": "see site scorecard A7",
+  "window": "historical",
+  "hash": "94051cb31325218f"
+ },
+ {
+  "id": "A8",
+  "group": "held-out identification",
+  "status": "hit",
+  "claim": "see site scorecard A8",
+  "window": "historical",
+  "hash": "e849515b6e183130"
+ },
+ {
+  "id": "B1",
+  "group": "out of sample",
+  "status": "oos",
+  "claim": "see site scorecard B1",
+  "window": "historical",
+  "hash": "b7fb30d1343cf763"
+ },
+ {
+  "id": "C-08a",
+  "group": "graph nodes",
+  "status": "hit",
+  "claim": "see site scorecard C-08a",
+  "window": "historical",
+  "hash": "d7193b76da214a55"
+ },
+ {
+  "id": "C-08b",
+  "group": "graph nodes",
+  "status": "hit",
+  "claim": "see site scorecard C-08b",
+  "window": "historical",
+  "hash": "39ab10351a829576"
+ },
+ {
+  "id": "C-08c",
+  "group": "graph nodes",
+  "status": "hit",
+  "claim": "see site scorecard C-08c",
+  "window": "historical",
+  "hash": "01def683e4a8cc92"
+ },
+ {
+  "id": "C-20a",
+  "group": "graph nodes",
+  "status": "hit",
+  "claim": "see site scorecard C-20a",
+  "window": "historical",
+  "hash": "59534eebb8ad911a"
+ },
+ {
+  "id": "C-20b",
+  "group": "graph nodes",
+  "status": "hit",
+  "claim": "see site scorecard C-20b",
+  "window": "historical",
+  "hash": "3c8e4b18088db991"
+ },
+ {
+  "id": "C-20c",
+  "group": "graph nodes",
+  "status": "hit",
+  "claim": "see site scorecard C-20c",
+  "window": "historical",
+  "hash": "bee019a986c0b22c"
+ },
+ {
+  "id": "C-21",
+  "group": "graph nodes",
+  "status": "hit",
+  "claim": "see site scorecard C-21",
+  "window": "historical",
+  "hash": "62ab5a0e9af51c0d"
+ },
+ {
+  "id": "C-22",
+  "group": "graph nodes",
+  "status": "hit",
+  "claim": "see site scorecard C-22",
+  "window": "historical",
+  "hash": "d52c2870adf958b6"
+ },
+ {
+  "id": "C-26a",
+  "group": "graph nodes",
+  "status": "miss",
+  "claim": "see site scorecard C-26a",
+  "window": "historical",
+  "hash": "13c799ceba3e11bf"
+ },
+ {
+  "id": "C-26b",
+  "group": "graph nodes",
+  "status": "miss",
+  "claim": "see site scorecard C-26b",
+  "window": "historical",
+  "hash": "cbe59389e0c085c3"
+ },
+ {
+  "id": "C-26c",
+  "group": "graph nodes",
+  "status": "un",
+  "claim": "see site scorecard C-26c",
+  "window": "historical",
+  "hash": "cd7cce5e751ab930"
+ },
+ {
+  "id": "D1",
+  "group": "graph edges",
+  "status": "hit",
+  "claim": "see site scorecard D1",
+  "window": "historical",
+  "hash": "8248912f8530196f"
+ },
+ {
+  "id": "D2",
+  "group": "graph edges",
+  "status": "hit",
+  "claim": "see site scorecard D2",
+  "window": "historical",
+  "hash": "08fe27cf442cdb73"
+ },
+ {
+  "id": "D3",
+  "group": "graph edges",
+  "status": "hit",
+  "claim": "see site scorecard D3",
+  "window": "historical",
+  "hash": "24f2c942898bfb79"
+ },
+ {
+  "id": "D4",
+  "group": "graph edges",
+  "status": "hit",
+  "claim": "see site scorecard D4",
+  "window": "historical",
+  "hash": "106309210324af79"
+ },
+ {
+  "id": "T1",
+  "group": "prediction upgrades",
+  "status": "fail",
+  "claim": "see site scorecard T1",
+  "window": "historical",
+  "hash": "db99e2c8867fdf3c"
+ },
+ {
+  "id": "T2",
+  "group": "prediction upgrades",
+  "status": "fail",
+  "claim": "see site scorecard T2",
+  "window": "historical",
+  "hash": "2395b158855107e5"
+ },
+ {
+  "id": "T3",
+  "group": "prediction upgrades",
+  "status": "fail",
+  "claim": "see site scorecard T3",
+  "window": "historical",
+  "hash": "7a31f2192a577eed"
+ },
+ {
+  "id": "N1",
+  "group": "prediction upgrades",
+  "status": "null",
+  "claim": "see site scorecard N1",
+  "window": "historical",
+  "hash": "2e26adf8bf3fd05b"
+ },
+ {
+  "id": "N2",
+  "group": "prediction upgrades",
+  "status": "null",
+  "claim": "see site scorecard N2",
+  "window": "historical",
+  "hash": "d56d03435f327bf8"
+ },
+ {
+  "id": "F1",
+  "group": "corrections",
+  "status": "ret",
+  "claim": "see site scorecard F1",
+  "window": "historical",
+  "hash": "824e7b3fc6f528e3"
+ },
+ {
+  "id": "F2",
+  "group": "corrections",
+  "status": "rev",
+  "claim": "see site scorecard F2",
+  "window": "historical",
+  "hash": "fecf41d19ffa9887"
+ },
+ {
+  "id": "H1",
+  "group": "stage 6 audit",
+  "status": "fail",
+  "claim": "see site scorecard H1",
+  "window": "historical",
+  "hash": "e906ac9cdfde7fc6"
+ },
+ {
+  "id": "H2",
+  "group": "stage 6 audit",
+  "status": "hit",
+  "claim": "see site scorecard H2",
+  "window": "historical",
+  "hash": "a3c846a8ca3be304"
+ },
+ {
+  "id": "H3",
+  "group": "stage 6 audit",
+  "status": "miss",
+  "claim": "see site scorecard H3",
+  "window": "historical",
+  "hash": "29407a1ee6b74c65"
+ },
+ {
+  "id": "H4",
+  "group": "stage 6 audit",
+  "status": "hit",
+  "claim": "see site scorecard H4",
+  "window": "historical",
+  "hash": "0ca816610051ae13"
+ },
+ {
+  "id": "H5",
+  "group": "stage 6 audit",
+  "status": "hit",
+  "claim": "see site scorecard H5",
+  "window": "historical",
+  "hash": "cb6938abc31446d6"
+ },
+ {
+  "id": "H6",
+  "group": "stage 6 audit",
+  "status": "hit",
+  "claim": "see site scorecard H6",
+  "window": "historical",
+  "hash": "2a34c8bb1af03b91"
+ },
+ {
+  "id": "G1",
+  "group": "registered queue",
+  "status": "pending",
+  "claim": "two-driver coupling, separate signs",
+  "window": "pending",
+  "auto": false,
+  "hash": "b440a8e1cdec9a0d"
+ },
+ {
+  "id": "G2",
+  "group": "registered queue",
+  "status": "pending",
+  "claim": "semi-Markov episode targets",
+  "window": "pending",
+  "auto": false,
+  "hash": "5b1d1c79e1b1a52c"
+ },
+ {
+  "id": "G3",
+  "group": "registered queue",
+  "status": "pending",
+  "claim": "corrected slope templates, fear as mild backwardation",
+  "window": "pending",
+  "auto": false,
+  "hash": "3a1ba88a9e385819"
+ },
+ {
+  "id": "G4",
+  "group": "registered queue",
+  "status": "pending",
+  "claim": "high-yield OAS feed for sectoral credit stress",
+  "window": "pending",
+  "auto": false,
+  "hash": "64de0d66dc5d47fe"
+ },
+ {
+  "id": "G5a",
+  "group": "transmission rewiring, registered before estimation",
+  "status": "hit",
+  "claim": "credit and equities coupled >= 3 pct both ways",
+  "window": "1999-03..2026-07",
+  "note": "24.6 and 29.6, the dominant edge pair in the graph",
+  "hash": "b36eab1ed40a1a6b"
+ },
+ {
+  "id": "G5b",
+  "group": "transmission rewiring, registered before estimation",
+  "status": "hit",
+  "claim": "dollar to gold >= 3 pct",
+  "window": "1999-03..2026-07",
+  "note": "17.1",
+  "hash": "0d8caf72a559c51e"
+ },
+ {
+  "id": "G5c",
+  "group": "transmission rewiring, registered before estimation",
+  "status": "hit",
+  "claim": "dollar to oil >= 3 pct",
+  "window": "1999-03..2026-07",
+  "note": "10.6",
+  "hash": "15dc6d4bd50f1dbc"
+ },
+ {
+  "id": "G5d",
+  "group": "transmission rewiring, registered before estimation",
+  "status": "miss",
+  "claim": "oil to credit < 3 pct",
+  "window": "1999-03..2026-07",
+  "note": "8.2: oil moves IG spreads far more than registered; prior wrong",
+  "hash": "9dafb02904231991"
+ },
+ {
+  "id": "G5e",
+  "group": "transmission rewiring, registered before estimation",
+  "status": "miss",
+  "claim": "oil to inflation largest oil edge; inflation main receiver",
+  "window": "1999-03..2026-07",
+  "note": "on core inflation the receiver role vanishes (net 0.2); oil's top edge is gas 11.3; the financial triangle takes the flow",
+  "hash": "322c2112a3b32b9f"
+ },
+ {
+  "id": "J1",
+  "group": "v2 wave 1, registered before estimation",
+  "status": "hit",
+  "claim": "synoptic layer names the window: financial_stress",
+  "window": "historical + 2026",
+  "note": "dominant financial_stress, share 1.0",
+  "hash": "fc835863af7a378d"
+ },
+ {
+  "id": "J2",
+  "group": "v2 wave 1, registered before estimation",
+  "status": "hit",
+  "claim": "synoptic layer names the window: demand_collapse",
+  "window": "historical + 2026",
+  "note": "dominant demand_collapse, share 1.0",
+  "hash": "b542a455c7845bd0"
+ },
+ {
+  "id": "J3",
+  "group": "v2 wave 1, registered before estimation",
+  "status": "hit",
+  "claim": "synoptic layer names the window: inflation_shock",
+  "window": "historical + 2026",
+  "note": "dominant inflation_shock, share 1.0",
+  "hash": "94ab7cfb87ff7663"
+ },
+ {
+  "id": "J4",
+  "group": "v2 wave 1, registered before estimation",
+  "status": "miss",
+  "claim": "synoptic layer names the window: commodity_shock",
+  "window": "historical + 2026",
+  "note": "dominant risk_on_calm, share 0.0",
+  "hash": "1dc5dc92ab913c74"
+ },
+ {
+  "id": "RL1",
+  "group": "v2 wave 1, registered before estimation",
+  "status": "hit",
+  "claim": "squeeze risk lamp at least 1.5x unconditional",
+  "window": "historical + 2026",
+  "note": "squeeze 0.352, unconditional 0.151",
+  "hash": "315bc6fa07a9796d"
+ },
+ {
+  "id": "DUR1",
+  "group": "v2 wave 1, registered before estimation",
+  "status": "miss",
+  "claim": "regime medians era-stable within 0.5x to 2.0x",
+  "window": "historical + 2026",
+  "note": "ratios {'demand_boom': 0.38, 'calm': 0.95}; demand booms shortened in the shale era",
+  "hash": "061052ccd41bf17b"
+ },
+ {
+  "id": "G6",
+  "group": "registered queue",
+  "status": "pending",
+  "claim": "structural supply/demand/risk sign checks on 2008, 2014, 2020, 2026",
+  "window": "pending",
+  "auto": false,
+  "hash": "927e8c9a8ed3c229"
+ },
+ {
+  "id": "G7",
+  "group": "registered queue",
+  "status": "pending",
+  "claim": "narrative shocks lead or lag decoded regimes, pre-registered windows",
+  "window": "pending",
+  "auto": false,
+  "hash": "d484893598d318af"
+ },
+ {
+  "id": "G8",
+  "group": "registered queue",
+  "status": "pending",
+  "claim": "synoptic v2: oil gates risk_on, lower stickiness, post_shock_glut state; banner adoption behind this",
+  "window": "pending",
+  "auto": false,
+  "hash": "ce3a4ba85f85a9e4"
+ },
+ {
+  "id": "PA1",
+  "group": "phase A and B, registered before estimation",
+  "status": "fail",
+  "claim": "daily oil clock monthly-mode agreement >= 0.85",
+  "window": "1988-2026",
+  "note": "0.567 over 434 months: monthly dims were masked between prints, starving the inventory signal that separates squeeze from hoarding; causal carry-forward respecified as G10",
+  "hash": "1494637d7d034bd4"
+ },
+ {
+  "id": "PA2",
+  "group": "phase A and B, registered before estimation",
+  "status": "hit",
+  "claim": "daily detection leads monthly by >= 10 business days median",
+  "window": "1988-2026",
+  "note": "median 18 bd; per episode {'1990-08': 28, '2008-10': 29, '2014-11': 6, '2020-03': 18, '2026-03': 15}; leads are the faster cousin's until PA1 passes, daily state stays in shadow",
+  "hash": "4ec2194e219a3ef2"
+ },
+ {
+  "id": "AN1",
+  "group": "phase A and B, registered before estimation",
+  "status": "fail",
+  "claim": "crisis analogues are crisis months at >= 0.60 share",
+  "window": "1988-2026",
+  "note": "0.109: the 12-month exclusion swallows a crisis's own neighbours, leaving only the other crisis eligible; check mis-designed, cross-recognition respecified as AN2",
+  "hash": "e2c8800d48d64827"
+ },
+ {
+  "id": "G9",
+  "group": "registered queue",
+  "status": "pending",
+  "claim": "host expansion to twenty nodes: curve, real yield, breakevens, IG and HY OAS, copper, TTF, Europe and EM equities, EM FX, weekly activity, claims, GPR, EPU, each with registered templates and held-out checks",
+  "window": "pending",
+  "auto": false,
+  "hash": "d6aea251efc07602"
+ },
+ {
+  "id": "G10",
+  "group": "registered queue",
+  "status": "pending",
+  "claim": "daily clock v2: monthly dimensions carried forward causally within month; rerun PA1 once, public daily state gated on it",
+  "window": "pending",
+  "auto": false,
+  "hash": "e32b86751a7aba21"
+ },
+ {
+  "id": "AN2",
+  "group": "registered queue",
+  "status": "pending",
+  "claim": "cross-crisis recognition: 2008 months retrieve at least one 2020 analogue and vice versa, exclusion unchanged",
+  "window": "pending",
+  "auto": false,
+  "hash": "e803f8c54974a5de"
+ },
+ {
+  "id": "G3-scored",
+  "group": "fix wave, registered before each run",
+  "status": "fail",
+  "claim": "corrected slope templates keep 7 of 8 held-out",
+  "window": "historical + 2026",
+  "note": "6 of 8: Asia repaired but 2008 H1 still breaks on a flat curve; the futures slope is permanently a diagnostic overlay, twice tested",
+  "hash": "f16b1267f07f323b"
+ },
+ {
+  "id": "G10-scored",
+  "group": "fix wave, registered before each run",
+  "status": "fail",
+  "claim": "carry monthly prints forward causally; PA1 rerun",
+  "window": "historical + 2026",
+  "note": "agreement 0.567 to 0.682: necessary, not sufficient; gate stays closed",
+  "hash": "d63f15c82bea91f8"
+ },
+ {
+  "id": "G11-scored",
+  "group": "fix wave, registered before each run",
+  "status": "fail",
+  "claim": "daily clock family-level agreement >= 0.85",
+  "window": "historical + 2026",
+  "note": "0.703: the within-family hypothesis is falsified; the daily decoder is a genuinely different instrument",
+  "hash": "2b7ba5fe60a1c33b"
+ },
+ {
+  "id": "G8-scored",
+  "group": "fix wave, registered before each run",
+  "status": "hit",
+  "claim": "synoptic v2 names all four windows",
+  "window": "historical + 2026",
+  "note": "4 of 4: financial stress 0.83, demand collapse 1.00, inflation shock 1.00, commodity shock 1.00; banner gate OPEN; current computed reading: post-shock glut at 0.86",
+  "hash": "66a4b2cc9c3ab683"
+ },
+ {
+  "id": "AN2-scored",
+  "group": "fix wave, registered before each run",
+  "status": "fail",
+  "claim": "cross-crisis recognition both directions",
+  "window": "historical + 2026",
+  "note": "2020 finds 2008 in 3 of 4; 2008 finds 2020 in 2 of 7: the two crises are not each other's nearest neighbours; the analogue engine's contract stays retrieval, no further recognition checks",
+  "hash": "55621d6b478b425a"
+ },
+ {
+  "id": "G12",
+  "group": "registered queue",
+  "status": "pending",
+  "claim": "the daily clock validated as its own instrument: held-out episode checks at daily resolution (flip within N business days, bounded false flips), on full daily feeds",
+  "window": "pending",
+  "auto": false,
+  "hash": "ae41ee167b9c685c"
+ },
+ {
+  "id": "CU1",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "curve names the 2006-07 inversion",
+  "window": "held-out",
+  "note": "dominant at share 1.00",
+  "hash": "61aca3321ec5f303"
+ },
+ {
+  "id": "CU2",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "curve sees the 2019 inversion",
+  "window": "held-out",
+  "note": "present at share 1.00",
+  "hash": "e45f9eb7018509f0"
+ },
+ {
+  "id": "CU3",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "curve names the 2009-10 steepening",
+  "window": "held-out",
+  "note": "dominant at share 1.00",
+  "hash": "2bd156e26f4d8832"
+ },
+ {
+  "id": "RY1",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "real yields name the 2013 taper tightening",
+  "window": "held-out",
+  "note": "dominant at share 0.60",
+  "hash": "d668469d779a13fb"
+ },
+ {
+  "id": "RY2",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "real yields name the 2022 tightening",
+  "window": "held-out",
+  "note": "dominant at share 1.00",
+  "hash": "2349277545d0e803"
+ },
+ {
+  "id": "RY3",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "real yields name the 2020 easing",
+  "window": "held-out",
+  "note": "dominant at share 1.00",
+  "hash": "f823c5061589a138"
+ },
+ {
+  "id": "BE1",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "breakevens name the 2008 deflation scare",
+  "window": "held-out",
+  "note": "dominant at share 1.00",
+  "hash": "32577988547cfe6c"
+ },
+ {
+  "id": "BE2",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "breakevens name the 2021 reflation",
+  "window": "held-out",
+  "note": "dominant at share 1.00",
+  "hash": "6416b0c6f68075e5"
+ },
+ {
+  "id": "BE3",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "breakevens see the 2020 scare",
+  "window": "held-out",
+  "note": "present",
+  "hash": "ce666a59ab674b7e"
+ },
+ {
+  "id": "CO1",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "copper names the 2003-06 supercycle boom",
+  "window": "held-out",
+  "note": "dominant at share 1.00",
+  "hash": "9b98f04f9821d189"
+ },
+ {
+  "id": "CO2",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "copper names the 2008-09 bust",
+  "window": "held-out",
+  "note": "dominant at share 1.00",
+  "hash": "07b575cccd88e6e2"
+ },
+ {
+  "id": "CO3",
+  "group": "network membership checks, registered before estimation",
+  "status": "miss",
+  "claim": "copper names the 2014-16 slide",
+  "window": "held-out",
+  "note": "calm dominant, bust share 0.44: the slow grind defeats momentum features; published",
+  "hash": "1233cfe245b75d61"
+ },
+ {
+  "id": "JOIN-curve",
+  "group": "network membership, rule: 2 of 3",
+  "status": "hit",
+  "claim": "curve joins the public network",
+  "window": "2026-08",
+  "note": "3 of 3 registered checks",
+  "hash": "d1706f2008f78062"
+ },
+ {
+  "id": "JOIN-real_yield",
+  "group": "network membership, rule: 2 of 3",
+  "status": "hit",
+  "claim": "real_yield joins the public network",
+  "window": "2026-08",
+  "note": "3 of 3 registered checks",
+  "hash": "5a32c7257c488f64"
+ },
+ {
+  "id": "JOIN-breakevens",
+  "group": "network membership, rule: 2 of 3",
+  "status": "hit",
+  "claim": "breakevens joins the public network",
+  "window": "2026-08",
+  "note": "3 of 3 registered checks",
+  "hash": "9e88fac3ecdcaf13"
+ },
+ {
+  "id": "JOIN-copper",
+  "group": "network membership, rule: 2 of 3",
+  "status": "hit",
+  "claim": "copper joins the public network",
+  "window": "2026-08",
+  "note": "2 of 3 registered checks",
+  "hash": "b692005f40e7c3ee"
+ },
+ {
+  "id": "NET-arch",
+  "group": "nervous system architecture",
+  "status": "hit",
+  "claim": "block layer and sparse stability map estimated as registered (blocks: equal-weight member means; sparse: 96m windows step 6, edge kept at 3 percent in 70 percent of windows)",
+  "window": "1990-2026 blocks, 2005-2026 sparse",
+  "note": "6 blocks live, 55 stable instrument edges of 110 possible; 4 specs awaiting data (em_dollar, activity, housing, money)",
+  "hash": "e75a9f1ea73da47c"
+ },
+ {
+  "id": "CL1",
+  "group": "tree leaf checks, registered before estimation",
+  "status": "hit",
+  "claim": "coal names the 2008 boom",
+  "window": "held-out",
+  "note": "dominant at share 1.00",
+  "hash": "e1a60fe532327b05"
+ },
+ {
+  "id": "CL2",
+  "group": "tree leaf checks, registered before estimation",
+  "status": "hit",
+  "claim": "coal sees the 2020 bust",
+  "window": "held-out",
+  "note": "present at share 1.00",
+  "hash": "24725326b9c20a51"
+ },
+ {
+  "id": "CL3",
+  "group": "tree leaf checks, registered before estimation",
+  "status": "hit",
+  "claim": "coal names the 2021-22 squeeze",
+  "window": "held-out",
+  "note": "dominant at share 1.00",
+  "hash": "5b771ee4a854d7eb"
+ },
+ {
+  "id": "UR1",
+  "group": "tree leaf checks, registered before estimation",
+  "status": "hit",
+  "claim": "uranium names the 2006-07 bubble",
+  "window": "held-out",
+  "note": "dominant at share 1.00",
+  "hash": "da86adb2f3a67e26"
+ },
+ {
+  "id": "UR2",
+  "group": "tree leaf checks, registered before estimation",
+  "status": "hit",
+  "claim": "uranium names the post-Fukushima bust",
+  "window": "held-out",
+  "note": "dominant at share 0.57",
+  "hash": "7309777a2642557c"
+ },
+ {
+  "id": "UR3",
+  "group": "tree leaf checks, registered before estimation",
+  "status": "hit",
+  "claim": "uranium names the 2023-24 run",
+  "window": "held-out",
+  "note": "dominant at share 1.00",
+  "hash": "fdc3cb5804f7055c"
+ },
+ {
+  "id": "EU1",
+  "group": "tree leaf checks, registered before estimation",
+  "status": "hit",
+  "claim": "euro sees the 2010 sovereign flash",
+  "window": "held-out",
+  "note": "present at share 1.00",
+  "hash": "0445e90617e6da42"
+ },
+ {
+  "id": "EU2",
+  "group": "tree leaf checks, registered before estimation",
+  "status": "hit",
+  "claim": "euro names the 2014-15 QE slide",
+  "window": "held-out",
+  "note": "dominant at share 1.00",
+  "hash": "bbe556120d3cbbda"
+ },
+ {
+  "id": "EU3",
+  "group": "tree leaf checks, registered before estimation",
+  "status": "hit",
+  "claim": "euro names the 2017 recovery",
+  "window": "held-out",
+  "note": "dominant at share 0.88",
+  "hash": "dbf3444553606aee"
+ },
+ {
+  "id": "JOIN-coal",
+  "group": "network membership, rule: 2 of 3",
+  "status": "hit",
+  "claim": "coal joins the public network",
+  "window": "2026-08",
+  "note": "3 of 3 registered checks",
+  "hash": "cb5fb69d652d5b6b"
+ },
+ {
+  "id": "JOIN-uranium",
+  "group": "network membership, rule: 2 of 3",
+  "status": "hit",
+  "claim": "uranium joins the public network",
+  "window": "2026-08",
+  "note": "3 of 3 registered checks",
+  "hash": "0aad686b3150b15b"
+ },
+ {
+  "id": "JOIN-euro",
+  "group": "network membership, rule: 2 of 3",
+  "status": "hit",
+  "claim": "euro joins the public network",
+  "window": "2026-08",
+  "note": "3 of 3 registered checks",
+  "hash": "266d199985b834a3"
+ },
+ {
+  "id": "S1",
+  "group": "structural check, registered before computation",
+  "status": "miss",
+  "claim": "within-sibling mean spillover at least 1.5x between (Simon near-decomposability)",
+  "window": "2005-2026, 26 windows, 14 instruments",
+  "note": "ratio 1.34 (6.69 within vs 5.01 between): the tree carves real joints and the joints leak; cross-domain channels rival family ones; published as informative miss",
+  "hash": "1dbe1f9efea1d2cb"
+ },
+ {
+  "id": "TREE-v1",
+  "group": "composition hierarchy",
+  "status": "hit",
+  "claim": "composition tree registered with measured shares (Energy Institute 2025 mix; BIS 2022 turnover normalized among majors), share-weighted roll-up algebra, renewables share-only by design, dollar as stated numeraire",
+  "window": "2026-08",
+  "note": "energy sub-tree fully live (petroleum, gas, coal, nuclear); currencies seeded with euro; yen, yuan, sterling one-file joins",
+  "hash": "c59bcf1109d04533"
+ }
+]

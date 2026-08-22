@@ -1,0 +1,122 @@
+[
+ {
+  "feed": "brent",
+  "last_obs": "2026-08",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "wti",
+  "last_obs": "2026-08",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "henry hub",
+  "last_obs": "2026-08",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "gold",
+  "last_obs": "2026-07",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "vix",
+  "last_obs": "2026-08",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "shiller CPI",
+  "last_obs": "2026-07",
+  "tail_identical_run": 34,
+  "tail_zeros": 34,
+  "missing_months": 0,
+  "FLAG": true
+ },
+ {
+  "feed": "shiller GS10",
+  "last_obs": "2026-07",
+  "tail_identical_run": 34,
+  "tail_zeros": 34,
+  "missing_months": 0,
+  "FLAG": true
+ },
+ {
+  "feed": "CPIAUCSL",
+  "last_obs": "2026-07",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "CPILFESL",
+  "last_obs": "2026-07",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "GS10",
+  "last_obs": "2026-07",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "Baa",
+  "last_obs": "2026-07",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "dollar",
+  "last_obs": "2026-07",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "stocks",
+  "last_obs": "2026-05",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "futures C1",
+  "last_obs": "2024-04",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ },
+ {
+  "feed": "futures C4",
+  "last_obs": "2024-04",
+  "tail_identical_run": 1,
+  "tail_zeros": 0,
+  "missing_months": 0,
+  "FLAG": false
+ }
+]

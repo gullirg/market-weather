@@ -1,0 +1,31 @@
+{
+ "spill": {
+  "oil->gas": 10.1,
+  "oil->inflation": 26.4,
+  "oil->equities": 7.0,
+  "oil->gold": 2.8,
+  "gas->oil": 5.3,
+  "gas->inflation": 9.4,
+  "gas->equities": 0.4,
+  "gas->gold": 3.1,
+  "inflation->oil": 10.8,
+  "inflation->gas": 2.9,
+  "inflation->equities": 1.7,
+  "inflation->gold": 2.2,
+  "equities->oil": 10.8,
+  "equities->gas": 2.7,
+  "equities->inflation": 4.2,
+  "equities->gold": 1.3,
+  "gold->oil": 2.6,
+  "gold->gas": 0.2,
+  "gold->inflation": 1.3,
+  "gold->equities": 0.6
+ },
+ "net": {
+  "oil": 16.8,
+  "gas": 2.3,
+  "inflation": -23.6,
+  "equities": 9.2,
+  "gold": -4.7
+ }
+}

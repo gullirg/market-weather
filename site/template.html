@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Market Weather Report · full record</title>
+<style>
+  :root{
+    --bg:#060809; --ink:#E8EAED; --dim:#8B939A; --faint:#3A4046;
+    --line:#171C20; --mono:'JetBrains Mono',ui-monospace,monospace;
+    --calm:#495158; --up:#3FB950; --down:#58A6FF; --hot:#F85149;
+    --glut:#F0883E; --fear:#A371F7;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{background:var(--bg);color:var(--ink);
+    font:15px/1.55 Inter,-apple-system,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased}
+  a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--faint)}
+  a:hover{color:var(--ink)}
+  .wrap{max-width:980px;margin:0 auto;padding:34px 22px 60px}
+  header{display:flex;justify-content:space-between;align-items:baseline;
+    border-bottom:1px solid var(--line);padding-bottom:14px}
+  .wordmark{font-weight:650;letter-spacing:.01em}
+  .wordmark span{color:var(--dim);font-weight:400}
+  .issued{font-family:var(--mono);font-size:11.5px;color:var(--dim)}
+  .lead{margin:22px 0 4px;font-size:15px;color:var(--dim);max-width:680px}
+  h2{font-size:12px;font-weight:600;color:var(--dim);text-transform:uppercase;
+    letter-spacing:.10em;margin:34px 0 6px}
+  #strip{width:100%;height:266px;margin-top:8px}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:6px;
+    font-size:11.5px;color:var(--dim)}
+  .legend i{display:inline-block;width:8px;height:8px;border-radius:50%;
+    margin-right:5px;vertical-align:0}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12.5px}
+  td,th{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;
+    vertical-align:top}
+  th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;
+    letter-spacing:.08em}
+  td.n{white-space:nowrap;font-family:var(--mono);font-size:11px;color:var(--dim)}
+  .res{font-size:10.5px;padding:2px 8px;border-radius:99px;white-space:nowrap;
+    font-family:var(--mono)}
+  .r-hit{background:rgba(63,185,80,.13);color:var(--up)}
+  .r-miss{background:rgba(248,81,73,.13);color:var(--hot)}
+  .r-fail{background:rgba(248,81,73,.20);color:var(--hot)}
+  .r-null{background:rgba(139,147,154,.14);color:var(--dim)}
+  .r-un{background:rgba(139,147,154,.09);color:var(--dim)}
+  .r-ret{background:rgba(163,113,247,.14);color:var(--fear)}
+  .r-pen{background:rgba(88,166,255,.12);color:var(--down)}
+  .foot{margin-top:34px;border-top:1px solid var(--line);padding-top:14px;
+    display:flex;flex-wrap:wrap;gap:8px 26px;align-items:baseline;
+    font-size:12.5px;color:var(--dim)}
+  .foot .rec{font-family:var(--mono);font-size:11.5px}
+  .foot .rec b{color:var(--ink);font-weight:600}
+  .note{font-size:11.5px;color:var(--faint);margin-top:10px;max-width:720px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="wordmark">The Market Weather Report <span>· full record</span></div>
+    <div class="issued"><a href="index.html">live graph</a></div>
+  </header>
+  <p class="lead">Every registered claim this instrument has ever made, scored
+    in public. Failures publish at the same prominence as hits, corrections are
+    permanent entries, and the machine record is hash-chained against
+    retro-editing.</p>
+
+  <h2>Twenty-eight years of regime history</h2>
+  <canvas id="strip"></canvas>
+  <div class="legend" id="legend"></div>
+  <div class="note">* The synoptic row is the system-level layer: one
+    computed weather word over all seven instruments. Under the G8
+    respecification it names all four registered windows and now drives
+    the live banner; post-shock glut renders orange, demand collapse
+    blue.</div>
+  <div class="note">* The network rows below the core seven are the
+    capillary instruments that joined under the registered membership
+    rule. The block map (six blocks, 1990-2026) and the sparse
+    instrument map (55 stability-selected edges over 26 rolling
+    windows, 2005-2026) live on the graph page under NETWORK.</div>
+  <div class="note">* The composition tree is a different object from
+    the statistical blocks: part-of structure with measured shares
+    (energy mix from the Energy Institute review; currency weights
+    from BIS turnover, the dollar as numeraire). Leaf states are
+    decoded through gates; parent readings are share-weighted
+    roll-ups and say so. Renewables enter share-only by design.</div>
+
+  <h2>Analogues of now</h2>
+  <div class="note">The months of the past whose full system state most
+    resembles this one, and what followed them. Retrieval, not
+    prediction: history with its outcomes attached.</div>
+  <div id="ana"></div>
+  <div class="note" id="shadow"></div>
+
+  <h2>The scorecard</h2>
+  <div id="score"></div>
+
+  <div class="foot">
+    <div class="rec" id="rec"></div>
+    <div><a href="bulletins/">bulletins</a></div>
+    <div>history, not forecasts · not investment advice</div>
+  </div>
+  <div class="note">Seven instruments decoded monthly by fixed economic
+    templates; no fitting to headlines. Transmission estimated 1999 to 2026
+    across all seven, the dollar entering with its 1973-spliced history.
+    Bulletin 001, August 2026.</div>
+</div>
+<script>
+const DATA = __DATA__;
+function getCss(v){return getComputedStyle(document.documentElement)
+  .getPropertyValue(v).trim();}
+const C={0:getCss('--calm'),1:getCss('--up'),2:getCss('--down'),
+  3:getCss('--hot'),4:getCss('--glut'),5:getCss('--fear')};
+
+const LEG=[['calm','--calm'],['boom, rally','--up'],
+  ['collapse, stress, easing, selloff, dollar down','--down'],
+  ['squeeze, surge, dollar up','--hot'],['glut','--glut'],
+  ['hoarding, fear, correction','--fear']];
+document.getElementById('legend').innerHTML=LEG.map(([t,v])=>
+  '<span><i style="background:'+getCss(v)+'"></i>'+t+'</span>').join('');
+
+const sv=document.getElementById('strip'),sx=sv.getContext('2d');
+const NEWROWS=['curve','real_yield','breakevens','copper','coal','uranium','euro'];
+const ORDER=['oil','gas','dollar','credit','inflation','equities','gold','synoptic'];
+function drawStrip(){const dpr=devicePixelRatio||1;
+  const w=sv.clientWidth,h=266;sv.width=w*dpr;sv.height=h*dpr;
+  sx.setTransform(dpr,0,0,dpr,0,0);sx.clearRect(0,0,w,h);
+  const L=62,rh=24,gap=6,cw=(w-L)/DATA.months.length;
+  ORDER.concat((DATA.network&&DATA.network.strip)?NEWROWS.filter(n=>DATA.network.strip[n]):[]).forEach(function(n,r){const y=r*(rh+gap)+4;
+    const row=(n==='synoptic')?(DATA.synoptic?DATA.synoptic.strip:null)
+      :DATA.strip[n];
+    if(!row)return;
+    sx.fillStyle='#8B939A';sx.font='10px JetBrains Mono,monospace';
+    sx.textAlign='left';
+    sx.fillText(n==='synoptic'?'SYNOPTIC*':n.toUpperCase(),0,y+rh/2+3);
+    row.forEach(function(c,i){if(c<0)return;
+      sx.fillStyle=C[c];sx.fillRect(L+i*cw,y,Math.max(cw-.35,.8),rh);});});
+  sx.fillStyle='#8B939A';sx.font='9.5px JetBrains Mono,monospace';
+  sx.textAlign='center';
+  DATA.months.forEach(function(m,i){const p=m.split('-');
+    if(p[1]==='01'&&(+p[0])%4===2)sx.fillText(p[0],L+i*cw,8*(rh+gap)+10);});}
+drawStrip();addEventListener('resize',drawStrip);
+
+const SCORE=[
+['A','Held-out identification, 8 episodes, decided before scoring',[
+['A1','Gulf war 1990 reads squeeze or hoarding','hit'],
+['A2','Venezuela and Iraq 2002-03 reads squeeze or hoarding','hit'],
+['A3','2007-08 run-up reads demand boom then collapse','hit'],
+['A4','GFC collapse dominant late 2008','hit'],
+['A5','Libya 2011 reads squeeze','miss'],
+['A6','2014-16 reads supply glut dominant','hit'],
+['A7','Covid 2020 reads collapse then glut','hit'],
+['A8','1997-98 Asia reads collapse or glut','hit']]],
+['B','Out of sample',[
+['B1','2026 war: squeeze called at full probability in March and April','hit']]],
+['C','Graph nodes, 2008 to 2026',[
+['C-08a','GFC equities stress dominant','hit'],
+['C-08b','GFC rates easing dominant','hit'],
+['C-08c','GFC gold fear bid present','hit'],
+['C-20a','Covid equities stress dominant','hit'],
+['C-20b','Covid rates easing dominant','hit'],
+['C-20c','Covid gold fear bid present','hit'],
+['C-21','2021-22 inflation surge dominant','hit'],
+['C-22','2022 gas squeeze dominant','hit'],
+['C-26a','2026 equities stress in war window','miss'],
+['C-26b','2026 gold fear bid in war window','miss'],
+['C-26c','2026 inflation surge, feed dead at test time','un']]],
+['D','Graph edges, five-node estimation',[
+['D1','Oil transmits to inflation, net positive','hit'],
+['D2','Gas to inflation spillover peaks 2021-23','hit'],
+['D3','Gas adds to CPI beyond oil at 6 and 12 months','hit'],
+['D4','2026 CPI contribution oil-led, unlike 2022','hit']]],
+['E','Prediction upgrades, all failed, all published',[
+['T1','Regime-conditioned direction beats random walk','fail'],
+['T2','Calibrated intervals beat unconditional','fail'],
+['T3','Event rules add warning value','fail'],
+['N1','No 3m directional edge, as registered','null'],
+['N2','No 12m directional edge, as registered','null']]],
+['F','Corrections, permanent record',[
+['F1','2026 recession probabilities from the yield spread','ret'],
+['F2','May 2026 hoarding read, revised to squeeze under live deflation','rev']]],
+['H','Stage 6 audit, registered before estimation',[
+['H1','Oil keeps 7 of 8 with a futures-slope feature','fail'],
+['H2','Dollar node: three checks across 2008, 2014-15, 2022','hit'],
+['H3','Credit node: GFC and Covid yes, 2015-16 invisible to IG index','miss'],
+['H4','Inflation v2 live on core: 2021-22 and GFC checks','hit'],
+['H5','Equity v2: history preserved, March 2026 reads correction','hit'],
+['H6','Feed monitor flags both corrupt feeds, zero false alarms','hit']]],
+['I','Transmission rewiring, registered before estimation, 1999-2026',[
+['G5a','Credit and equities coupled both ways: 24.6 and 29.6, the dominant pair','hit'],
+['G5b','Dollar to gold at 17.1','hit'],
+['G5c','Dollar to oil at 10.6','hit'],
+['G5d','Oil to credit under 3: measured 8.2, oil moves IG spreads, prior wrong','miss'],
+['G5e','Inflation the main receiver: on core it barely receives; the financial triangle takes the flow','miss']]],
+['J','v2 wave 1: the synoptic layer, registered before estimation',[
+['J1','Names the GFC window financial stress','hit'],
+['J2','Names the Covid window demand collapse','hit'],
+['J3','Names the 2021-22 window inflation shock','hit'],
+['J4','Names the 2026 war commodity shock: read risk-on calm; the calm-during-war overlap plus registered stickiness could not switch in three months','miss']]],
+['K','v2 wave 1: the hazard layer, registered before estimation',[
+['RL1','Squeeze risk lamp at least 1.5x unconditional: 0.352 against 0.151, the stage-5 finding survives the corrected deflator','hit'],
+['DUR1','Regime durations era-stable within 0.5x to 2.0x: demand booms run at 0.38 of their pre-2016 median; the shale era shortened them','miss']]],
+['N','The composition tree: leaf checks, the joins, and the structural test',[
+['CL1-3','Coal: the 2008 boom, the 2020 bust, the 2021-22 squeeze, all at full share','hit'],
+['UR1-3','Uranium: the 2006-07 bubble, post-Fukushima (0.57), the 2023-24 run','hit'],
+['EU1-3','Euro: the 2010 flash, the QE slide, the 2017 recovery (0.88)','hit'],
+['JOIN','coal, uranium, euro join; yen, yuan, sterling await one file each','hit'],
+['S1','Near-decomposability at 1.5x: ratio 1.34; the tree carves real joints and the joints leak','miss']]],
+['M','Network membership, each check registered before estimation, joining rule 2 of 3',[
+['CU1-3','The curve: 2006-07 inversion, 2019 inversion, 2009-10 steepening, all at full share','hit'],
+['RY1-3','Real yields: the 2013 taper (0.60), the 2022 tightening, the 2020 easing','hit'],
+['BE1-3','Breakevens: the 2008 scare, the 2021 reflation, the 2020 scare','hit'],
+['CO1-2','Copper: the 2003-06 supercycle boom and the 2008-09 bust at full share','hit'],
+['CO3','Copper misses the 2014-16 slide: too slow a grind for momentum features; published','miss'],
+['JOIN','curve, real yields, breakevens, copper join; em_dollar, activity, housing, money await their data','hit']]],
+['L','The fix wave, each registered before its single run',[
+['G3','Corrected slope templates keep 7 of 8: still 6 of 8, the slope is permanently diagnostic','fail'],
+['G10','Carry monthly prints forward: agreement 0.567 to 0.682, necessary not sufficient','fail'],
+['G11','Family-level daily agreement at 0.85: 0.703, the hypothesis falsified','fail'],
+['G8','Synoptic v2 names all four windows: 4 of 4, the banner gate opens','hit'],
+['AN2','Crises recognize each other: asymmetric, 2020 sees 2008, 2008 barely sees 2020','miss']]],
+['G','Registered next tests, deliberately unrun',[
+['G1','Two-driver coupling, separate signs','pen'],
+['G2','Semi-Markov episode targets','pen'],
+['G3','Corrected slope templates, fear as mild backwardation','pen'],
+['G4','High-yield OAS feed for sectoral credit stress','pen'],
+['G6','Structural supply, demand and risk sign checks on 2008, 2014, 2020, 2026','pen'],
+['G7','Narrative shocks lead or lag the decoded regimes, pre-registered windows','pen'],
+['G12','The daily clock validated as its own instrument, on full daily feeds','pen']]]];
+const cls={hit:'r-hit',miss:'r-miss',fail:'r-fail','null':'r-null',un:'r-un',
+  ret:'r-ret',rev:'r-ret',pen:'r-pen'};
+const wrd={hit:'HIT',miss:'MISS',fail:'FAIL','null':'NULL',un:'UNSCOREABLE',
+  ret:'RETRACTED',rev:'REVISED',pen:'PENDING'};
+let sh='';
+for(const G of SCORE){sh+='<table><tr><th colspan=3>'+G[0]+' · '+G[1]+'</th></tr>';
+  for(const R of G[2])sh+='<tr><td class="n">'+R[0]+'</td><td>'+R[1]+
+    '</td><td class="n"><span class="res '+cls[R[2]]+'">'+wrd[R[2]]+'</span></td></tr>';
+  sh+='</table>'}
+document.getElementById('score').innerHTML=sh;
+if(DATA.analogues){
+  let ah='<table><tr><th>month</th><th>similarity</th>'+
+    '<th>oil regimes next three months</th><th>real oil move</th></tr>';
+  for(const a of DATA.analogues){
+    ah+='<tr><td class="n">'+a.month+'</td><td class="n">'+
+      Math.round(a.similarity*100)+'%</td><td>'+
+      a.then_oil.map(function(x){return x.replace('supply_','')
+        .replace('demand_','');}).join(' → ')+'</td><td class="n">'+
+      (a.real_return_3m_pct==null?'':a.real_return_3m_pct+'%')+
+      '</td></tr>';}
+  ah+='</table>';
+  document.getElementById('ana').innerHTML=ah;
+}
+if(DATA.daily_shadow){
+  const d=DATA.daily_shadow;
+  document.getElementById('shadow').textContent=
+    'Daily sensing clock: '+(d.gate==='open'?'live':'in shadow')+
+    '. Monthly agreement '+Math.round(d.agreement*100)+
+    '% against the 85% gate; measured median detection lead '+
+    d.median_lead_bd+' business days at the pinned episode starts. '+
+    'The daily state goes public only when the gate passes (G10).';
+}
+const counts={hit:0,miss:0,fail:0,pen:0,other:0};
+for(const G of SCORE)for(const R of G[2]){
+  if(R[2] in counts)counts[R[2]]++; else counts.other++;}
+document.getElementById('rec').innerHTML=
+  'record <b>'+counts.hit+'</b> hits · <b>'+counts.miss+'</b> misses · '+
+  '<b>'+counts.fail+'</b> failed upgrades · <b>'+counts.pen+'</b> pending';
+</script>
+</body>
+</html>

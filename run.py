@@ -53,6 +53,40 @@ def _raw_shiller(data_dir, col):
     return s
 
 
+# STREAK-DEF, chained 2026-08 before the first render. A chain entry is
+# a streak dot if and only if its group is one of these. The excluded
+# group strings are enumerated in the chain entry's note.
+STREAK_GROUPS = ("out of sample", "prediction upgrades", "corrections",
+                 "bulletin claim scoring", "outlook quarter scoring")
+STREAK_N = 40
+STREAK_DOT = {"hit": "hit", "oos": "hit",
+              "miss": "miss", "fail": "miss",
+              "null": "null", "un": "null", "ret": "null",
+              "rev": "null", "pending": "pending"}
+
+
+def _streak(entries):
+    """The public streak, derived from the chain at build time under
+    STREAK-DEF. Nothing here is hand-kept."""
+    sel = [e for e in entries if e.get("group") in STREAK_GROUPS]
+    tot = {"hits": 0, "misses": 0, "nulls": 0, "pending": 0}
+    key = {"hit": "hits", "miss": "misses", "null": "nulls",
+           "pending": "pending"}
+    for e in sel:
+        d = STREAK_DOT.get(e.get("status"))
+        if d:
+            tot[key[d]] += 1
+    rows = []
+    for e in sel[-STREAK_N:]:
+        rows.append({"id": e.get("id"), "status": e.get("status"),
+                     "dot": STREAK_DOT.get(e.get("status"), "null"),
+                     "window": e.get("window"), "group": e.get("group"),
+                     "claim": e.get("claim", ""), "note": e.get("note", ""),
+                     "hash": e.get("hash")})
+    return {"entries": rows, "totals": tot, "matched": len(sel),
+            "window_size": STREAK_N}
+
+
 def _since_last_bulletin(site):
     """One line, in words and with no numerals, naming the instruments
     whose state moved since the last published bulletin. Page only: it
@@ -254,6 +288,7 @@ def cmd_month(args):
     except Exception as e:
         site["v3"] = None
         print("v3 layer degraded:", e)
+    site["streak"] = _streak(load_scorecard())
     site["health"] = [{"feed": r_["feed"], "ok": not r_["FLAG"]}
                       for r_ in report]
     site["issued"] = args.issued or f"{args.asof}-05"

@@ -123,6 +123,11 @@ def build_payload(site, scorecard_counts, bulletin_no, issued,
         add(len(nw.get("awaiting") or []))
         add(len([m for m in (nw.get("membership") or [])
                  if m.get("member")]))
+    st = site.get("streak")
+    if st:
+        for v in st["totals"].values():
+            add(v)
+        add(st["matched"])
     if chain:
         add(chain["entries"])
         for tok in re.findall(r"\d+", chain["head"]):

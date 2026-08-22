@@ -30,6 +30,15 @@ align-items:baseline;flex-wrap:wrap;gap:6px}
 #syn b{font-weight:700}
 #since{font-size:11.5px;color:var(--faint);margin-top:3px;
 letter-spacing:.01em}
+#streak{display:flex;align-items:center;gap:8px;margin-top:5px;
+text-decoration:none;border:0}
+#streak .dots{display:flex;gap:3px;align-items:center}
+#streak .d{width:6px;height:6px;border-radius:50%;flex:0 0 auto}
+#streak .d.hit{background:var(--up);box-shadow:0 0 3px var(--up)}
+#streak .d.miss{background:var(--hot);box-shadow:0 0 3px var(--hot)}
+#streak .d.null{background:var(--faint)}
+#streak .d.pending{background:none;border:1px solid var(--faint)}
+#streak .tot{font-size:11.5px;color:var(--faint)}
 #pins{display:flex;gap:6px;padding:8px 18px 2px;flex-wrap:wrap}
 .pin{font:600 10px system-ui;letter-spacing:.08em;color:var(--dim);
 border:1px solid var(--line);border-radius:14px;padding:4px 10px;
@@ -79,6 +88,8 @@ text-decoration:none}
     <div id=ttl>THE MARKET WEATHER REPORT</div>
     <div id=syn></div>
     <div id=since></div>
+    <a id=streak href="report.html#scorecard-streak"
+       aria-label="the scored record, dot by dot"></a>
   </div>
   <div id=asof style="color:var(--faint);font-size:11px"></div>
 </div>
@@ -140,6 +151,9 @@ function frameMonthIdx(k){return monthIdx(FR[k].end);}
 function stateWordLive(m){
   const c=DATA.current[m]||(DATA.network&&DATA.network.current[m]);
   return c?{s:(c.word||c.state).replace('_',' '),p:c.prob}:null;}
+function esc(x){return String(x==null?'':x).replace(/&/g,'&amp;')
+  .replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function plural(n,one,many){return n+' '+(n===1?one:(many||one+'s'));}
 function hexRgba(h,a){
   h=String(h||'').trim();
   if(h.charAt(0)!=='#'||h.length<7)return 'rgba(91,100,120,'+a+')';
@@ -368,6 +382,15 @@ function init(){
       getCss(SC[DATA.synoptic.current.state]||'--calm')+'">'+
       DATA.synoptic.current.word+'</b>.';}
   document.getElementById('since').textContent=CHANGES||'';
+  const stk=DATA.streak;
+  if(stk&&stk.entries&&stk.entries.length){
+    let sh='<span class=dots>';
+    for(const r of stk.entries)
+      sh+='<span class="d '+r.dot+'" title="'+esc(r.id+', '+r.status+
+        ': '+r.claim)+'"></span>';
+    sh+='</span><span class=tot>'+plural(stk.totals.hits,'hit')+', '+
+      plural(stk.totals.misses,'miss','misses')+'</span>';
+    document.getElementById('streak').innerHTML=sh;}
   document.getElementById('asof').textContent='data to '+
     DATA.months[DATA.months.length-1]+' · issued '+DATA.issued;
   const pr=document.getElementById('pins');

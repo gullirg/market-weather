@@ -67,6 +67,15 @@
   .foot .rec{font-family:var(--mono);font-size:11.5px}
   .foot .rec b{color:var(--ink);font-weight:600}
   .note{font-size:11.5px;color:var(--faint);margin-top:10px;max-width:720px}
+  .sdot{display:inline-block;width:8px;height:8px;border-radius:50%;
+    margin-right:8px;vertical-align:0}
+  .sdot.hit{background:var(--up)}
+  .sdot.miss{background:var(--hot)}
+  .sdot.null{background:var(--dim)}
+  .sdot.pending{background:none;border:1px solid var(--dim)}
+  tr.srow{cursor:pointer}
+  tr.sdet td{color:var(--dim);font-size:11.5px;
+    font-family:var(--mono);word-break:break-word}
 </style>
 </head>
 <body>
@@ -106,6 +115,16 @@
     prediction: history with its outcomes attached.</div>
   <div id="ana"></div>
   <div class="note" id="shadow"></div>
+
+  <h2 id="scorecard-streak">The streak</h2>
+  <div class="note">Scored forward-looking claims only, most recent
+    first, under the definition chained as STREAK-DEF before this view
+    was first rendered. Registrations, joins, membership rules,
+    held-out design checks and operational entries are not claims about
+    the future and are excluded. Nulls render grey rather than being
+    omitted, misses are never truncated, and the order is the chain's.
+    Select a row for its full chain entry.</div>
+  <div id="streaktbl"></div>
 
   <h2>The scorecard</h2>
   <div id="score"></div>
@@ -274,6 +293,36 @@ if(DATA.daily_shadow){
     '% against the 85% gate; measured median detection lead '+
     d.median_lead_bd+' business days at the pinned episode starts. '+
     'The daily state goes public only when the gate passes (G10).';
+}
+function sesc(x){return String(x==null?'':x).replace(/&/g,'&amp;')
+  .replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+if(DATA.streak&&DATA.streak.entries){
+  const rows=DATA.streak.entries.slice().reverse();
+  const t=DATA.streak.totals;
+  let th='<table><tr><th>claim</th><th>window</th><th>result</th></tr>';
+  rows.forEach(function(r,i){
+    th+='<tr class="srow" data-i="'+i+'"><td><span class="sdot '+r.dot+
+      '"></span>'+sesc(r.claim||r.id)+'</td><td class="n">'+
+      sesc(r.window)+'</td><td class="n">'+sesc(r.id)+' '+
+      sesc(r.status)+'</td></tr>'+
+      '<tr class="sdet" id="sdet'+i+'" style="display:none"><td colspan=3>'+
+      'group: '+sesc(r.group)+'<br>window: '+sesc(r.window)+
+      '<br>status: '+sesc(r.status)+
+      (r.note?('<br>note: '+sesc(r.note)):'')+
+      '<br>chain hash: '+sesc(r.hash)+'</td></tr>';});
+  th+='</table>';
+  th+='<div class="note">'+t.hits+' hits, '+t.misses+' misses, '+
+    t.nulls+' null or corrected, out of '+DATA.streak.matched+
+    ' scored forward-looking claims on the chain.</div>';
+  const host=document.getElementById('streaktbl');
+  host.innerHTML=th;
+  host.addEventListener('click',function(ev){
+    let el=ev&&ev.target;
+    while(el&&!(el.className&&String(el.className).indexOf('srow')>=0))
+      el=el.parentElement;
+    if(!el)return;
+    const d=document.getElementById('sdet'+el.getAttribute('data-i'));
+    if(d&&d.style)d.style.display=(d.style.display==='none')?'':'none';});
 }
 const counts={hit:0,miss:0,fail:0,pen:0,other:0};
 for(const G of SCORE)for(const R of G[2]){

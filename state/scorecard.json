@@ -1194,5 +1194,14 @@
   "window": "2026-08",
   "note": "gate shut: D1 hit, D2 missed. The daily clock stays a shadow instrument on this architecture, permanently. Episode capture is not the binding constraint and neither is persistence; the false-flip budget is. No template, stay probability, window or check was adjusted after scoring, the instrument was estimated once, and agreement with the monthly clock was not retried in any form",
   "hash": "d91eee75311cc0ce"
+ },
+ {
+  "id": "STREAK-DEF",
+  "group": "operations, registered before first render",
+  "status": "hit",
+  "claim": "the public streak renders scored forward-looking claims only. An entry is a dot if and only if its group is one of: 'out of sample', 'prediction upgrades', 'corrections', 'bulletin claim scoring', 'outlook quarter scoring'. The first three are the forward-looking claims already on the chain; the last two are reserved now so that future scorings are auditable against a definition fixed before the first render. Dot colour: green for status hit or oos, red for miss or fail, grey for null, un, ret or rev, hollow ring for pending. The row shows the last forty matching entries in chain order and the totals are taken over the whole matching set.",
+  "window": "2026-08",
+  "note": "excluded group strings, every one present on the chain at registration: 'held-out identification', 'graph nodes', 'graph edges', 'stage 6 audit', 'v2 wave 1, registered before estimation', 'transmission rewiring, registered before estimation', 'fix wave, registered before each run', 'phase A and B, registered before estimation', 'structural check, registered before computation', 'network membership checks, registered before estimation', 'network membership, rule: 2 of 3', 'tree leaf checks, registered before estimation', 'G12 daily instrument checks, registered before estimation', 'G12 public gate, registered before estimation', 'registered queue', 'registration, recorded before estimation', 'nervous system architecture', 'composition hierarchy', 'network population', 'operations, registered before first render'. These are registrations, joins, membership rules, held-out design checks, operational entries and unscored pendings, none of which is a forward-looking claim. At registration the matching set holds eight entries: one out-of-sample call, three failed prediction upgrades, two registered nulls and two corrections. The streak is therefore small and unflattering by construction, which is the point: it never reorders, never truncates misses and never omits nulls.",
+  "hash": "009ff3b647db43d8"
  }
 ]

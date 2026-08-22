@@ -72,6 +72,13 @@ function runPass(reduceMotion) {
   const click = listeners['g:click'];
   if (click) for (const fn of click) fn({ clientX: 490, clientY: 242 });
   if (raf.length) raf.shift()(500);
+  const streak = listeners['streaktbl:click'];
+  if (streak) {
+    for (const fn of streak) fn({ target: {
+      className: 'srow', getAttribute: () => '0', parentElement: null } });
+    for (const fn of streak) fn({ target: {
+      className: 'nothing', parentElement: null } });
+  }
   const legend = listeners['legendbtn:click'];
   if (legend) for (const fn of legend) fn({ stopPropagation(){}, target:{} });
   if (click) for (const fn of click) fn({ clientX: 5, clientY: 5 });

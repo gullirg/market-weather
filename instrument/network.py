@@ -78,6 +78,25 @@ Awaiting (spec complete, CSV absent): yen EXJPUS (sign flipped so up
   EXUSUK (GB1 2008-08..2009-01 gbp_weak dom, GB2 2016-06..2016-10
   gbp_weak dom, GB3 2022-09 gbp_weak present).
 
+Registered in the host campaign, before the first decode of this node
+(rule: states, templates and three held-out checks fixed in this file
+and chained, then one scored run, then the 2 of 3 membership rule
+unchanged):
+claims: ICSA weekly to monthly mean, feature series -100*log(claims)
+  so that up means an improving labour market, exactly the sign
+  convention `activity` uses. Features: level z (240m, min 60),
+  3m change z (120m, min 36). States calm [0,0], expansion
+  [1.0, 0.8], contraction [-1.2, -1.0], templates copied from
+  `activity` because the two instruments measure the same object at
+  different frequencies. Block: activity.
+  CJ1 2008-11..2009-06 contraction dominant (the GFC layoff wave).
+  CJ2 2020-03..2020-05 contraction present (the Covid claims
+      explosion).
+  CJ3 2022-01..2022-06 expansion present (claims at multi-decade
+      lows through the post-Covid labour shortage).
+  Checks chosen from labour-market history alone; the series was not
+  decoded before they were written and chained.
+
 Blocks (registered): energy {oil, gas}; rates_expectations {curve,
 real_yield, breakevens, inflation}; credit {credit}; fx {dollar,
 em_dollar}; equities {equities}; metals {gold, copper}; activity
@@ -283,13 +302,24 @@ REGISTRY = {
         "T": [[0.0, 0.0], [1.3, 1.0], [-1.2, -0.9]],
         "checks": [("M2a", "2020-04", "2021-02", "expansion", "dom"),
                    ("M2b", "2022-12", "2023-12", "contraction", "dom")]},
+    "claims": {
+        "block": "activity",
+        "build": lambda F, defl: _lvl_chg(
+            (-100 * np.log(F["_claims"])).dropna()),
+        "needs": ["claims.csv"],
+        "states": ["calm", "expansion", "contraction"],
+        "T": [[0.0, 0.0], [1.0, 0.8], [-1.2, -1.0]],
+        "checks": [("CJ1", "2008-11", "2009-06", "contraction", "dom"),
+                   ("CJ2", "2020-03", "2020-05", "contraction", "pres"),
+                   ("CJ3", "2022-01", "2022-06", "expansion", "pres")]},
 }
 BLOCKS = {"energy": ["oil", "gas", "coal", "uranium"],
           "rates_expectations": ["curve", "real_yield", "breakevens",
                                  "inflation"],
           "credit": ["credit"], "fx": ["dollar", "euro", "yen", "yuan", "sterling", "em_dollar"],
           "equities": ["equities"], "metals": ["gold", "copper"],
-          "activity": ["activity", "housing"], "liquidity": ["money"]}
+          "activity": ["activity", "housing", "claims"],
+          "liquidity": ["money"]}
 
 
 def _load_extra(data_dir, F):
@@ -316,6 +346,7 @@ def _load_extra(data_dir, F):
     F["_wei"] = rd("wei.csv", "wei")
     F["_houst"] = rd("houst.csv", "houst")
     F["_m2"] = rd("m2.csv", "m2")
+    F["_claims"] = rd("claims.csv", "claims")
     return F
 
 

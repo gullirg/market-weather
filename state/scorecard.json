@@ -1095,5 +1095,14 @@
   "window": "2026-08",
   "note": "2 of 2 registered checks, membership rule 2 of 2 as registered",
   "hash": "bd5df8b5d5747d3b"
+ },
+ {
+  "id": "POPULATION-1",
+  "group": "network population",
+  "status": "hit",
+  "claim": "the seven one-file joins are complete and the public network carries twenty-one live instruments",
+  "window": "2026-08",
+  "note": "seven founding instruments plus fourteen capillary members: curve, real_yield, breakevens, copper, coal, uranium, euro, yen, yuan, sterling, em_dollar, activity, housing, money; no registry node is awaiting data and none failed its membership rule; block GFEVD sample 432 months, sparse map 21 nodes over 18 windows",
+  "hash": "2ec26bbd8b226495"
  }
 ]

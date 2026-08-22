@@ -7,7 +7,7 @@ Record page: https://gullirg.github.io/market-weather/report.html
 
 ## Chain anchor
 
-Scorecard entries: 98. Chain head hash: c59bcf1109d04533.
+Scorecard entries: 137. Chain head hash: d91eee75311cc0ce.
 
 Every entry carries the hash of the entry before it. Any retro-edit breaks the chain and `analyst.bulletin.verify` raises. To check the anchor yourself:
 

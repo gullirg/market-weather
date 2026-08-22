@@ -843,5 +843,41 @@
   "window": "2026-08",
   "note": "energy sub-tree fully live (petroleum, gas, coal, nuclear); currencies seeded with euro; yen, yuan, sterling one-file joins",
   "hash": "c59bcf1109d04533"
+ },
+ {
+  "id": "JP1",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "yen names the 2008 crisis carry unwind",
+  "window": "held-out",
+  "note": "dominant yen_strong at share 1.00",
+  "hash": "49da7abaf3b7ec63"
+ },
+ {
+  "id": "JP2",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "yen names the 2012-13 Abenomics devaluation",
+  "window": "held-out",
+  "note": "dominant yen_weak at share 1.00",
+  "hash": "77bb6e50c445bbd1"
+ },
+ {
+  "id": "JP3",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "yen names the 2022 policy-divergence slide",
+  "window": "held-out",
+  "note": "dominant yen_weak at share 1.00",
+  "hash": "537be67e83a8d35e"
+ },
+ {
+  "id": "JOIN-yen",
+  "group": "network membership, rule: 2 of 3",
+  "status": "hit",
+  "claim": "yen joins the public network",
+  "window": "2026-08",
+  "note": "3 of 3 registered checks",
+  "hash": "4c5e6ed07e6ca0f2"
  }
 ]

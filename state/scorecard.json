@@ -960,5 +960,41 @@
   "window": "2026-08",
   "note": "3 of 3 registered checks",
   "hash": "317b8f137a45e9ea"
+ },
+ {
+  "id": "EM1",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "the emerging-markets dollar names the 2008-09 crisis stress",
+  "window": "held-out",
+  "note": "dominant em_stress at share 1.00",
+  "hash": "e12eab22a0376ddb"
+ },
+ {
+  "id": "EM2",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "the emerging-markets dollar names the 2014-16 taper and commodity bust stress",
+  "window": "held-out",
+  "note": "dominant em_stress at share 0.89",
+  "hash": "b4fad9c2a5642160"
+ },
+ {
+  "id": "EM3",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "the emerging-markets dollar sees the March 2020 dollar squeeze",
+  "window": "held-out",
+  "note": "present at share 1.00, dominant em_stress",
+  "hash": "bfd74e5d773cd175"
+ },
+ {
+  "id": "JOIN-em_dollar",
+  "group": "network membership, rule: 2 of 3",
+  "status": "hit",
+  "claim": "em_dollar joins the public network",
+  "window": "2026-08",
+  "note": "3 of 3 registered checks, index begins 2006 so decoding begins 2008-03",
+  "hash": "a5c0417497a91efa"
  }
 ]

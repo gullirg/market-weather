@@ -75,9 +75,16 @@ def score_pending(entries, preds, asof):
 
 
 # -------------------------------------------------------------- payload
-def build_payload(site, scorecard_counts, bulletin_no, issued):
+def build_payload(site, scorecard_counts, bulletin_no, issued,
+                  chain=None):
     """Every number the bulletin is allowed to contain, as strings at
-    display precision."""
+    display precision.
+
+    `chain`, when given, is the pipeline-computed chain anchor
+    {"entries": int, "head": str}. Its entry count and the numeral
+    runs inside its head hash are admitted as literals. Both are
+    produced by analyst.bulletin itself, so rule 1 holds: still no
+    number the pipeline did not compute."""
     nums = set()
 
     def add(x):
@@ -116,6 +123,10 @@ def build_payload(site, scorecard_counts, bulletin_no, issued):
         add(len(nw.get("awaiting") or []))
         add(len([m for m in (nw.get("membership") or [])
                  if m.get("member")]))
+    if chain:
+        add(chain["entries"])
+        for tok in re.findall(r"\d+", chain["head"]):
+            add(tok)
     return nums
 
 
@@ -135,7 +146,8 @@ def lint(text, payload):
 
 
 # ------------------------------------------------------------- skeleton
-def template_bulletin(site, counts, bulletin_no, issued, degraded):
+def template_bulletin(site, counts, bulletin_no, issued, degraded,
+                      chain=None):
     cur = site["current"]
     live = sum(1 for c in cur.values() if not c.get("stale"))
     lines = []
@@ -211,6 +223,14 @@ def template_bulletin(site, counts, bulletin_no, issued, degraded):
                  f"{counts['fail']} failed upgrades, "
                  f"{counts['pending']} registered and pending. "
                  f"Failures publish at the same prominence as hits.")
+    if chain:
+        lines.append("")
+        lines.append("## Chain anchor")
+        lines.append(f"Scorecard entries: {chain['entries']}. "
+                     f"Chain head hash: {chain['head']}. "
+                     "Every entry carries the hash of the entry before "
+                     "it, so any retro-edit breaks the chain and "
+                     "verification fails.")
     lines.append("")
     lines.append("## Limits")
     lines.append("No price forecasts, tested and none claimed. "
@@ -220,9 +240,10 @@ def template_bulletin(site, counts, bulletin_no, issued, degraded):
 
 
 class TemplateWriter:
-    def write(self, site, counts, bulletin_no, issued, degraded):
+    def write(self, site, counts, bulletin_no, issued, degraded,
+              chain=None):
         return template_bulletin(site, counts, bulletin_no, issued,
-                                 degraded)
+                                 degraded, chain)
 
 
 class ClaudeWriter:
@@ -236,10 +257,11 @@ class ClaudeWriter:
               "draft; never add a number, a forecast, or advice; keep "
               "every section.")
 
-    def write(self, site, counts, bulletin_no, issued, degraded):
+    def write(self, site, counts, bulletin_no, issued, degraded,
+              chain=None):
         import os
         base = template_bulletin(site, counts, bulletin_no, issued,
-                                 degraded)
+                                 degraded, chain)
         if not os.environ.get("ANTHROPIC_API_KEY"):
             return base
         try:
@@ -255,19 +277,21 @@ class ClaudeWriter:
 
 
 def generate(site, counts, bulletin_no, issued, degraded, writer=None,
-             retries=1):
+             retries=1, chain=None):
     writer = writer or TemplateWriter()
-    payload = build_payload(site, counts, bulletin_no, issued)
-    draft = writer.write(site, counts, bulletin_no, issued, degraded)
+    payload = build_payload(site, counts, bulletin_no, issued, chain)
+    draft = writer.write(site, counts, bulletin_no, issued, degraded,
+                         chain)
     bad = lint(draft, payload)
     tries = 0
     while bad and tries < retries:
-        draft = writer.write(site, counts, bulletin_no, issued, degraded)
+        draft = writer.write(site, counts, bulletin_no, issued, degraded,
+                             chain)
         bad = lint(draft, payload)
         tries += 1
     if bad:
         draft = template_bulletin(site, counts, bulletin_no, issued,
-                                  degraded)
+                                  degraded, chain)
         bad2 = lint(draft, payload)
         if bad2:
             raise RuntimeError(f"template itself failed lint: {bad2}")

@@ -244,7 +244,10 @@ def cmd_month(args):
     no = (f"{published.index(args.asof) + 1:03d}"
           if args.asof in published else f"{len(published) + 1:03d}")
     issued = args.issued or f"{args.asof}-05"
-    draft, bad = B.generate(site, counts(sc), no, issued, degraded)
+    chain = {"entries": len(sc),
+             "head": sc[-1]["hash"] if sc else "genesis"}
+    draft, bad = B.generate(site, counts(sc), no, issued, degraded,
+                            chain=chain)
     open(os.path.join(STATE, f"draft_{args.asof}.md"), "w").write(draft)
     # monthly diff
     prevp = os.path.join(STATE, "last_states.json")

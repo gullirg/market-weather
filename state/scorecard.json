@@ -924,5 +924,41 @@
   "window": "2026-08",
   "note": "3 of 3 registered checks, decoded from 2006 per REG-yuan-2006",
   "hash": "641a9e3c87a1d720"
+ },
+ {
+  "id": "GB1",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "sterling names the 2008 crisis devaluation",
+  "window": "held-out",
+  "note": "dominant gbp_weak at share 1.00",
+  "hash": "7ebde92e350b4c4f"
+ },
+ {
+  "id": "GB2",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "sterling names the 2016 referendum slide",
+  "window": "held-out",
+  "note": "dominant gbp_weak at share 1.00",
+  "hash": "682d46286d972d82"
+ },
+ {
+  "id": "GB3",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "sterling sees the September 2022 gilt crisis",
+  "window": "held-out",
+  "note": "present at share 1.00, dominant gbp_weak",
+  "hash": "4bcb27dc0c0cbea2"
+ },
+ {
+  "id": "JOIN-sterling",
+  "group": "network membership, rule: 2 of 3",
+  "status": "hit",
+  "claim": "sterling joins the public network",
+  "window": "2026-08",
+  "note": "3 of 3 registered checks",
+  "hash": "317b8f137a45e9ea"
  }
 ]

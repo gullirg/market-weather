@@ -1,0 +1,45 @@
+{
+ "checks": [
+  {
+   "id": "D1",
+   "value": {
+    "captured": {
+     "1990-08": true,
+     "2008-10": true,
+     "2014-11": true,
+     "2020-03": true,
+     "2026-03": true
+    },
+    "n": 5
+   },
+   "hit": true
+  },
+  {
+   "id": "D2",
+   "value": {
+    "flips": 114,
+    "eligible_bd": 8906,
+    "per_decade": 32.26
+   },
+   "hit": false
+  },
+  {
+   "id": "D3",
+   "value": {
+    "median_run_bd": 46.0,
+    "runs": 125
+   },
+   "hit": true
+  }
+ ],
+ "gate": "closed",
+ "current": {
+  "family": "downturn",
+  "prob": 1.0,
+  "date": "2026-08-11"
+ },
+ "span": [
+  "1989-07-20",
+  "2026-08-11"
+ ]
+}

@@ -1203,5 +1203,23 @@
   "window": "2026-08",
   "note": "excluded group strings, every one present on the chain at registration: 'held-out identification', 'graph nodes', 'graph edges', 'stage 6 audit', 'v2 wave 1, registered before estimation', 'transmission rewiring, registered before estimation', 'fix wave, registered before each run', 'phase A and B, registered before estimation', 'structural check, registered before computation', 'network membership checks, registered before estimation', 'network membership, rule: 2 of 3', 'tree leaf checks, registered before estimation', 'G12 daily instrument checks, registered before estimation', 'G12 public gate, registered before estimation', 'registered queue', 'registration, recorded before estimation', 'nervous system architecture', 'composition hierarchy', 'network population', 'operations, registered before first render'. These are registrations, joins, membership rules, held-out design checks, operational entries and unscored pendings, none of which is a forward-looking claim. At registration the matching set holds eight entries: one out-of-sample call, three failed prediction upgrades, two registered nulls and two corrections. The streak is therefore small and unflattering by construction, which is the point: it never reorders, never truncates misses and never omits nulls.",
   "hash": "009ff3b647db43d8"
+ },
+ {
+  "id": "OUTLOOK-REG",
+  "group": "registration, recorded before estimation",
+  "status": "note",
+  "claim": "OUTLOOK v1 is registered in full before any estimate is produced. Two forecasters and two baselines. Forecaster M, Markov: a per-instrument semi-Markov transition structure with duration-dependent exit hazards, absorbing the long-queued G2, re-estimated once per quarter on full history, giving state distributions at horizons 1 to 12 months; synoptic occupancy as the discounted successor representation over the joint decoded synoptic series with discount 0.9. Forecaster A, analogue ensemble: the top K of 20 analogues of the current joint state under the already registered analogue weights, exclusion window 12 months, taking the empirical distribution of states at each horizon. Baselines: persistence, the current state with probability one, and climatology, the unconditional state frequencies over full history.",
+  "window": "2026-08",
+  "note": "Scoring, quarterly and chained as OUTLOOK-S-<quarter> in group 'outlook quarter scoring': ranked probability skill score against climatology, per instrument and for the synoptic layer, at horizons 3, 6 and 12 months. A forecaster is called skillful at a horizon only if it also beats persistence at that horizon; the climatology skill score alone is not sufficient. A reliability diagram is published only after eight scored quarters, never before. Publication rule: probabilities only, in the plume and cone visuals, and no state-word prediction enters the bulletin until a forecaster has two consecutive skillful quarters at that horizon, and then only with its skill score printed beside it. Nothing is estimated or scored by this entry; it fixes the form so that the first forecast cannot be tuned after the fact. Full design in reports/outlook_design.md section 2.",
+  "hash": "46fc8c157d7e02e2"
+ },
+ {
+  "id": "G2-CLOSED",
+  "group": "registered queue closure",
+  "status": "note",
+  "claim": "G2, semi-Markov episode targets, is absorbed by OUTLOOK-REG and closed. Its content survives as forecaster M's duration-dependent exit hazards.",
+  "window": "2026-08",
+  "note": "The chain is append-only, so the original G2 row keeps its pending status and the published pending count still includes it. This entry is the closure record, not an edit.",
+  "hash": "2a86ac389b3f5c49"
  }
 ]

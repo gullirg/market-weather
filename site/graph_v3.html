@@ -48,6 +48,26 @@ cursor:pointer;background:none;transition:box-shadow .25s,color .25s}
 #scrub{flex:1;accent-color:#6ea8ff;height:3px}
 #when{font:600 11px system-ui;color:var(--dim);min-width:120px;
 text-align:right;letter-spacing:.06em}
+#views{display:flex;gap:6px;align-items:center}
+.view{font:600 10px system-ui;letter-spacing:.08em;color:var(--dim);
+border:1px solid var(--line);border-radius:14px;padding:4px 10px;
+background:none;cursor:pointer}
+.view.lock{cursor:default;color:var(--ink);border-color:var(--dim);
+background:#1a2030}
+.view.on{color:var(--ink);border-color:var(--ease);background:#161d2c}
+#outlookpanel{display:none;position:absolute;right:14px;top:14px;
+z-index:44;width:330px;font-size:11px;color:var(--dim);
+background:rgb(20,24,38);background:rgba(20,24,38,.72);
+border:1px solid rgba(255,255,255,.08);border-radius:12px;
+padding:12px 14px;box-shadow:0 8px 30px rgba(0,0,0,.45)}
+@supports ((backdrop-filter:blur(14px)) or (-webkit-backdrop-filter:blur(14px))){
+  #outlookpanel{-webkit-backdrop-filter:blur(14px);
+    backdrop-filter:blur(14px)}
+}
+#outlookpanel .hd{font-weight:700;letter-spacing:.1em;color:var(--ink);
+margin-bottom:6px;font-size:11px}
+.olab{font:600 9px system-ui;letter-spacing:.1em;color:var(--faint)}
+#card .meteo{margin:3px 0 7px}
 #stage{flex:1;position:relative;background:var(--bg)}
 #g{position:absolute;inset:0;width:100%;height:100%;display:block}
 #card{display:none;position:absolute;z-index:40;
@@ -55,6 +75,7 @@ background:rgb(20,24,38);
 background:rgba(20,24,38,.72);
 border:1px solid rgba(255,255,255,.08);border-radius:12px;
 padding:12px 14px;min-width:210px;max-width:280px;font-size:12px;
+max-height:70vh;overflow-y:auto;overscroll-behavior:contain;
 box-shadow:0 8px 30px rgba(0,0,0,.45)}
 @supports ((backdrop-filter:blur(14px)) or (-webkit-backdrop-filter:blur(14px))){
   #card{-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
@@ -96,9 +117,14 @@ text-decoration:none}
 <div id=pins></div>
 <div id=scrubrow>
   <input id=scrub type=range min=0 max=1 value=0 step=1>
+  <div id=views>
+    <button class="view lock" id=vanalysis>ANALYSIS</button>
+    <button class="view" id=voutlook>OUTLOOK</button>
+  </div>
   <div id=when></div>
 </div>
 <div id=stage><canvas id=g></canvas><div id=card></div>
+  <div id=outlookpanel></div>
   <button id=legendbtn aria-label="what am I looking at">?</button>
   <div id=legendpanel>
     <div>A node is one block of the economy, holding the instruments
@@ -151,6 +177,118 @@ function frameMonthIdx(k){return monthIdx(FR[k].end);}
 function stateWordLive(m){
   const c=DATA.current[m]||(DATA.network&&DATA.network.current[m]);
   return c?{s:(c.word||c.state).replace('_',' '),p:c.prob}:null;}
+let outlookOn=false;
+function famOf(state,syn){
+  const O=DATA.outlook;if(!O)return -1;
+  const m=syn?O.synoptic_family_map:O.family_map;
+  const v=m?m[state]:undefined;
+  return (v===undefined||v===null)?-1:v;}
+function famProbs(dist,syn){
+  const out=[0,0,0,0,0];let tot=0;
+  for(const st in dist){const f=famOf(st,syn);
+    if(f>=0){out[f]+=dist[st];tot+=dist[st];}}
+  return {p:out,tot:tot};}
+function bandsSvg(node,syn){
+  const O=DATA.outlook;if(!O)return '';
+  const src=syn?O.synoptic:(O.instruments||{})[node];
+  if(!src)return '';
+  const HS=O.horizons,W=232,PH=13,AH=13,GAP=3,LW=26;
+  const past=(V3.fam_strip&&V3.fam_strip[node])?V3.fam_strip[node]:null;
+  const nb=HS.length,cw=(W-LW)/(nb*2);
+  let g='';
+  // analysis half: the last nb decoded months
+  if(!syn&&past){
+    const tail=past.slice(-nb);
+    for(let i=0;i<tail.length;i++){
+      const c=tail[i]>=0?FAMCOL[tail[i]]:getCss('--line');
+      g+='<rect x="'+(LW+i*cw)+'" y="0" width="'+(cw+0.4)+'" height="'+
+        AH+'" fill="'+c+'" fill-opacity=".85"/>';}}
+  else if(syn&&DATA.synoptic&&DATA.synoptic.strip){
+    const tail=DATA.synoptic.strip.slice(-nb);
+    for(let i=0;i<tail.length;i++){
+      const c=tail[i]>=0?FAMCOL[Math.min(4,tail[i])]:getCss('--line');
+      g+='<rect x="'+(LW+i*cw)+'" y="0" width="'+(cw+0.4)+'" height="'+
+        AH+'" fill="'+c+'" fill-opacity=".85"/>';}}
+  // outlook half: stacked family bands, forecaster M then A
+  const rows=[['M',AH+GAP,PH],['A',AH+GAP+PH+2,PH-4]];
+  for(const r of rows){
+    for(let i=0;i<nb;i++){
+      const d=src[r[0]][String(HS[i])]||{};
+      const fp=famProbs(d,syn);
+      if(fp.tot<=0)continue;
+      let y=r[1];
+      for(let f=0;f<5;f++){
+        const h=(fp.p[f]/fp.tot)*r[2];
+        if(h<=0)continue;
+        g+='<rect x="'+(LW+nb*cw+i*cw)+'" y="'+y+'" width="'+(cw+0.4)+
+          '" height="'+h+'" fill="'+FAMCOL[f]+'" fill-opacity=".8"/>';
+        y+=h;}}
+    g+='<text x="0" y="'+(r[1]+r[2]-2)+'" fill="'+getCss('--faint')+
+      '" font-size="8">'+r[0]+'</text>';}
+  g+='<text x="0" y="'+(AH-3)+'" fill="'+getCss('--faint')+
+    '" font-size="8">now</text>';
+  g+='<line x1="'+(LW+nb*cw)+'" y1="0" x2="'+(LW+nb*cw)+'" y2="'+
+    (AH+GAP+PH+2+PH-4)+'" stroke="'+getCss('--dim')+
+    '" stroke-width=".7"/>';
+  const H=AH+GAP+PH+2+PH-4+11;
+  g+='<text x="'+(LW+nb*cw*0.5)+'" y="'+(H-2)+'" fill="'+
+    getCss('--faint')+'" font-size="8" text-anchor="middle">analysis</text>';
+  g+='<text x="'+(LW+nb*cw*1.5)+'" y="'+(H-2)+'" fill="'+
+    getCss('--faint')+'" font-size="8" text-anchor="middle">outlook</text>';
+  return '<svg class=meteo width="'+W+'" height="'+H+
+    '" viewBox="0 0 '+W+' '+H+'">'+g+'</svg>';}
+function coneSvg(){
+  const O=DATA.outlook;if(!O||!O.synoptic)return '';
+  const HS=O.horizons,W=300,H=104,X0=24,MID=H/2-8;
+  const src=O.synoptic;let g='';
+  const pts=[],pts2=[];
+  for(let i=0;i<HS.length;i++){
+    const d=src.M[String(HS[i])]||{};
+    let mx=0,ent=0,n=0;
+    for(const st in d){const p=d[st];if(p>mx)mx=p;
+      if(p>0){ent-=p*Math.log(p);n++;}}
+    const maxent=Math.log(Math.max(2,(src.states||[]).length));
+    const spread=Math.max(0.04,Math.min(1,ent/maxent));
+    const x=X0+(i+1)*((W-X0-6)/HS.length);
+    const hw=spread*(MID-6);
+    pts.push([x,MID-hw]);pts2.push([x,MID+hw]);}
+  const poly=[[X0,MID]].concat(pts).concat(pts2.slice().reverse())
+    .concat([[X0,MID]]);
+  const famNow=famOf(src.analysis.state,true);
+  const col=famNow>=0?FAMCOL[famNow]:getCss('--dim');
+  g+='<polygon points="'+poly.map(p=>p[0].toFixed(1)+','+
+    p[1].toFixed(1)).join(' ')+'" fill="'+col+
+    '" fill-opacity=".18" stroke="'+col+
+    '" stroke-opacity=".45" stroke-width="1"/>';
+  g+='<circle cx="'+X0+'" cy="'+MID+'" r="3" fill="'+col+'"/>';
+  g+='<text x="'+X0+'" y="'+(MID+18)+'" fill="'+getCss('--faint')+
+    '" font-size="8" text-anchor="middle">now</text>';
+  for(const h of [HS[2],HS[5],HS[11]]){
+    const i=HS.indexOf(h);
+    const x=X0+(i+1)*((W-X0-6)/HS.length);
+    g+='<text x="'+x+'" y="'+(H-3)+'" fill="'+getCss('--faint')+
+      '" font-size="8" text-anchor="middle">'+h+'</text>';}
+  return '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+
+    '">'+g+'</svg>';}
+function renderOutlookPanel(){
+  const el=document.getElementById('outlookpanel');
+  if(!el)return;
+  if(!outlookOn||!DATA.outlook||!DATA.outlook.synoptic){
+    if(el.style)el.style.display='none';return;}
+  const O=DATA.outlook;
+  let h='<div class=hd>OUTLOOK <span style="color:var(--faint)">'+
+    'synoptic cone</span></div>';
+  h+='<div class=olab>ANALYSIS: '+esc(O.synoptic.analysis.state
+    .replace(/_/g,' '))+'</div>';
+  h+=coneSvg();
+  h+='<div>Uncertainty widens with horizon. The cone is the spread of '+
+    'the synoptic outlook, not a track.</div>';
+  h+=bandsSvg(null,true);
+  h+='<div>Bands are probabilities by family, forecaster M above '+
+    'forecaster A. Nothing here is a state word prediction: the '+
+    'bulletin stays silent until a forecaster is scored skillful.</div>';
+  el.innerHTML=h;
+  if(el.style)el.style.display='block';}
 function esc(x){return String(x==null?'':x).replace(/&/g,'&amp;')
   .replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function plural(n,one,many){return n+' '+(n===1?one:(many||one+'s'));}
@@ -304,6 +442,8 @@ function openCard(b,cxp,cyp){
   const c=document.getElementById('card');
   let h='<div class=hd>'+LABEL[b]+' <span style="color:var(--faint)">'+
     f.end+'</span></div>';
+  h+='<div class=olab>'+(outlookOn?'ANALYSIS AND OUTLOOK':'ANALYSIS')+
+    '</div>';
   for(const m of members){
     const fam=nodeFam(m,mi);
     const known=fam!==null&&fam>=0;
@@ -317,7 +457,9 @@ function openCard(b,cxp,cyp){
     if(V3.joined[m]&&V3.joined[m]!=='founding')
       line+=' <span style="color:var(--faint)">joined '+
         V3.joined[m]+'</span>';
-    h+='<div>'+line+'</div>';}
+    h+='<div>'+line+'</div>';
+    if(outlookOn&&DATA.outlook&&(DATA.outlook.instruments||{})[m])
+      h+=bandsSvg(m,false);}
   const TD=(V3.tree&&V3.tree.structure)||{};
   const TKEY=b==='energy'?'energy':(b==='fx'?'currencies':null);
   if(TKEY&&TD[TKEY]){
@@ -420,6 +562,13 @@ function init(){
   cv.addEventListener('mousemove',ev=>{
     const h=hitEdge(ev.clientX,ev.clientY);
     if(h!==hoverEdge){hoverEdge=h;draw(lastT);}});
+  const vo=document.getElementById('voutlook');
+  vo.addEventListener('click',ev=>{
+    if(ev&&ev.stopPropagation)ev.stopPropagation();
+    outlookOn=!outlookOn;
+    if(vo.classList)vo.classList.toggle('on',outlookOn);
+    renderOutlookPanel();
+    if(selected)openCard(selected,120,120);});
   const lb=document.getElementById('legendbtn'),
     lp=document.getElementById('legendpanel');
   lb.addEventListener('click',ev=>{

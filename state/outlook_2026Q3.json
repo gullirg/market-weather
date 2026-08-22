@@ -1,0 +1,3204 @@
+{
+ "asof": "2026-08",
+ "quarter": "2026Q3",
+ "issued": "2026-08-18",
+ "horizons": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12
+ ],
+ "k_analogue": 20,
+ "exclusion_months": 12,
+ "paths": 2000,
+ "sr_discount": 0.9,
+ "seed": 3249580628,
+ "instruments": {
+  "activity": {
+   "states": [
+    "calm",
+    "contraction",
+    "expansion"
+   ],
+   "analysis": {
+    "state": "calm",
+    "elapsed_months": 54
+   },
+   "M": {
+    "1": {
+     "calm": 0.915,
+     "contraction": 0.025,
+     "expansion": 0.06
+    },
+    "2": {
+     "calm": 0.9115,
+     "contraction": 0.028,
+     "expansion": 0.0605
+    },
+    "3": {
+     "calm": 0.9115,
+     "contraction": 0.0305,
+     "expansion": 0.058
+    },
+    "4": {
+     "calm": 0.9135,
+     "contraction": 0.031,
+     "expansion": 0.0555
+    },
+    "5": {
+     "calm": 0.9075,
+     "contraction": 0.035,
+     "expansion": 0.0575
+    },
+    "6": {
+     "calm": 0.905,
+     "contraction": 0.0385,
+     "expansion": 0.0565
+    },
+    "7": {
+     "calm": 0.9025,
+     "contraction": 0.0375,
+     "expansion": 0.06
+    },
+    "8": {
+     "calm": 0.897,
+     "contraction": 0.041,
+     "expansion": 0.062
+    },
+    "9": {
+     "calm": 0.8925,
+     "contraction": 0.044,
+     "expansion": 0.0635
+    },
+    "10": {
+     "calm": 0.89,
+     "contraction": 0.047,
+     "expansion": 0.063
+    },
+    "11": {
+     "calm": 0.899,
+     "contraction": 0.048,
+     "expansion": 0.053
+    },
+    "12": {
+     "calm": 0.9135,
+     "contraction": 0.0395,
+     "expansion": 0.047
+    }
+   },
+   "A": {
+    "1": {
+     "calm": 1.0
+    },
+    "2": {
+     "calm": 1.0
+    },
+    "3": {
+     "calm": 1.0
+    },
+    "4": {
+     "calm": 1.0
+    },
+    "5": {
+     "calm": 1.0
+    },
+    "6": {
+     "calm": 1.0
+    },
+    "7": {
+     "calm": 1.0
+    },
+    "8": {
+     "calm": 1.0
+    },
+    "9": {
+     "calm": 1.0
+    },
+    "10": {
+     "calm": 1.0
+    },
+    "11": {
+     "calm": 1.0
+    },
+    "12": {
+     "calm": 1.0
+    }
+   },
+   "climatology": {
+    "calm": 0.8259,
+    "expansion": 0.1144,
+    "contraction": 0.0597
+   },
+   "persistence": {
+    "calm": 1.0
+   },
+   "analogues_used": 20
+  },
+  "breakevens": {
+   "states": [
+    "calm",
+    "deflation_scare",
+    "reflation"
+   ],
+   "analysis": {
+    "state": "calm",
+    "elapsed_months": 50
+   },
+   "M": {
+    "1": {
+     "calm": 0.8775,
+     "deflation_scare": 0.038,
+     "reflation": 0.0845
+    },
+    "2": {
+     "calm": 0.867,
+     "deflation_scare": 0.0515,
+     "reflation": 0.0815
+    },
+    "3": {
+     "calm": 0.8645,
+     "deflation_scare": 0.0575,
+     "reflation": 0.078
+    },
+    "4": {
+     "calm": 0.8535,
+     "deflation_scare": 0.067,
+     "reflation": 0.0795
+    },
+    "5": {
+     "calm": 0.8435,
+     "deflation_scare": 0.0735,
+     "reflation": 0.083
+    },
+    "6": {
+     "calm": 0.835,
+     "deflation_scare": 0.0795,
+     "reflation": 0.0855
+    },
+    "7": {
+     "calm": 0.8255,
+     "deflation_scare": 0.089,
+     "reflation": 0.0855
+    },
+    "8": {
+     "calm": 0.8165,
+     "deflation_scare": 0.0965,
+     "reflation": 0.087
+    },
+    "9": {
+     "calm": 0.817,
+     "deflation_scare": 0.092,
+     "reflation": 0.091
+    },
+    "10": {
+     "calm": 0.8145,
+     "deflation_scare": 0.093,
+     "reflation": 0.0925
+    },
+    "11": {
+     "calm": 0.8195,
+     "deflation_scare": 0.09,
+     "reflation": 0.0905
+    },
+    "12": {
+     "calm": 0.8185,
+     "deflation_scare": 0.0915,
+     "reflation": 0.09
+    }
+   },
+   "A": {
+    "1": {
+     "calm": 0.5,
+     "deflation_scare": 0.5
+    },
+    "2": {
+     "calm": 0.5,
+     "deflation_scare": 0.5
+    },
+    "3": {
+     "calm": 0.5,
+     "deflation_scare": 0.5
+    },
+    "4": {
+     "calm": 0.5,
+     "deflation_scare": 0.5
+    },
+    "5": {
+     "calm": 0.5,
+     "deflation_scare": 0.5
+    },
+    "6": {
+     "calm": 0.5,
+     "deflation_scare": 0.5
+    },
+    "7": {
+     "calm": 0.5,
+     "deflation_scare": 0.5
+    },
+    "8": {
+     "deflation_scare": 0.5,
+     "calm": 0.5
+    },
+    "9": {
+     "deflation_scare": 0.4375,
+     "calm": 0.5625
+    },
+    "10": {
+     "deflation_scare": 0.375,
+     "calm": 0.625
+    },
+    "11": {
+     "deflation_scare": 0.3125,
+     "calm": 0.6875
+    },
+    "12": {
+     "deflation_scare": 0.25,
+     "calm": 0.75
+    }
+   },
+   "climatology": {
+    "calm": 0.8054,
+    "deflation_scare": 0.1012,
+    "reflation": 0.0934
+   },
+   "persistence": {
+    "calm": 1.0
+   },
+   "analogues_used": 20
+  },
+  "claims": {
+   "states": [
+    "calm",
+    "contraction",
+    "expansion"
+   ],
+   "analysis": {
+    "state": "expansion",
+    "elapsed_months": 60
+   },
+   "M": {
+    "1": {
+     "calm": 0.3055,
+     "contraction": 0.015,
+     "expansion": 0.6795
+    },
+    "2": {
+     "calm": 0.2995,
+     "contraction": 0.0265,
+     "expansion": 0.674
+    },
+    "3": {
+     "calm": 0.31,
+     "contraction": 0.034,
+     "expansion": 0.656
+    },
+    "4": {
+     "calm": 0.3285,
+     "contraction": 0.04,
+     "expansion": 0.6315
+    },
+    "5": {
+     "calm": 0.3065,
+     "contraction": 0.07,
+     "expansion": 0.6235
+    },
+    "6": {
+     "calm": 0.3145,
+     "contraction": 0.08,
+     "expansion": 0.6055
+    },
+    "7": {
+     "calm": 0.3295,
+     "contraction": 0.084,
+     "expansion": 0.5865
+    },
+    "8": {
+     "calm": 0.3405,
+     "contraction": 0.0865,
+     "expansion": 0.573
+    },
+    "9": {
+     "calm": 0.3305,
+     "contraction": 0.1035,
+     "expansion": 0.566
+    },
+    "10": {
+     "calm": 0.347,
+     "contraction": 0.109,
+     "expansion": 0.544
+    },
+    "11": {
+     "calm": 0.36,
+     "contraction": 0.1155,
+     "expansion": 0.5245
+    },
+    "12": {
+     "calm": 0.3565,
+     "contraction": 0.124,
+     "expansion": 0.5195
+    }
+   },
+   "A": {
+    "1": {
+     "expansion": 1.0
+    },
+    "2": {
+     "expansion": 1.0
+    },
+    "3": {
+     "expansion": 1.0
+    },
+    "4": {
+     "expansion": 1.0
+    },
+    "5": {
+     "expansion": 1.0
+    },
+    "6": {
+     "expansion": 1.0
+    },
+    "7": {
+     "expansion": 1.0
+    },
+    "8": {
+     "expansion": 1.0
+    },
+    "9": {
+     "expansion": 1.0
+    },
+    "10": {
+     "expansion": 1.0
+    },
+    "11": {
+     "expansion": 1.0
+    },
+    "12": {
+     "expansion": 1.0
+    }
+   },
+   "climatology": {
+    "calm": 0.5147,
+    "expansion": 0.3009,
+    "contraction": 0.1844
+   },
+   "persistence": {
+    "expansion": 1.0
+   },
+   "analogues_used": 20
+  },
+  "coal": {
+   "states": [
+    "boom",
+    "bust",
+    "calm"
+   ],
+   "analysis": {
+    "state": "calm",
+    "elapsed_months": 28
+   },
+   "M": {
+    "1": {
+     "boom": 0.1195,
+     "bust": 0.037,
+     "calm": 0.8435
+    },
+    "2": {
+     "boom": 0.139,
+     "bust": 0.055,
+     "calm": 0.806
+    },
+    "3": {
+     "boom": 0.145,
+     "bust": 0.0695,
+     "calm": 0.7855
+    },
+    "4": {
+     "boom": 0.1615,
+     "bust": 0.08,
+     "calm": 0.7585
+    },
+    "5": {
+     "boom": 0.176,
+     "bust": 0.0875,
+     "calm": 0.7365
+    },
+    "6": {
+     "boom": 0.1875,
+     "bust": 0.103,
+     "calm": 0.7095
+    },
+    "7": {
+     "boom": 0.1975,
+     "bust": 0.116,
+     "calm": 0.6865
+    },
+    "8": {
+     "boom": 0.2085,
+     "bust": 0.13,
+     "calm": 0.6615
+    },
+    "9": {
+     "boom": 0.216,
+     "bust": 0.138,
+     "calm": 0.646
+    },
+    "10": {
+     "boom": 0.225,
+     "bust": 0.149,
+     "calm": 0.626
+    },
+    "11": {
+     "boom": 0.233,
+     "bust": 0.155,
+     "calm": 0.612
+    },
+    "12": {
+     "boom": 0.244,
+     "bust": 0.1565,
+     "calm": 0.5995
+    }
+   },
+   "A": {
+    "1": {
+     "calm": 0.8,
+     "bust": 0.2
+    },
+    "2": {
+     "calm": 0.8,
+     "bust": 0.2
+    },
+    "3": {
+     "calm": 0.8,
+     "bust": 0.2
+    },
+    "4": {
+     "calm": 0.8,
+     "bust": 0.2
+    },
+    "5": {
+     "calm": 0.75,
+     "boom": 0.05,
+     "bust": 0.2
+    },
+    "6": {
+     "calm": 0.7,
+     "boom": 0.1,
+     "bust": 0.2
+    },
+    "7": {
+     "calm": 0.65,
+     "boom": 0.15,
+     "bust": 0.2
+    },
+    "8": {
+     "calm": 0.6,
+     "boom": 0.2,
+     "bust": 0.2
+    },
+    "9": {
+     "calm": 0.55,
+     "boom": 0.25,
+     "bust": 0.2
+    },
+    "10": {
+     "calm": 0.55,
+     "boom": 0.3,
+     "bust": 0.15
+    },
+    "11": {
+     "calm": 0.55,
+     "boom": 0.35,
+     "bust": 0.1
+    },
+    "12": {
+     "calm": 0.55,
+     "boom": 0.4,
+     "bust": 0.05
+    }
+   },
+   "climatology": {
+    "calm": 0.4936,
+    "boom": 0.2751,
+    "bust": 0.2314
+   },
+   "persistence": {
+    "calm": 1.0
+   },
+   "analogues_used": 20
+  },
+  "copper": {
+   "states": [
+    "boom",
+    "bust",
+    "calm"
+   ],
+   "analysis": {
+    "state": "boom",
+    "elapsed_months": 10
+   },
+   "M": {
+    "1": {
+     "boom": 0.8925,
+     "bust": 0.004,
+     "calm": 0.1035
+    },
+    "2": {
+     "boom": 0.842,
+     "bust": 0.006,
+     "calm": 0.152
+    },
+    "3": {
+     "boom": 0.8015,
+     "bust": 0.0115,
+     "calm": 0.187
+    },
+    "4": {
+     "boom": 0.399,
+     "bust": 0.0185,
+     "calm": 0.5825
+    },
+    "5": {
+     "boom": 0.3955,
+     "bust": 0.035,
+     "calm": 0.5695
+    },
+    "6": {
+     "boom": 0.39,
+     "bust": 0.054,
+     "calm": 0.556
+    },
+    "7": {
+     "boom": 0.3935,
+     "bust": 0.073,
+     "calm": 0.5335
+    },
+    "8": {
+     "boom": 0.3945,
+     "bust": 0.094,
+     "calm": 0.5115
+    },
+    "9": {
+     "boom": 0.3805,
+     "bust": 0.106,
+     "calm": 0.5135
+    },
+    "10": {
+     "boom": 0.382,
+     "bust": 0.119,
+     "calm": 0.499
+    },
+    "11": {
+     "boom": 0.2595,
+     "bust": 0.1295,
+     "calm": 0.611
+    },
+    "12": {
+     "boom": 0.2645,
+     "bust": 0.1375,
+     "calm": 0.598
+    }
+   },
+   "A": {
+    "1": {
+     "calm": 0.4,
+     "bust": 0.6
+    },
+    "2": {
+     "calm": 0.4,
+     "bust": 0.6
+    },
+    "3": {
+     "calm": 0.4,
+     "bust": 0.6
+    },
+    "4": {
+     "calm": 0.4,
+     "bust": 0.6
+    },
+    "5": {
+     "calm": 0.4,
+     "bust": 0.6
+    },
+    "6": {
+     "bust": 0.6,
+     "calm": 0.4
+    },
+    "7": {
+     "bust": 0.5,
+     "calm": 0.5
+    },
+    "8": {
+     "bust": 0.4,
+     "calm": 0.6
+    },
+    "9": {
+     "bust": 0.3,
+     "calm": 0.65,
+     "boom": 0.05
+    },
+    "10": {
+     "bust": 0.2,
+     "calm": 0.7,
+     "boom": 0.1
+    },
+    "11": {
+     "bust": 0.15,
+     "calm": 0.7,
+     "boom": 0.15
+    },
+    "12": {
+     "bust": 0.1,
+     "calm": 0.7,
+     "boom": 0.2
+    }
+   },
+   "climatology": {
+    "calm": 0.5527,
+    "boom": 0.2853,
+    "bust": 0.162
+   },
+   "persistence": {
+    "boom": 1.0
+   },
+   "analogues_used": 20
+  },
+  "credit": {
+   "states": [
+    "calm",
+    "easing",
+    "stress"
+   ],
+   "analysis": {
+    "state": "calm",
+    "elapsed_months": 26
+   },
+   "M": {
+    "1": {
+     "calm": 0.546,
+     "easing": 0.426,
+     "stress": 0.028
+    },
+    "2": {
+     "calm": 0.5665,
+     "easing": 0.392,
+     "stress": 0.0415
+    },
+    "3": {
+     "calm": 0.403,
+     "easing": 0.485,
+     "stress": 0.112
+    },
+    "4": {
+     "calm": 0.512,
+     "easing": 0.3665,
+     "stress": 0.1215
+    },
+    "5": {
+     "calm": 0.548,
+     "easing": 0.3345,
+     "stress": 0.1175
+    },
+    "6": {
+     "calm": 0.574,
+     "easing": 0.306,
+     "stress": 0.12
+    },
+    "7": {
+     "calm": 0.606,
+     "easing": 0.2795,
+     "stress": 0.1145
+    },
+    "8": {
+     "calm": 0.5975,
+     "easing": 0.2885,
+     "stress": 0.114
+    },
+    "9": {
+     "calm": 0.617,
+     "easing": 0.272,
+     "stress": 0.111
+    },
+    "10": {
+     "calm": 0.605,
+     "easing": 0.2725,
+     "stress": 0.1225
+    },
+    "11": {
+     "calm": 0.6065,
+     "easing": 0.272,
+     "stress": 0.1215
+    },
+    "12": {
+     "calm": 0.6,
+     "easing": 0.272,
+     "stress": 0.128
+    }
+   },
+   "A": {
+    "1": {
+     "calm": 1.0
+    },
+    "2": {
+     "calm": 1.0
+    },
+    "3": {
+     "calm": 1.0
+    },
+    "4": {
+     "calm": 1.0
+    },
+    "5": {
+     "calm": 0.95,
+     "stress": 0.05
+    },
+    "6": {
+     "calm": 0.9,
+     "stress": 0.1
+    },
+    "7": {
+     "calm": 0.85,
+     "stress": 0.15
+    },
+    "8": {
+     "calm": 0.8,
+     "stress": 0.2
+    },
+    "9": {
+     "calm": 0.75,
+     "easing": 0.05,
+     "stress": 0.2
+    },
+    "10": {
+     "calm": 0.7,
+     "easing": 0.1,
+     "stress": 0.2
+    },
+    "11": {
+     "calm": 0.65,
+     "easing": 0.15,
+     "stress": 0.2
+    },
+    "12": {
+     "calm": 0.65,
+     "easing": 0.15,
+     "stress": 0.2
+    }
+   },
+   "climatology": {
+    "calm": 0.5792,
+    "easing": 0.2364,
+    "stress": 0.1844
+   },
+   "persistence": {
+    "calm": 1.0
+   },
+   "analogues_used": 20
+  },
+  "curve": {
+   "states": [
+    "calm",
+    "inversion",
+    "steepening"
+   ],
+   "analysis": {
+    "state": "calm",
+    "elapsed_months": 24
+   },
+   "M": {
+    "1": {
+     "calm": 0.657,
+     "inversion": 0.3165,
+     "steepening": 0.0265
+    },
+    "2": {
+     "calm": 0.623,
+     "inversion": 0.3355,
+     "steepening": 0.0415
+    },
+    "3": {
+     "calm": 0.6,
+     "inversion": 0.342,
+     "steepening": 0.058
+    },
+    "4": {
+     "calm": 0.577,
+     "inversion": 0.3535,
+     "steepening": 0.0695
+    },
+    "5": {
+     "calm": 0.5505,
+     "inversion": 0.368,
+     "steepening": 0.0815
+    },
+    "6": {
+     "calm": 0.532,
+     "inversion": 0.376,
+     "steepening": 0.092
+    },
+    "7": {
+     "calm": 0.531,
+     "inversion": 0.355,
+     "steepening": 0.114
+    },
+    "8": {
+     "calm": 0.523,
+     "inversion": 0.357,
+     "steepening": 0.12
+    },
+    "9": {
+     "calm": 0.5145,
+     "inversion": 0.3575,
+     "steepening": 0.128
+    },
+    "10": {
+     "calm": 0.5135,
+     "inversion": 0.3405,
+     "steepening": 0.146
+    },
+    "11": {
+     "calm": 0.5015,
+     "inversion": 0.3445,
+     "steepening": 0.154
+    },
+    "12": {
+     "calm": 0.49,
+     "inversion": 0.3485,
+     "steepening": 0.1615
+    }
+   },
+   "A": {
+    "1": {
+     "calm": 0.8,
+     "inversion": 0.2
+    },
+    "2": {
+     "calm": 0.8,
+     "inversion": 0.2
+    },
+    "3": {
+     "calm": 0.8,
+     "inversion": 0.2
+    },
+    "4": {
+     "calm": 0.8,
+     "inversion": 0.2
+    },
+    "5": {
+     "calm": 0.8,
+     "inversion": 0.2
+    },
+    "6": {
+     "calm": 0.8,
+     "inversion": 0.2
+    },
+    "7": {
+     "calm": 0.8,
+     "inversion": 0.2
+    },
+    "8": {
+     "calm": 0.8,
+     "inversion": 0.2
+    },
+    "9": {
+     "calm": 0.8,
+     "inversion": 0.2
+    },
+    "10": {
+     "calm": 0.8,
+     "inversion": 0.2
+    },
+    "11": {
+     "calm": 0.8,
+     "inversion": 0.2
+    },
+    "12": {
+     "calm": 0.8,
+     "inversion": 0.2
+    }
+   },
+   "climatology": {
+    "inversion": 0.3644,
+    "calm": 0.3297,
+    "steepening": 0.3059
+   },
+   "persistence": {
+    "calm": 1.0
+   },
+   "analogues_used": 20
+  },
+  "dollar": {
+   "states": [
+    "calm",
+    "usd_down",
+    "usd_up"
+   ],
+   "analysis": {
+    "state": "calm",
+    "elapsed_months": 2
+   },
+   "M": {
+    "1": {
+     "calm": 0.7825,
+     "usd_down": 0.1485,
+     "usd_up": 0.069
+    },
+    "2": {
+     "calm": 0.7325,
+     "usd_down": 0.1615,
+     "usd_up": 0.106
+    },
+    "3": {
+     "calm": 0.691,
+     "usd_down": 0.1795,
+     "usd_up": 0.1295
+    },
+    "4": {
+     "calm": 0.6605,
+     "usd_down": 0.1805,
+     "usd_up": 0.159
+    },
+    "5": {
+     "calm": 0.638,
+     "usd_down": 0.1835,
+     "usd_up": 0.1785
+    },
+    "6": {
+     "calm": 0.574,
+     "usd_down": 0.2045,
+     "usd_up": 0.2215
+    },
+    "7": {
+     "calm": 0.5635,
+     "usd_down": 0.2125,
+     "usd_up": 0.224
+    },
+    "8": {
+     "calm": 0.5025,
+     "usd_down": 0.2495,
+     "usd_up": 0.248
+    },
+    "9": {
+     "calm": 0.493,
+     "usd_down": 0.255,
+     "usd_up": 0.252
+    },
+    "10": {
+     "calm": 0.495,
+     "usd_down": 0.2545,
+     "usd_up": 0.2505
+    },
+    "11": {
+     "calm": 0.498,
+     "usd_down": 0.254,
+     "usd_up": 0.248
+    },
+    "12": {
+     "calm": 0.447,
+     "usd_down": 0.2805,
+     "usd_up": 0.2725
+    }
+   },
+   "A": {
+    "1": {
+     "usd_up": 0.875,
+     "calm": 0.125
+    },
+    "2": {
+     "usd_up": 0.8125,
+     "calm": 0.1875
+    },
+    "3": {
+     "usd_up": 0.75,
+     "calm": 0.25
+    },
+    "4": {
+     "usd_up": 0.6875,
+     "calm": 0.3125
+    },
+    "5": {
+     "usd_up": 0.625,
+     "calm": 0.375
+    },
+    "6": {
+     "usd_up": 0.5625,
+     "calm": 0.4375
+    },
+    "7": {
+     "usd_up": 0.5,
+     "calm": 0.5
+    },
+    "8": {
+     "usd_up": 0.4375,
+     "calm": 0.5625
+    },
+    "9": {
+     "usd_up": 0.375,
+     "calm": 0.625
+    },
+    "10": {
+     "usd_up": 0.3125,
+     "calm": 0.6875
+    },
+    "11": {
+     "usd_up": 0.25,
+     "calm": 0.75
+    },
+    "12": {
+     "usd_up": 0.1875,
+     "calm": 0.8125
+    }
+   },
+   "climatology": {
+    "calm": 0.4208,
+    "usd_down": 0.3032,
+    "usd_up": 0.276
+   },
+   "persistence": {
+    "calm": 1.0
+   },
+   "analogues_used": 20
+  },
+  "em_dollar": {
+   "states": [
+    "calm",
+    "em_bid",
+    "em_stress"
+   ],
+   "analysis": {
+    "state": "calm",
+    "elapsed_months": 15
+   },
+   "M": {
+    "1": {
+     "calm": 0.5835,
+     "em_bid": 0.0125,
+     "em_stress": 0.404
+    },
+    "2": {
+     "calm": 0.565,
+     "em_bid": 0.0205,
+     "em_stress": 0.4145
+    },
+    "3": {
+     "calm": 0.3055,
+     "em_bid": 0.0835,
+     "em_stress": 0.611
+    },
+    "4": {
+     "calm": 0.32,
+     "em_bid": 0.068,
+     "em_stress": 0.612
+    },
+    "5": {
+     "calm": 0.3375,
+     "em_bid": 0.056,
+     "em_stress": 0.6065
+    },
+    "6": {
+     "calm": 0.342,
+     "em_bid": 0.048,
+     "em_stress": 0.61
+    },
+    "7": {
+     "calm": 0.3555,
+     "em_bid": 0.036,
+     "em_stress": 0.6085
+    },
+    "8": {
+     "calm": 0.3565,
+     "em_bid": 0.0345,
+     "em_stress": 0.609
+    },
+    "9": {
+     "calm": 0.352,
+     "em_bid": 0.0365,
+     "em_stress": 0.6115
+    },
+    "10": {
+     "calm": 0.4015,
+     "em_bid": 0.0415,
+     "em_stress": 0.557
+    },
+    "11": {
+     "calm": 0.4025,
+     "em_bid": 0.042,
+     "em_stress": 0.5555
+    },
+    "12": {
+     "calm": 0.4035,
+     "em_bid": 0.042,
+     "em_stress": 0.5545
+    }
+   },
+   "A": {
+    "1": {
+     "em_stress": 1.0
+    },
+    "2": {
+     "em_stress": 1.0
+    },
+    "3": {
+     "em_stress": 1.0
+    },
+    "4": {
+     "em_stress": 1.0
+    },
+    "5": {
+     "em_stress": 1.0
+    },
+    "6": {
+     "em_stress": 1.0
+    },
+    "7": {
+     "em_stress": 1.0
+    },
+    "8": {
+     "em_stress": 1.0
+    },
+    "9": {
+     "em_stress": 1.0
+    },
+    "10": {
+     "em_stress": 1.0
+    },
+    "11": {
+     "em_stress": 1.0
+    },
+    "12": {
+     "em_stress": 1.0
+    }
+   },
+   "climatology": {
+    "em_stress": 0.5792,
+    "calm": 0.3529,
+    "em_bid": 0.0679
+   },
+   "persistence": {
+    "calm": 1.0
+   },
+   "analogues_used": 20
+  },
+  "equities": {
+   "states": [
+    "calm",
+    "correction",
+    "rally",
+    "stress"
+   ],
+   "analysis": {
+    "state": "rally",
+    "elapsed_months": 3
+   },
+   "M": {
+    "1": {
+     "calm": 0.095,
+     "correction": 0.013,
+     "rally": 0.8875,
+     "stress": 0.0045
+    },
+    "2": {
+     "calm": 0.15,
+     "correction": 0.035,
+     "rally": 0.8055,
+     "stress": 0.0095
+    },
+    "3": {
+     "calm": 0.346,
+     "correction": 0.0795,
+     "rally": 0.5445,
+     "stress": 0.03
+    },
+    "4": {
+     "calm": 0.3565,
+     "correction": 0.1145,
+     "rally": 0.495,
+     "stress": 0.034
+    },
+    "5": {
+     "calm": 0.385,
+     "correction": 0.137,
+     "rally": 0.4415,
+     "stress": 0.0365
+    },
+    "6": {
+     "calm": 0.379,
+     "correction": 0.16,
+     "rally": 0.422,
+     "stress": 0.039
+    },
+    "7": {
+     "calm": 0.3435,
+     "correction": 0.1925,
+     "rally": 0.425,
+     "stress": 0.039
+    },
+    "8": {
+     "calm": 0.414,
+     "correction": 0.217,
+     "rally": 0.3195,
+     "stress": 0.0495
+    },
+    "9": {
+     "calm": 0.384,
+     "correction": 0.228,
+     "rally": 0.3355,
+     "stress": 0.0525
+    },
+    "10": {
+     "calm": 0.4235,
+     "correction": 0.2425,
+     "rally": 0.272,
+     "stress": 0.062
+    },
+    "11": {
+     "calm": 0.421,
+     "correction": 0.259,
+     "rally": 0.248,
+     "stress": 0.072
+    },
+    "12": {
+     "calm": 0.3905,
+     "correction": 0.267,
+     "rally": 0.2705,
+     "stress": 0.072
+    }
+   },
+   "A": {
+    "1": {
+     "calm": 0.8,
+     "correction": 0.2
+    },
+    "2": {
+     "calm": 0.8,
+     "correction": 0.2
+    },
+    "3": {
+     "calm": 0.8,
+     "correction": 0.2
+    },
+    "4": {
+     "calm": 0.8,
+     "correction": 0.15,
+     "stress": 0.05
+    },
+    "5": {
+     "calm": 0.8,
+     "correction": 0.1,
+     "stress": 0.1
+    },
+    "6": {
+     "calm": 0.8,
+     "correction": 0.05,
+     "stress": 0.15
+    },
+    "7": {
+     "calm": 0.8,
+     "stress": 0.2
+    },
+    "8": {
+     "calm": 0.8,
+     "stress": 0.2
+    },
+    "9": {
+     "calm": 0.8,
+     "stress": 0.2
+    },
+    "10": {
+     "calm": 0.8,
+     "stress": 0.2
+    },
+    "11": {
+     "calm": 0.8,
+     "stress": 0.15,
+     "correction": 0.05
+    },
+    "12": {
+     "calm": 0.8,
+     "stress": 0.1,
+     "correction": 0.1
+    }
+   },
+   "climatology": {
+    "calm": 0.455,
+    "correction": 0.2494,
+    "rally": 0.2148,
+    "stress": 0.0808
+   },
+   "persistence": {
+    "rally": 1.0
+   },
+   "analogues_used": 20
+  },
+  "euro": {
+   "states": [
+    "calm",
+    "euro_strong",
+    "euro_weak"
+   ],
+   "analysis": {
+    "state": "calm",
+    "elapsed_months": 4
+   },
+   "M": {
+    "1": {
+     "calm": 0.6985,
+     "euro_strong": 0.101,
+     "euro_weak": 0.2005
+    },
+    "2": {
+     "calm": 0.635,
+     "euro_strong": 0.141,
+     "euro_weak": 0.224
+    },
+    "3": {
+     "calm": 0.6225,
+     "euro_strong": 0.1595,
+     "euro_weak": 0.218
+    },
+    "4": {
+     "calm": 0.605,
+     "euro_strong": 0.1715,
+     "euro_weak": 0.2235
+    },
+    "5": {
+     "calm": 0.591,
+     "euro_strong": 0.188,
+     "euro_weak": 0.221
+    },
+    "6": {
+     "calm": 0.544,
+     "euro_strong": 0.2195,
+     "euro_weak": 0.2365
+    },
+    "7": {
+     "calm": 0.557,
+     "euro_strong": 0.223,
+     "euro_weak": 0.22
+    },
+    "8": {
+     "calm": 0.5135,
+     "euro_strong": 0.2645,
+     "euro_weak": 0.222
+    },
+    "9": {
+     "calm": 0.5355,
+     "euro_strong": 0.2675,
+     "euro_weak": 0.197
+    },
+    "10": {
+     "calm": 0.5385,
+     "euro_strong": 0.2685,
+     "euro_weak": 0.193
+    },
+    "11": {
+     "calm": 0.5545,
+     "euro_strong": 0.263,
+     "euro_weak": 0.1825
+    },
+    "12": {
+     "calm": 0.549,
+     "euro_strong": 0.271,
+     "euro_weak": 0.18
+    }
+   },
+   "A": {
+    "1": {
+     "euro_weak": 0.75,
+     "calm": 0.25
+    },
+    "2": {
+     "euro_weak": 0.6875,
+     "calm": 0.3125
+    },
+    "3": {
+     "euro_weak": 0.625,
+     "calm": 0.375
+    },
+    "4": {
+     "euro_weak": 0.5625,
+     "calm": 0.4375
+    },
+    "5": {
+     "euro_weak": 0.5,
+     "calm": 0.5
+    },
+    "6": {
+     "euro_weak": 0.4375,
+     "calm": 0.5625
+    },
+    "7": {
+     "euro_weak": 0.375,
+     "calm": 0.625
+    },
+    "8": {
+     "euro_weak": 0.3125,
+     "calm": 0.6875
+    },
+    "9": {
+     "euro_weak": 0.25,
+     "calm": 0.75
+    },
+    "10": {
+     "euro_weak": 0.1875,
+     "calm": 0.8125
+    },
+    "11": {
+     "euro_weak": 0.125,
+     "calm": 0.875
+    },
+    "12": {
+     "euro_weak": 0.0625,
+     "calm": 0.9375
+    }
+   },
+   "climatology": {
+    "calm": 0.5049,
+    "euro_strong": 0.2984,
+    "euro_weak": 0.1967
+   },
+   "persistence": {
+    "calm": 1.0
+   },
+   "analogues_used": 20
+  },
+  "gas": {
+   "states": [
+    "calm",
+    "glut",
+    "squeeze"
+   ],
+   "analysis": {
+    "state": "calm",
+    "elapsed_months": 3
+   },
+   "M": {
+    "1": {
+     "calm": 0.706,
+     "glut": 0.185,
+     "squeeze": 0.109
+    },
+    "2": {
+     "calm": 0.675,
+     "glut": 0.1845,
+     "squeeze": 0.1405
+    },
+    "3": {
+     "calm": 0.6365,
+     "glut": 0.155,
+     "squeeze": 0.2085
+    },
+    "4": {
+     "calm": 0.62,
+     "glut": 0.163,
+     "squeeze": 0.217
+    },
+    "5": {
+     "calm": 0.5745,
+     "glut": 0.169,
+     "squeeze": 0.2565
+    },
+    "6": {
+     "calm": 0.5685,
+     "glut": 0.185,
+     "squeeze": 0.2465
+    },
+    "7": {
+     "calm": 0.4925,
+     "glut": 0.19,
+     "squeeze": 0.3175
+    },
+    "8": {
+     "calm": 0.502,
+     "glut": 0.1925,
+     "squeeze": 0.3055
+    },
+    "9": {
+     "calm": 0.507,
+     "glut": 0.1645,
+     "squeeze": 0.3285
+    },
+    "10": {
+     "calm": 0.524,
+     "glut": 0.1835,
+     "squeeze": 0.2925
+    },
+    "11": {
+     "calm": 0.527,
+     "glut": 0.1805,
+     "squeeze": 0.2925
+    },
+    "12": {
+     "calm": 0.529,
+     "glut": 0.2015,
+     "squeeze": 0.2695
+    }
+   },
+   "A": {
+    "1": {
+     "calm": 0.8,
+     "squeeze": 0.2
+    },
+    "2": {
+     "calm": 0.8,
+     "squeeze": 0.2
+    },
+    "3": {
+     "calm": 0.8,
+     "squeeze": 0.2
+    },
+    "4": {
+     "calm": 0.8,
+     "squeeze": 0.2
+    },
+    "5": {
+     "calm": 0.8,
+     "squeeze": 0.2
+    },
+    "6": {
+     "calm": 0.8,
+     "squeeze": 0.2
+    },
+    "7": {
+     "calm": 0.8,
+     "squeeze": 0.2
+    },
+    "8": {
+     "calm": 0.8,
+     "squeeze": 0.2
+    },
+    "9": {
+     "calm": 0.85,
+     "squeeze": 0.15
+    },
+    "10": {
+     "calm": 0.9,
+     "squeeze": 0.1
+    },
+    "11": {
+     "calm": 0.95,
+     "squeeze": 0.05
+    },
+    "12": {
+     "calm": 1.0
+    }
+   },
+   "climatology": {
+    "squeeze": 0.4597,
+    "calm": 0.3877,
+    "glut": 0.1525
+   },
+   "persistence": {
+    "calm": 1.0
+   },
+   "analogues_used": 20
+  },
+  "gold": {
+   "states": [
+    "calm",
+    "fear_bid",
+    "real_rate_bid",
+    "selloff"
+   ],
+   "analysis": {
+    "state": "selloff",
+    "elapsed_months": 4
+   },
+   "M": {
+    "1": {
+     "calm": 0.1535,
+     "fear_bid": 0.0795,
+     "real_rate_bid": 0.171,
+     "selloff": 0.596
+    },
+    "2": {
+     "calm": 0.19,
+     "fear_bid": 0.107,
+     "real_rate_bid": 0.2,
+     "selloff": 0.503
+    },
+    "3": {
+     "calm": 0.2065,
+     "fear_bid": 0.1095,
+     "real_rate_bid": 0.223,
+     "selloff": 0.461
+    },
+    "4": {
+     "calm": 0.243,
+     "fear_bid": 0.131,
+     "real_rate_bid": 0.2595,
+     "selloff": 0.3665
+    },
+    "5": {
+     "calm": 0.257,
+     "fear_bid": 0.1275,
+     "real_rate_bid": 0.2625,
+     "selloff": 0.353
+    },
+    "6": {
+     "calm": 0.3205,
+     "fear_bid": 0.1475,
+     "real_rate_bid": 0.2565,
+     "selloff": 0.2755
+    },
+    "7": {
+     "calm": 0.34,
+     "fear_bid": 0.154,
+     "real_rate_bid": 0.236,
+     "selloff": 0.27
+    },
+    "8": {
+     "calm": 0.349,
+     "fear_bid": 0.1555,
+     "real_rate_bid": 0.233,
+     "selloff": 0.2625
+    },
+    "9": {
+     "calm": 0.371,
+     "fear_bid": 0.1665,
+     "real_rate_bid": 0.265,
+     "selloff": 0.1975
+    },
+    "10": {
+     "calm": 0.3775,
+     "fear_bid": 0.1625,
+     "real_rate_bid": 0.257,
+     "selloff": 0.203
+    },
+    "11": {
+     "calm": 0.3925,
+     "fear_bid": 0.1575,
+     "real_rate_bid": 0.246,
+     "selloff": 0.204
+    },
+    "12": {
+     "calm": 0.403,
+     "fear_bid": 0.159,
+     "real_rate_bid": 0.2355,
+     "selloff": 0.2025
+    }
+   },
+   "A": {
+    "1": {
+     "calm": 0.8,
+     "fear_bid": 0.2
+    },
+    "2": {
+     "calm": 0.8,
+     "fear_bid": 0.2
+    },
+    "3": {
+     "calm": 0.8,
+     "fear_bid": 0.2
+    },
+    "4": {
+     "calm": 0.8,
+     "fear_bid": 0.2
+    },
+    "5": {
+     "calm": 0.8,
+     "fear_bid": 0.2
+    },
+    "6": {
+     "calm": 0.8,
+     "fear_bid": 0.2
+    },
+    "7": {
+     "calm": 0.8,
+     "fear_bid": 0.2
+    },
+    "8": {
+     "calm": 0.8,
+     "fear_bid": 0.2
+    },
+    "9": {
+     "calm": 0.8,
+     "fear_bid": 0.2
+    },
+    "10": {
+     "calm": 0.8,
+     "fear_bid": 0.2
+    },
+    "11": {
+     "calm": 0.8,
+     "fear_bid": 0.2
+    },
+    "12": {
+     "calm": 0.8,
+     "fear_bid": 0.2
+    }
+   },
+   "climatology": {
+    "calm": 0.4756,
+    "real_rate_bid": 0.2059,
+    "fear_bid": 0.1635,
+    "selloff": 0.155
+   },
+   "persistence": {
+    "selloff": 1.0
+   },
+   "analogues_used": 20
+  },
+  "housing": {
+   "states": [
+    "boom",
+    "bust",
+    "calm"
+   ],
+   "analysis": {
+    "state": "calm",
+    "elapsed_months": 39
+   },
+   "M": {
+    "1": {
+     "boom": 0.034,
+     "bust": 0.4475,
+     "calm": 0.5185
+    },
+    "2": {
+     "boom": 0.063,
+     "bust": 0.409,
+     "calm": 0.528
+    },
+    "3": {
+     "boom": 0.088,
+     "bust": 0.382,
+     "calm": 0.53
+    },
+    "4": {
+     "boom": 0.102,
+     "bust": 0.36,
+     "calm": 0.538
+    },
+    "5": {
+     "boom": 0.12,
+     "bust": 0.3405,
+     "calm": 0.5395
+    },
+    "6": {
+     "boom": 0.1355,
+     "bust": 0.327,
+     "calm": 0.5375
+    },
+    "7": {
+     "boom": 0.145,
+     "bust": 0.315,
+     "calm": 0.54
+    },
+    "8": {
+     "boom": 0.1605,
+     "bust": 0.293,
+     "calm": 0.5465
+    },
+    "9": {
+     "boom": 0.1715,
+     "bust": 0.269,
+     "calm": 0.5595
+    },
+    "10": {
+     "boom": 0.2005,
+     "bust": 0.2105,
+     "calm": 0.589
+    },
+    "11": {
+     "boom": 0.257,
+     "bust": 0.2475,
+     "calm": 0.4955
+    },
+    "12": {
+     "boom": 0.2815,
+     "bust": 0.1905,
+     "calm": 0.528
+    }
+   },
+   "A": {
+    "1": {
+     "calm": 0.7,
+     "boom": 0.3
+    },
+    "2": {
+     "calm": 0.7,
+     "boom": 0.3
+    },
+    "3": {
+     "calm": 0.7,
+     "boom": 0.3
+    },
+    "4": {
+     "boom": 0.3,
+     "calm": 0.7
+    },
+    "5": {
+     "boom": 0.25,
+     "calm": 0.75
+    },
+    "6": {
+     "boom": 0.2,
+     "calm": 0.8
+    },
+    "7": {
+     "boom": 0.15,
+     "calm": 0.85
+    },
+    "8": {
+     "boom": 0.1,
+     "calm": 0.9
+    },
+    "9": {
+     "boom": 0.05,
+     "calm": 0.95
+    },
+    "10": {
+     "calm": 1.0
+    },
+    "11": {
+     "calm": 1.0
+    },
+    "12": {
+     "calm": 1.0
+    }
+   },
+   "climatology": {
+    "calm": 0.5592,
+    "boom": 0.2726,
+    "bust": 0.1682
+   },
+   "persistence": {
+    "calm": 1.0
+   },
+   "analogues_used": 20
+  },
+  "inflation": {
+   "states": [
+    "calm",
+    "easing",
+    "surge"
+   ],
+   "analysis": {
+    "state": "calm",
+    "elapsed_months": 30
+   },
+   "M": {
+    "1": {
+     "calm": 0.925,
+     "easing": 0.0565,
+     "surge": 0.0185
+    },
+    "2": {
+     "calm": 0.8765,
+     "easing": 0.0935,
+     "surge": 0.03
+    },
+    "3": {
+     "calm": 0.816,
+     "easing": 0.1375,
+     "surge": 0.0465
+    },
+    "4": {
+     "calm": 0.7655,
+     "easing": 0.173,
+     "surge": 0.0615
+    },
+    "5": {
+     "calm": 0.7265,
+     "easing": 0.1945,
+     "surge": 0.079
+    },
+    "6": {
+     "calm": 0.6935,
+     "easing": 0.211,
+     "surge": 0.0955
+    },
+    "7": {
+     "calm": 0.678,
+     "easing": 0.214,
+     "surge": 0.108
+    },
+    "8": {
+     "calm": 0.66,
+     "easing": 0.222,
+     "surge": 0.118
+    },
+    "9": {
+     "calm": 0.641,
+     "easing": 0.231,
+     "surge": 0.128
+    },
+    "10": {
+     "calm": 0.617,
+     "easing": 0.243,
+     "surge": 0.14
+    },
+    "11": {
+     "calm": 0.603,
+     "easing": 0.244,
+     "surge": 0.153
+    },
+    "12": {
+     "calm": 0.587,
+     "easing": 0.244,
+     "surge": 0.169
+    }
+   },
+   "A": {
+    "1": {
+     "calm": 0.8,
+     "easing": 0.2
+    },
+    "2": {
+     "calm": 0.8,
+     "easing": 0.2
+    },
+    "3": {
+     "calm": 0.8,
+     "easing": 0.2
+    },
+    "4": {
+     "calm": 0.8,
+     "easing": 0.2
+    },
+    "5": {
+     "calm": 0.8,
+     "easing": 0.2
+    },
+    "6": {
+     "calm": 0.8,
+     "easing": 0.2
+    },
+    "7": {
+     "calm": 0.8,
+     "easing": 0.2
+    },
+    "8": {
+     "calm": 0.8,
+     "easing": 0.2
+    },
+    "9": {
+     "calm": 0.8,
+     "easing": 0.2
+    },
+    "10": {
+     "calm": 0.8,
+     "easing": 0.2
+    },
+    "11": {
+     "calm": 0.8,
+     "easing": 0.2
+    },
+    "12": {
+     "calm": 0.8,
+     "easing": 0.2
+    }
+   },
+   "climatology": {
+    "easing": 0.4035,
+    "calm": 0.3905,
+    "surge": 0.2061
+   },
+   "persistence": {
+    "calm": 1.0
+   },
+   "analogues_used": 20
+  },
+  "money": {
+   "states": [
+    "calm",
+    "contraction",
+    "expansion"
+   ],
+   "analysis": {
+    "state": "calm",
+    "elapsed_months": 28
+   },
+   "M": {
+    "1": {
+     "calm": 0.9215,
+     "contraction": 0.0445,
+     "expansion": 0.034
+    },
+    "2": {
+     "calm": 0.885,
+     "contraction": 0.066,
+     "expansion": 0.049
+    },
+    "3": {
+     "calm": 0.86,
+     "contraction": 0.081,
+     "expansion": 0.059
+    },
+    "4": {
+     "calm": 0.823,
+     "contraction": 0.1005,
+     "expansion": 0.0765
+    },
+    "5": {
+     "calm": 0.8,
+     "contraction": 0.1125,
+     "expansion": 0.0875
+    },
+    "6": {
+     "calm": 0.7875,
+     "contraction": 0.116,
+     "expansion": 0.0965
+    },
+    "7": {
+     "calm": 0.7645,
+     "contraction": 0.1345,
+     "expansion": 0.101
+    },
+    "8": {
+     "calm": 0.6305,
+     "contraction": 0.2085,
+     "expansion": 0.161
+    },
+    "9": {
+     "calm": 0.6255,
+     "contraction": 0.211,
+     "expansion": 0.1635
+    },
+    "10": {
+     "calm": 0.6245,
+     "contraction": 0.209,
+     "expansion": 0.1665
+    },
+    "11": {
+     "calm": 0.63,
+     "contraction": 0.2105,
+     "expansion": 0.1595
+    },
+    "12": {
+     "calm": 0.6345,
+     "contraction": 0.2055,
+     "expansion": 0.16
+    }
+   },
+   "A": {
+    "1": {
+     "calm": 1.0
+    },
+    "2": {
+     "calm": 1.0
+    },
+    "3": {
+     "calm": 1.0
+    },
+    "4": {
+     "calm": 1.0
+    },
+    "5": {
+     "calm": 1.0
+    },
+    "6": {
+     "calm": 1.0
+    },
+    "7": {
+     "calm": 1.0
+    },
+    "8": {
+     "calm": 1.0
+    },
+    "9": {
+     "calm": 1.0
+    },
+    "10": {
+     "calm": 1.0
+    },
+    "11": {
+     "calm": 1.0
+    },
+    "12": {
+     "calm": 1.0
+    }
+   },
+   "climatology": {
+    "calm": 0.5803,
+    "contraction": 0.2447,
+    "expansion": 0.175
+   },
+   "persistence": {
+    "calm": 1.0
+   },
+   "analogues_used": 20
+  },
+  "oil": {
+   "states": [
+    "calm",
+    "demand_boom",
+    "demand_collapse",
+    "precautionary",
+    "supply_glut",
+    "supply_squeeze"
+   ],
+   "analysis": {
+    "state": "supply_glut",
+    "elapsed_months": 3
+   },
+   "M": {
+    "1": {
+     "calm": 0.0695,
+     "demand_boom": 0.073,
+     "demand_collapse": 0.0655,
+     "precautionary": 0.083,
+     "supply_glut": 0.709
+    },
+    "2": {
+     "calm": 0.102,
+     "demand_boom": 0.1045,
+     "demand_collapse": 0.0905,
+     "precautionary": 0.112,
+     "supply_glut": 0.583,
+     "supply_squeeze": 0.008
+    },
+    "3": {
+     "calm": 0.171,
+     "demand_boom": 0.1855,
+     "demand_collapse": 0.146,
+     "precautionary": 0.1815,
+     "supply_glut": 0.2995,
+     "supply_squeeze": 0.0165
+    },
+    "4": {
+     "calm": 0.1945,
+     "demand_boom": 0.195,
+     "demand_collapse": 0.1225,
+     "precautionary": 0.1835,
+     "supply_glut": 0.2705,
+     "supply_squeeze": 0.034
+    },
+    "5": {
+     "calm": 0.238,
+     "demand_boom": 0.2215,
+     "demand_collapse": 0.1265,
+     "precautionary": 0.195,
+     "supply_glut": 0.168,
+     "supply_squeeze": 0.051
+    },
+    "6": {
+     "calm": 0.264,
+     "demand_boom": 0.2155,
+     "demand_collapse": 0.1015,
+     "precautionary": 0.176,
+     "supply_glut": 0.171,
+     "supply_squeeze": 0.072
+    },
+    "7": {
+     "calm": 0.286,
+     "demand_boom": 0.2115,
+     "demand_collapse": 0.0895,
+     "precautionary": 0.1695,
+     "supply_glut": 0.164,
+     "supply_squeeze": 0.0795
+    },
+    "8": {
+     "calm": 0.306,
+     "demand_boom": 0.2095,
+     "demand_collapse": 0.084,
+     "precautionary": 0.1525,
+     "supply_glut": 0.159,
+     "supply_squeeze": 0.089
+    },
+    "9": {
+     "calm": 0.313,
+     "demand_boom": 0.212,
+     "demand_collapse": 0.089,
+     "precautionary": 0.1445,
+     "supply_glut": 0.1495,
+     "supply_squeeze": 0.092
+    },
+    "10": {
+     "calm": 0.336,
+     "demand_boom": 0.202,
+     "demand_collapse": 0.0975,
+     "precautionary": 0.119,
+     "supply_glut": 0.146,
+     "supply_squeeze": 0.0995
+    },
+    "11": {
+     "calm": 0.3465,
+     "demand_boom": 0.2055,
+     "demand_collapse": 0.087,
+     "precautionary": 0.1135,
+     "supply_glut": 0.147,
+     "supply_squeeze": 0.1005
+    },
+    "12": {
+     "calm": 0.3615,
+     "demand_boom": 0.198,
+     "demand_collapse": 0.0925,
+     "precautionary": 0.1015,
+     "supply_glut": 0.1405,
+     "supply_squeeze": 0.106
+    }
+   },
+   "A": {
+    "1": {
+     "supply_glut": 0.95,
+     "precautionary": 0.05
+    },
+    "2": {
+     "supply_glut": 0.9,
+     "precautionary": 0.1
+    },
+    "3": {
+     "supply_glut": 0.85,
+     "precautionary": 0.1,
+     "demand_boom": 0.05
+    },
+    "4": {
+     "supply_glut": 0.75,
+     "precautionary": 0.1,
+     "demand_boom": 0.05,
+     "calm": 0.05,
+     "demand_collapse": 0.05
+    },
+    "5": {
+     "supply_glut": 0.65,
+     "precautionary": 0.1,
+     "demand_boom": 0.05,
+     "calm": 0.1,
+     "demand_collapse": 0.1
+    },
+    "6": {
+     "supply_glut": 0.55,
+     "precautionary": 0.1,
+     "demand_boom": 0.05,
+     "calm": 0.15,
+     "demand_collapse": 0.15
+    },
+    "7": {
+     "supply_glut": 0.45,
+     "precautionary": 0.15,
+     "demand_boom": 0.05,
+     "calm": 0.2,
+     "demand_collapse": 0.15
+    },
+    "8": {
+     "supply_glut": 0.4,
+     "precautionary": 0.2,
+     "demand_boom": 0.05,
+     "calm": 0.25,
+     "demand_collapse": 0.1
+    },
+    "9": {
+     "supply_glut": 0.35,
+     "precautionary": 0.25,
+     "demand_boom": 0.05,
+     "calm": 0.3,
+     "demand_collapse": 0.05
+    },
+    "10": {
+     "supply_glut": 0.3,
+     "precautionary": 0.3,
+     "demand_boom": 0.05,
+     "calm": 0.35
+    },
+    "11": {
+     "supply_glut": 0.25,
+     "precautionary": 0.3,
+     "demand_boom": 0.05,
+     "calm": 0.4
+    },
+    "12": {
+     "supply_glut": 0.2,
+     "precautionary": 0.3,
+     "demand_boom": 0.05,
+     "calm": 0.45
+    }
+   },
+   "climatology": {
+    "calm": 0.4585,
+    "demand_boom": 0.1705,
+    "supply_squeeze": 0.1244,
+    "supply_glut": 0.1037,
+    "precautionary": 0.0806,
+    "demand_collapse": 0.0622
+   },
+   "persistence": {
+    "supply_glut": 1.0
+   },
+   "analogues_used": 20
+  },
+  "real_yield": {
+   "states": [
+    "calm",
+    "real_easing",
+    "real_tightening"
+   ],
+   "analysis": {
+    "state": "real_tightening",
+    "elapsed_months": 4
+   },
+   "M": {
+    "1": {
+     "calm": 0.3065,
+     "real_easing": 0.0925,
+     "real_tightening": 0.601
+    },
+    "2": {
+     "calm": 0.3195,
+     "real_easing": 0.12,
+     "real_tightening": 0.5605
+    },
+    "3": {
+     "calm": 0.396,
+     "real_easing": 0.1785,
+     "real_tightening": 0.4255
+    },
+    "4": {
+     "calm": 0.3785,
+     "real_easing": 0.1945,
+     "real_tightening": 0.427
+    },
+    "5": {
+     "calm": 0.382,
+     "real_easing": 0.214,
+     "real_tightening": 0.404
+    },
+    "6": {
+     "calm": 0.3745,
+     "real_easing": 0.238,
+     "real_tightening": 0.3875
+    },
+    "7": {
+     "calm": 0.4325,
+     "real_easing": 0.2785,
+     "real_tightening": 0.289
+    },
+    "8": {
+     "calm": 0.451,
+     "real_easing": 0.328,
+     "real_tightening": 0.221
+    },
+    "9": {
+     "calm": 0.3965,
+     "real_easing": 0.339,
+     "real_tightening": 0.2645
+    },
+    "10": {
+     "calm": 0.418,
+     "real_easing": 0.33,
+     "real_tightening": 0.252
+    },
+    "11": {
+     "calm": 0.396,
+     "real_easing": 0.337,
+     "real_tightening": 0.267
+    },
+    "12": {
+     "calm": 0.4135,
+     "real_easing": 0.3295,
+     "real_tightening": 0.257
+    }
+   },
+   "A": {
+    "1": {
+     "calm": 1.0
+    },
+    "2": {
+     "calm": 1.0
+    },
+    "3": {
+     "calm": 1.0
+    },
+    "4": {
+     "calm": 1.0
+    },
+    "5": {
+     "calm": 1.0
+    },
+    "6": {
+     "calm": 1.0
+    },
+    "7": {
+     "calm": 1.0
+    },
+    "8": {
+     "calm": 1.0
+    },
+    "9": {
+     "calm": 1.0
+    },
+    "10": {
+     "calm": 1.0
+    },
+    "11": {
+     "calm": 1.0
+    },
+    "12": {
+     "calm": 1.0
+    }
+   },
+   "climatology": {
+    "calm": 0.463,
+    "real_easing": 0.3735,
+    "real_tightening": 0.1634
+   },
+   "persistence": {
+    "real_tightening": 1.0
+   },
+   "analogues_used": 20
+  },
+  "sterling": {
+   "states": [
+    "calm",
+    "gbp_strong",
+    "gbp_weak"
+   ],
+   "analysis": {
+    "state": "calm",
+    "elapsed_months": 10
+   },
+   "M": {
+    "1": {
+     "calm": 0.753,
+     "gbp_strong": 0.152,
+     "gbp_weak": 0.095
+    },
+    "2": {
+     "calm": 0.6725,
+     "gbp_strong": 0.19,
+     "gbp_weak": 0.1375
+    },
+    "3": {
+     "calm": 0.6375,
+     "gbp_strong": 0.21,
+     "gbp_weak": 0.1525
+    },
+    "4": {
+     "calm": 0.6095,
+     "gbp_strong": 0.228,
+     "gbp_weak": 0.1625
+    },
+    "5": {
+     "calm": 0.5425,
+     "gbp_strong": 0.271,
+     "gbp_weak": 0.1865
+    },
+    "6": {
+     "calm": 0.4765,
+     "gbp_strong": 0.2995,
+     "gbp_weak": 0.224
+    },
+    "7": {
+     "calm": 0.465,
+     "gbp_strong": 0.307,
+     "gbp_weak": 0.228
+    },
+    "8": {
+     "calm": 0.461,
+     "gbp_strong": 0.311,
+     "gbp_weak": 0.228
+    },
+    "9": {
+     "calm": 0.4625,
+     "gbp_strong": 0.31,
+     "gbp_weak": 0.2275
+    },
+    "10": {
+     "calm": 0.4185,
+     "gbp_strong": 0.3185,
+     "gbp_weak": 0.263
+    },
+    "11": {
+     "calm": 0.42,
+     "gbp_strong": 0.3215,
+     "gbp_weak": 0.2585
+    },
+    "12": {
+     "calm": 0.424,
+     "gbp_strong": 0.3255,
+     "gbp_weak": 0.2505
+    }
+   },
+   "A": {
+    "1": {
+     "gbp_weak": 0.3,
+     "calm": 0.7
+    },
+    "2": {
+     "gbp_weak": 0.3,
+     "calm": 0.7
+    },
+    "3": {
+     "calm": 0.7,
+     "gbp_weak": 0.3
+    },
+    "4": {
+     "calm": 0.65,
+     "gbp_weak": 0.35
+    },
+    "5": {
+     "calm": 0.6,
+     "gbp_weak": 0.4
+    },
+    "6": {
+     "calm": 0.55,
+     "gbp_weak": 0.45
+    },
+    "7": {
+     "calm": 0.5,
+     "gbp_weak": 0.5
+    },
+    "8": {
+     "calm": 0.45,
+     "gbp_weak": 0.55
+    },
+    "9": {
+     "calm": 0.4,
+     "gbp_weak": 0.6
+    },
+    "10": {
+     "calm": 0.35,
+     "gbp_weak": 0.65
+    },
+    "11": {
+     "calm": 0.3,
+     "gbp_weak": 0.7
+    },
+    "12": {
+     "calm": 0.3,
+     "gbp_weak": 0.7
+    }
+   },
+   "climatology": {
+    "calm": 0.4431,
+    "gbp_strong": 0.3229,
+    "gbp_weak": 0.234
+   },
+   "persistence": {
+    "calm": 1.0
+   },
+   "analogues_used": 20
+  },
+  "uranium": {
+   "states": [
+    "boom",
+    "bust",
+    "calm"
+   ],
+   "analysis": {
+    "state": "calm",
+    "elapsed_months": 15
+   },
+   "M": {
+    "1": {
+     "boom": 0.1255,
+     "bust": 0.067,
+     "calm": 0.8075
+    },
+    "2": {
+     "boom": 0.1605,
+     "bust": 0.093,
+     "calm": 0.7465
+    },
+    "3": {
+     "boom": 0.18,
+     "bust": 0.114,
+     "calm": 0.706
+    },
+    "4": {
+     "boom": 0.1985,
+     "bust": 0.137,
+     "calm": 0.6645
+    },
+    "5": {
+     "boom": 0.375,
+     "bust": 0.245,
+     "calm": 0.38
+    },
+    "6": {
+     "boom": 0.559,
+     "bust": 0.348,
+     "calm": 0.093
+    },
+    "7": {
+     "boom": 0.528,
+     "bust": 0.3315,
+     "calm": 0.1405
+    },
+    "8": {
+     "boom": 0.488,
+     "bust": 0.3215,
+     "calm": 0.1905
+    },
+    "9": {
+     "boom": 0.4485,
+     "bust": 0.3195,
+     "calm": 0.232
+    },
+    "10": {
+     "boom": 0.417,
+     "bust": 0.302,
+     "calm": 0.281
+    },
+    "11": {
+     "boom": 0.4035,
+     "bust": 0.2835,
+     "calm": 0.313
+    },
+    "12": {
+     "boom": 0.382,
+     "bust": 0.269,
+     "calm": 0.349
+    }
+   },
+   "A": {
+    "1": {
+     "calm": 0.7,
+     "bust": 0.3
+    },
+    "2": {
+     "calm": 0.65,
+     "bust": 0.35
+    },
+    "3": {
+     "calm": 0.6,
+     "bust": 0.4
+    },
+    "4": {
+     "calm": 0.55,
+     "bust": 0.45
+    },
+    "5": {
+     "calm": 0.5,
+     "bust": 0.5
+    },
+    "6": {
+     "calm": 0.45,
+     "bust": 0.55
+    },
+    "7": {
+     "calm": 0.4,
+     "bust": 0.6
+    },
+    "8": {
+     "calm": 0.35,
+     "bust": 0.65
+    },
+    "9": {
+     "calm": 0.3,
+     "bust": 0.7
+    },
+    "10": {
+     "calm": 0.35,
+     "bust": 0.65
+    },
+    "11": {
+     "calm": 0.4,
+     "bust": 0.6
+    },
+    "12": {
+     "calm": 0.45,
+     "bust": 0.55
+    }
+   },
+   "climatology": {
+    "calm": 0.3599,
+    "boom": 0.3419,
+    "bust": 0.2982
+   },
+   "persistence": {
+    "calm": 1.0
+   },
+   "analogues_used": 20
+  },
+  "yen": {
+   "states": [
+    "calm",
+    "yen_strong",
+    "yen_weak"
+   ],
+   "analysis": {
+    "state": "calm",
+    "elapsed_months": 13
+   },
+   "M": {
+    "1": {
+     "calm": 0.6495,
+     "yen_strong": 0.0265,
+     "yen_weak": 0.324
+    },
+    "2": {
+     "calm": 0.5855,
+     "yen_strong": 0.0895,
+     "yen_weak": 0.325
+    },
+    "3": {
+     "calm": 0.526,
+     "yen_strong": 0.1335,
+     "yen_weak": 0.3405
+    },
+    "4": {
+     "calm": 0.516,
+     "yen_strong": 0.144,
+     "yen_weak": 0.34
+    },
+    "5": {
+     "calm": 0.4865,
+     "yen_strong": 0.1735,
+     "yen_weak": 0.34
+    },
+    "6": {
+     "calm": 0.492,
+     "yen_strong": 0.1625,
+     "yen_weak": 0.3455
+    },
+    "7": {
+     "calm": 0.4405,
+     "yen_strong": 0.1985,
+     "yen_weak": 0.361
+    },
+    "8": {
+     "calm": 0.464,
+     "yen_strong": 0.1945,
+     "yen_weak": 0.3415
+    },
+    "9": {
+     "calm": 0.4225,
+     "yen_strong": 0.22,
+     "yen_weak": 0.3575
+    },
+    "10": {
+     "calm": 0.4225,
+     "yen_strong": 0.22,
+     "yen_weak": 0.3575
+    },
+    "11": {
+     "calm": 0.449,
+     "yen_strong": 0.2045,
+     "yen_weak": 0.3465
+    },
+    "12": {
+     "calm": 0.471,
+     "yen_strong": 0.1955,
+     "yen_weak": 0.3335
+    }
+   },
+   "A": {
+    "1": {
+     "yen_weak": 0.65,
+     "calm": 0.15,
+     "yen_strong": 0.2
+    },
+    "2": {
+     "yen_weak": 0.6,
+     "calm": 0.15,
+     "yen_strong": 0.25
+    },
+    "3": {
+     "yen_weak": 0.55,
+     "calm": 0.15,
+     "yen_strong": 0.3
+    },
+    "4": {
+     "yen_weak": 0.5,
+     "calm": 0.15,
+     "yen_strong": 0.35
+    },
+    "5": {
+     "yen_weak": 0.45,
+     "calm": 0.15,
+     "yen_strong": 0.4
+    },
+    "6": {
+     "yen_weak": 0.35,
+     "calm": 0.15,
+     "yen_strong": 0.5
+    },
+    "7": {
+     "yen_weak": 0.25,
+     "calm": 0.15,
+     "yen_strong": 0.6
+    },
+    "8": {
+     "yen_weak": 0.15,
+     "calm": 0.2,
+     "yen_strong": 0.65
+    },
+    "9": {
+     "yen_weak": 0.05,
+     "calm": 0.25,
+     "yen_strong": 0.7
+    },
+    "10": {
+     "calm": 0.3,
+     "yen_strong": 0.7
+    },
+    "11": {
+     "calm": 0.3,
+     "yen_strong": 0.7
+    },
+    "12": {
+     "calm": 0.3,
+     "yen_strong": 0.7
+    }
+   },
+   "climatology": {
+    "calm": 0.4571,
+    "yen_weak": 0.3276,
+    "yen_strong": 0.2153
+   },
+   "persistence": {
+    "calm": 1.0
+   },
+   "analogues_used": 20
+  },
+  "yuan": {
+   "states": [
+    "calm",
+    "yuan_strong",
+    "yuan_weak"
+   ],
+   "analysis": {
+    "state": "yuan_strong",
+    "elapsed_months": 11
+   },
+   "M": {
+    "1": {
+     "calm": 0.0395,
+     "yuan_strong": 0.654,
+     "yuan_weak": 0.3065
+    },
+    "2": {
+     "calm": 0.0475,
+     "yuan_strong": 0.6265,
+     "yuan_weak": 0.326
+    },
+    "3": {
+     "calm": 0.0465,
+     "yuan_strong": 0.591,
+     "yuan_weak": 0.3625
+    },
+    "4": {
+     "calm": 0.055,
+     "yuan_strong": 0.57,
+     "yuan_weak": 0.375
+    },
+    "5": {
+     "calm": 0.0865,
+     "yuan_strong": 0.5465,
+     "yuan_weak": 0.367
+    },
+    "6": {
+     "calm": 0.0945,
+     "yuan_strong": 0.521,
+     "yuan_weak": 0.3845
+    },
+    "7": {
+     "calm": 0.128,
+     "yuan_strong": 0.507,
+     "yuan_weak": 0.365
+    },
+    "8": {
+     "calm": 0.1335,
+     "yuan_strong": 0.4865,
+     "yuan_weak": 0.38
+    },
+    "9": {
+     "calm": 0.1455,
+     "yuan_strong": 0.4695,
+     "yuan_weak": 0.385
+    },
+    "10": {
+     "calm": 0.1475,
+     "yuan_strong": 0.456,
+     "yuan_weak": 0.3965
+    },
+    "11": {
+     "calm": 0.1525,
+     "yuan_strong": 0.096,
+     "yuan_weak": 0.7515
+    },
+    "12": {
+     "calm": 0.172,
+     "yuan_strong": 0.1125,
+     "yuan_weak": 0.7155
+    }
+   },
+   "A": {
+    "1": {
+     "yuan_weak": 1.0
+    },
+    "2": {
+     "yuan_weak": 1.0
+    },
+    "3": {
+     "yuan_weak": 1.0
+    },
+    "4": {
+     "yuan_weak": 1.0
+    },
+    "5": {
+     "yuan_weak": 1.0
+    },
+    "6": {
+     "yuan_weak": 1.0
+    },
+    "7": {
+     "yuan_weak": 1.0
+    },
+    "8": {
+     "yuan_weak": 1.0
+    },
+    "9": {
+     "yuan_weak": 1.0
+    },
+    "10": {
+     "yuan_weak": 1.0
+    },
+    "11": {
+     "yuan_weak": 1.0
+    },
+    "12": {
+     "yuan_weak": 1.0
+    }
+   },
+   "climatology": {
+    "yuan_weak": 0.5113,
+    "calm": 0.267,
+    "yuan_strong": 0.2217
+   },
+   "persistence": {
+    "yuan_strong": 1.0
+   },
+   "analogues_used": 20
+  }
+ },
+ "synoptic": {
+  "states": [
+   "commodity_shock",
+   "demand_collapse",
+   "financial_stress",
+   "inflation_shock",
+   "post_shock_glut",
+   "risk_on_calm"
+  ],
+  "analysis": {
+   "state": "post_shock_glut",
+   "elapsed_months": 3
+  },
+  "M": {
+   "1": {
+    "commodity_shock": 0.035,
+    "financial_stress": 0.0375,
+    "post_shock_glut": 0.9275
+   },
+   "2": {
+    "commodity_shock": 0.0615,
+    "demand_collapse": 0.0035,
+    "financial_stress": 0.0705,
+    "post_shock_glut": 0.861,
+    "risk_on_calm": 0.0035
+   },
+   "3": {
+    "commodity_shock": 0.0885,
+    "demand_collapse": 0.0045,
+    "financial_stress": 0.109,
+    "post_shock_glut": 0.787,
+    "risk_on_calm": 0.011
+   },
+   "4": {
+    "commodity_shock": 0.11,
+    "demand_collapse": 0.0065,
+    "financial_stress": 0.1285,
+    "inflation_shock": 0.0005,
+    "post_shock_glut": 0.731,
+    "risk_on_calm": 0.0235
+   },
+   "5": {
+    "commodity_shock": 0.2835,
+    "demand_collapse": 0.006,
+    "financial_stress": 0.3045,
+    "inflation_shock": 0.001,
+    "post_shock_glut": 0.37,
+    "risk_on_calm": 0.035
+   },
+   "6": {
+    "commodity_shock": 0.27,
+    "demand_collapse": 0.012,
+    "financial_stress": 0.2875,
+    "inflation_shock": 0.0015,
+    "post_shock_glut": 0.355,
+    "risk_on_calm": 0.074
+   },
+   "7": {
+    "commodity_shock": 0.2565,
+    "demand_collapse": 0.016,
+    "financial_stress": 0.2815,
+    "inflation_shock": 0.003,
+    "post_shock_glut": 0.334,
+    "risk_on_calm": 0.109
+   },
+   "8": {
+    "commodity_shock": 0.2445,
+    "demand_collapse": 0.0215,
+    "financial_stress": 0.256,
+    "inflation_shock": 0.005,
+    "post_shock_glut": 0.322,
+    "risk_on_calm": 0.151
+   },
+   "9": {
+    "commodity_shock": 0.227,
+    "demand_collapse": 0.0265,
+    "financial_stress": 0.255,
+    "inflation_shock": 0.0055,
+    "post_shock_glut": 0.3095,
+    "risk_on_calm": 0.1765
+   },
+   "10": {
+    "commodity_shock": 0.1815,
+    "demand_collapse": 0.03,
+    "financial_stress": 0.2585,
+    "inflation_shock": 0.009,
+    "post_shock_glut": 0.3045,
+    "risk_on_calm": 0.2165
+   },
+   "11": {
+    "commodity_shock": 0.186,
+    "demand_collapse": 0.0305,
+    "financial_stress": 0.2405,
+    "inflation_shock": 0.012,
+    "post_shock_glut": 0.292,
+    "risk_on_calm": 0.239
+   },
+   "12": {
+    "commodity_shock": 0.1865,
+    "demand_collapse": 0.0305,
+    "financial_stress": 0.2305,
+    "inflation_shock": 0.0145,
+    "post_shock_glut": 0.2815,
+    "risk_on_calm": 0.2565
+   }
+  },
+  "A": {
+   "1": {
+    "post_shock_glut": 1.0
+   },
+   "2": {
+    "post_shock_glut": 0.95,
+    "commodity_shock": 0.05
+   },
+   "3": {
+    "post_shock_glut": 0.9,
+    "commodity_shock": 0.05,
+    "risk_on_calm": 0.05
+   },
+   "4": {
+    "post_shock_glut": 0.8,
+    "commodity_shock": 0.05,
+    "risk_on_calm": 0.1,
+    "financial_stress": 0.05
+   },
+   "5": {
+    "post_shock_glut": 0.7,
+    "commodity_shock": 0.05,
+    "risk_on_calm": 0.15,
+    "financial_stress": 0.1
+   },
+   "6": {
+    "post_shock_glut": 0.6,
+    "commodity_shock": 0.05,
+    "risk_on_calm": 0.2,
+    "financial_stress": 0.15
+   },
+   "7": {
+    "post_shock_glut": 0.5,
+    "commodity_shock": 0.05,
+    "risk_on_calm": 0.25,
+    "financial_stress": 0.2
+   },
+   "8": {
+    "post_shock_glut": 0.45,
+    "commodity_shock": 0.05,
+    "risk_on_calm": 0.3,
+    "financial_stress": 0.2
+   },
+   "9": {
+    "post_shock_glut": 0.4,
+    "commodity_shock": 0.05,
+    "risk_on_calm": 0.35,
+    "financial_stress": 0.2
+   },
+   "10": {
+    "post_shock_glut": 0.35,
+    "commodity_shock": 0.05,
+    "risk_on_calm": 0.4,
+    "financial_stress": 0.2
+   },
+   "11": {
+    "post_shock_glut": 0.3,
+    "commodity_shock": 0.05,
+    "risk_on_calm": 0.45,
+    "financial_stress": 0.2
+   },
+   "12": {
+    "post_shock_glut": 0.25,
+    "commodity_shock": 0.1,
+    "risk_on_calm": 0.5,
+    "financial_stress": 0.15
+   }
+  },
+  "climatology": {
+   "risk_on_calm": 0.5552,
+   "commodity_shock": 0.1512,
+   "financial_stress": 0.1047,
+   "post_shock_glut": 0.0785,
+   "inflation_shock": 0.0727,
+   "demand_collapse": 0.0378
+  },
+  "persistence": {
+   "post_shock_glut": 1.0
+  },
+  "sr_occupancy": {
+   "commodity_shock": 0.1429,
+   "demand_collapse": 0.0123,
+   "financial_stress": 0.1342,
+   "inflation_shock": 0.0062,
+   "post_shock_glut": 0.6082,
+   "risk_on_calm": 0.0962
+  },
+  "analogues_used": 20
+ },
+ "registration": "OUTLOOK-REG",
+ "family_map": {
+  "calm": 0,
+  "easing": 1,
+  "real_easing": 1,
+  "boom": 2,
+  "rally": 2,
+  "steepening": 2,
+  "reflation": 2,
+  "expansion": 2,
+  "em_bid": 2,
+  "supply_glut": 3,
+  "precautionary": 3,
+  "inversion": 3,
+  "real_tightening": 3,
+  "em_stress": 3,
+  "correction": 3,
+  "fear_bid": 3,
+  "demand_collapse": 4,
+  "bust": 4,
+  "stress": 4,
+  "supply_squeeze": 4,
+  "deflation_scare": 4,
+  "contraction": 4,
+  "selloff": 4,
+  "surge": 4
+ },
+ "synoptic_family_map": {
+  "risk_on_calm": 0,
+  "post_shock_glut": 3,
+  "commodity_shock": 3,
+  "inflation_shock": 4,
+  "financial_stress": 4,
+  "demand_collapse": 4
+ }
+}

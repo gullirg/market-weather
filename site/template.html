@@ -296,19 +296,26 @@ if(DATA.daily_shadow){
 }
 function sesc(x){return String(x==null?'':x).replace(/&/g,'&amp;')
   .replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+const SDESC={};
+for(const G of SCORE)for(const R of G[2])SDESC[R[0]]=R[1];
+function sclaim(r){
+  const c=r.claim||'';
+  if(/^see site scorecard/i.test(c)&&SDESC[r.id])return SDESC[r.id];
+  return c||r.id;}
 if(DATA.streak&&DATA.streak.entries){
   const rows=DATA.streak.entries.slice().reverse();
   const t=DATA.streak.totals;
   let th='<table><tr><th>claim</th><th>window</th><th>result</th></tr>';
   rows.forEach(function(r,i){
     th+='<tr class="srow" data-i="'+i+'"><td><span class="sdot '+r.dot+
-      '"></span>'+sesc(r.claim||r.id)+'</td><td class="n">'+
+      '"></span>'+sesc(sclaim(r))+'</td><td class="n">'+
       sesc(r.window)+'</td><td class="n">'+sesc(r.id)+' '+
       sesc(r.status)+'</td></tr>'+
       '<tr class="sdet" id="sdet'+i+'" style="display:none"><td colspan=3>'+
       'group: '+sesc(r.group)+'<br>window: '+sesc(r.window)+
       '<br>status: '+sesc(r.status)+
       (r.note?('<br>note: '+sesc(r.note)):'')+
+      '<br>chain claim: '+sesc(r.claim)+
       '<br>chain hash: '+sesc(r.hash)+'</td></tr>';});
   th+='</table>';
   th+='<div class="note">'+t.hits+' hits, '+t.misses+' misses, '+

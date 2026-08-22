@@ -14,7 +14,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pandas as pd
 from feeds.providers import refresh
 from feeds import health
-from instrument import nodes, synoptic, hazards, transmission, daily, analogue
+from instrument import (nodes, synoptic, hazards, transmission, daily,
+                        analogue, outlook)
 from analyst import bulletin as B
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -63,6 +64,23 @@ STREAK_DOT = {"hit": "hit", "oos": "hit",
               "miss": "miss", "fail": "miss",
               "null": "null", "un": "null", "ret": "null",
               "rev": "null", "pending": "pending"}
+
+
+# state to family code, the same map the v3 strip uses. Carried into
+# the outlook payload so the page colours forecast bands from the
+# pipeline rather than from a second hand-written table.
+FAM_CODE = {"calm": 0, "easing": 1, "real_easing": 1,
+            "boom": 2, "rally": 2, "steepening": 2,
+            "reflation": 2, "expansion": 2, "em_bid": 2,
+            "supply_glut": 3, "precautionary": 3, "inversion": 3,
+            "real_tightening": 3, "em_stress": 3, "correction": 3,
+            "fear_bid": 3,
+            "demand_collapse": 4, "bust": 4, "stress": 4,
+            "supply_squeeze": 4, "deflation_scare": 4,
+            "contraction": 4, "selloff": 4, "surge": 4}
+SYN_FAM = {"risk_on_calm": 0, "post_shock_glut": 3,
+           "commodity_shock": 3, "inflation_shock": 4,
+           "financial_stress": 4, "demand_collapse": 4}
 
 
 def _streak(entries):
@@ -217,19 +235,28 @@ def cmd_month(args):
         site["analogues"] = an["current_analogues"]
     except Exception:
         site["analogues"] = None
+    # OUTLOOK v1, issued under OUTLOOK-REG. Issues, never scores.
+    try:
+        synj2 = json.load(open(os.path.join(STATE, "synoptic.json")))
+        allposts = dict(diag["posts"])
+        if nw is not None:
+            allposts.update(nw["posts"])
+        ol = outlook.run(diag["preds"], allposts, synj2["series"],
+                         months, args.asof,
+                         issued=args.issued or f"{args.asof}-05")
+        ol["family_map"] = FAM_CODE
+        ol["synoptic_family_map"] = SYN_FAM
+        site["outlook"] = ol
+        json.dump(ol, open(os.path.join(
+            STATE, f"outlook_{ol['quarter']}.json"), "w"), indent=1)
+    except Exception as e:
+        site["outlook"] = None
+        print("outlook layer degraded:", e)
     frames = transmission.frames(DATA, args.asof)
     json.dump(frames, open(os.path.join(STATE, "spill_frames.json"), "w"))
     site["frames"] = frames
     try:
-        FAM = {"calm": 0, "easing": 1, "real_easing": 1,
-               "boom": 2, "rally": 2, "steepening": 2,
-               "reflation": 2, "expansion": 2, "em_bid": 2,
-               "supply_glut": 3, "precautionary": 3, "inversion": 3,
-               "real_tightening": 3, "em_stress": 3, "correction": 3,
-               "fear_bid": 3,
-               "demand_collapse": 4, "bust": 4, "stress": 4,
-               "supply_squeeze": 4, "deflation_scare": 4,
-               "contraction": 4, "selloff": 4, "surge": 4}
+        FAM = FAM_CODE
         fam = {}
         for n, p in diag["preds"].items():
             fam[n] = [FAM.get(p.get(m), -1)
@@ -356,6 +383,10 @@ def cmd_publish(args):
         shutil.copy(os.path.join(ROOT, "report.html"),
                     os.path.join(BULL, f"{args.asof}_record.html"))
     shutil.copy(draft, os.path.join(BULL, f"{args.asof}.md"))
+    import glob as _glob
+    for src in sorted(_glob.glob(os.path.join(STATE, "outlook_*.json"))):
+        shutil.copy(src, os.path.join(BULL, os.path.basename(src)))
+        print(f"froze {os.path.basename(src)}")
     site = json.load(open(os.path.join(STATE, "site_data.json")))
     states = {n: c["state"] for n, c in site["current"].items()}
     for n, c in (site.get("network") or {}).get("current", {}).items():

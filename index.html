@@ -392,9 +392,11 @@ function init(){
     const b=hitBlock(ev.clientX,ev.clientY);
     if(b){selected=b;openCard(b,ev.clientX,ev.clientY);}
     else{selected=null;
-      document.getElementById('card').style.display='none';}});
+      document.getElementById('card').style.display='none';}
+    draw(lastT);});
   cv.addEventListener('mousemove',ev=>{
-    hoverEdge=hitEdge(ev.clientX,ev.clientY);});
+    const h=hitEdge(ev.clientX,ev.clientY);
+    if(h!==hoverEdge){hoverEdge=h;draw(lastT);}});
   const lb=document.getElementById('legendbtn'),
     lp=document.getElementById('legendpanel');
   lb.addEventListener('click',ev=>{

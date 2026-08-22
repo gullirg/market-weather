@@ -1068,5 +1068,32 @@
   "window": "2026-08",
   "note": "3 of 3 registered checks",
   "hash": "a2d776a350bcf0e6"
+ },
+ {
+  "id": "M2a",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "money names the 2020-21 pandemic money-supply expansion",
+  "window": "held-out",
+  "note": "dominant expansion at share 1.00",
+  "hash": "bee0031c8207592b"
+ },
+ {
+  "id": "M2b",
+  "group": "network membership checks, registered before estimation",
+  "status": "hit",
+  "claim": "money names the 2023 money-supply contraction",
+  "window": "held-out",
+  "note": "dominant contraction at share 1.00",
+  "hash": "9d1faa67b5c85c50"
+ },
+ {
+  "id": "JOIN-money",
+  "group": "network membership, rule: 2 of 3",
+  "status": "hit",
+  "claim": "money joins the public network",
+  "window": "2026-08",
+  "note": "2 of 2 registered checks, membership rule 2 of 2 as registered",
+  "hash": "bd5df8b5d5747d3b"
  }
 ]

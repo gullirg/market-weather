@@ -4,17 +4,31 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>The Market Weather Report · full record</title>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Market Weather Report">
+<meta property="og:title" content="The Market Weather Report, full record">
+<meta property="og:description" content="__OGDESC__">
+<meta property="og:url" content="https://gullirg.github.io/market-weather/report.html">
+<meta property="og:image" content="https://gullirg.github.io/market-weather/share.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The Market Weather Report, full record">
+<meta name="twitter:description" content="__OGDESC__">
+<meta name="twitter:image" content="https://gullirg.github.io/market-weather/share.png">
 <style>
   :root{
-    --bg:#060809; --ink:#E8EAED; --dim:#8B939A; --faint:#3A4046;
-    --line:#171C20; --mono:'JetBrains Mono',ui-monospace,monospace;
+    --bg:#0b0e14; --ink:#dfe4f2; --dim:#8b93a7; --faint:#5b6478;
+    --line:#2a3040; --mono:'JetBrains Mono',ui-monospace,monospace;
     --calm:#495158; --up:#3FB950; --down:#58A6FF; --hot:#F85149;
     --glut:#F0883E; --fear:#A371F7;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{background:var(--bg);color:var(--ink);
     font:15px/1.55 Inter,-apple-system,'Segoe UI',sans-serif;
-    -webkit-font-smoothing:antialiased}
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  body{background-image:radial-gradient(120% 70% at 50% 0%,
+    #161c28 0%,#0b0e14 62%);background-attachment:fixed}
   a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--faint)}
   a:hover{color:var(--ink)}
   .wrap{max-width:980px;margin:0 auto;padding:34px 22px 60px}
@@ -30,7 +44,8 @@
   .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:6px;
     font-size:11.5px;color:var(--dim)}
   .legend i{display:inline-block;width:8px;height:8px;border-radius:50%;
-    margin-right:5px;vertical-align:0}
+    margin-right:5px;vertical-align:0;
+    box-shadow:0 0 3px currentColor;color:inherit}
   table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12.5px}
   td,th{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;
     vertical-align:top}
@@ -117,7 +132,8 @@ const LEG=[['calm','--calm'],['boom, rally','--up'],
   ['squeeze, surge, dollar up','--hot'],['glut','--glut'],
   ['hoarding, fear, correction','--fear']];
 document.getElementById('legend').innerHTML=LEG.map(([t,v])=>
-  '<span><i style="background:'+getCss(v)+'"></i>'+t+'</span>').join('');
+  '<span><i style="background:'+getCss(v)+';color:'+getCss(v)+
+  '"></i>'+t+'</span>').join('');
 
 const sv=document.getElementById('strip'),sx=sv.getContext('2d');
 const NEWROWS=['curve','real_yield','breakevens','copper','coal','uranium','euro'];

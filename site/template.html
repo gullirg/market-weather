@@ -61,6 +61,7 @@
   .r-un{background:rgba(139,147,154,.09);color:var(--dim)}
   .r-ret{background:rgba(163,113,247,.14);color:var(--fear)}
   .r-pen{background:rgba(88,166,255,.12);color:var(--down)}
+  .r-closed{background:rgba(139,147,154,.14);color:var(--dim)}
   .foot{margin-top:34px;border-top:1px solid var(--line);padding-top:14px;
     display:flex;flex-wrap:wrap;gap:8px 26px;align-items:baseline;
     font-size:12.5px;color:var(--dim)}
@@ -266,10 +267,16 @@ const cls={hit:'r-hit',miss:'r-miss',fail:'r-fail','null':'r-null',un:'r-un',
   ret:'r-ret',rev:'r-ret',pen:'r-pen'};
 const wrd={hit:'HIT',miss:'MISS',fail:'FAIL','null':'NULL',un:'UNSCOREABLE',
   ret:'RETRACTED',rev:'REVISED',pen:'PENDING'};
+const PCLOSED={};
+for(const id of ((DATA.pendings&&DATA.pendings.closed)||[]))PCLOSED[id]=1;
 let sh='';
 for(const G of SCORE){sh+='<table><tr><th colspan=3>'+G[0]+' · '+G[1]+'</th></tr>';
-  for(const R of G[2])sh+='<tr><td class="n">'+R[0]+'</td><td>'+R[1]+
-    '</td><td class="n"><span class="res '+cls[R[2]]+'">'+wrd[R[2]]+'</span></td></tr>';
+  for(const R of G[2]){
+    let k=R[2],w=wrd[R[2]];
+    if(k==='pen'&&PCLOSED[R[0]]){k='closed';w='CLOSED';}
+    sh+='<tr><td class="n">'+R[0]+'</td><td>'+R[1]+
+      '</td><td class="n"><span class="res '+(cls[k]||'r-closed')+'">'+
+      w+'</span></td></tr>';}
   sh+='</table>'}
 document.getElementById('score').innerHTML=sh;
 if(DATA.analogues){
@@ -334,9 +341,11 @@ if(DATA.streak&&DATA.streak.entries){
 const counts={hit:0,miss:0,fail:0,pen:0,other:0};
 for(const G of SCORE)for(const R of G[2]){
   if(R[2] in counts)counts[R[2]]++; else counts.other++;}
+const PD=DATA.pendings||{n_open:counts.pen,n_closed:0};
 document.getElementById('rec').innerHTML=
   'record <b>'+counts.hit+'</b> hits · <b>'+counts.miss+'</b> misses · '+
-  '<b>'+counts.fail+'</b> failed upgrades · <b>'+counts.pen+'</b> pending';
+  '<b>'+counts.fail+'</b> failed upgrades · pending <b>'+PD.n_open+
+  '</b> open, <b>'+PD.n_closed+'</b> closed';
 </script>
 </body>
 </html>

@@ -105,6 +105,24 @@ def _streak(entries):
             "window_size": STREAK_N}
 
 
+def _pendings(entries):
+    """Open versus closed pendings, for display only. A pending is
+    closed when the chain carries a closure record for it, either the
+    G2-CLOSED pattern or a score_pending resolution. The chain itself is
+    append-only and is never edited to make this count move."""
+    ids = {e["id"] for e in entries}
+    op, cl = [], []
+    for e in entries:
+        if e.get("status") != "pending":
+            continue
+        if e["id"] + "-CLOSED" in ids or e["id"] + "-scored" in ids:
+            cl.append(e["id"])
+        else:
+            op.append(e["id"])
+    return {"open": op, "closed": cl,
+            "n_open": len(op), "n_closed": len(cl)}
+
+
 def _since_last_bulletin(site):
     """One line, in words and with no numerals, naming the instruments
     whose state moved since the last published bulletin. Page only: it
@@ -162,7 +180,8 @@ def cmd_month(args):
     json.dump(report, open(os.path.join(STATE, "feed_health.json"), "w"),
               indent=1)
     sc = load_scorecard()
-    sc = B.score_pending(sc, diag["preds"], args.asof)
+    sc = B.score_pending(sc, diag["preds"], args.asof,
+                         series={"real_brent": nodes.real_brent(F)})
     json.dump(sc, open(os.path.join(STATE, "scorecard.json"), "w"),
               indent=1)
     sp = json.load(open(os.path.join(STATE, "spillovers.json")))
@@ -327,6 +346,7 @@ def cmd_month(args):
         site["v3"] = None
         print("v3 layer degraded:", e)
     site["streak"] = _streak(load_scorecard())
+    site["pendings"] = _pendings(load_scorecard())
     site["health"] = [{"feed": r_["feed"], "ok": not r_["FLAG"]}
                       for r_ in report]
     site["issued"] = args.issued or f"{args.asof}-05"
@@ -399,6 +419,25 @@ def cmd_publish(args):
         shutil.copy(src, os.path.join(BULL, os.path.basename(src)))
         print(f"froze {os.path.basename(src)}")
     site = json.load(open(os.path.join(STATE, "site_data.json")))
+    # From bulletin 002 onward, register this bulletin's scoreable
+    # forward claims as pending auto entries carrying their resolution
+    # rules. score_pending resolves them once matured.
+    claims = B.forward_claims(site, no, args.asof)
+    if claims:
+        sc = load_scorecard()
+        B.verify(sc)
+        have = {e["id"] for e in sc}
+        added = []
+        for c in claims:
+            if c["id"] in have:
+                continue
+            sc = B.append(sc, c)
+            added.append(c["id"])
+        if added:
+            B.verify(sc)
+            json.dump(sc, open(os.path.join(STATE, "scorecard.json"), "w"),
+                      indent=1)
+            print("registered forward claims: " + ", ".join(added))
     states = {n: c["state"] for n, c in site["current"].items()}
     for n, c in (site.get("network") or {}).get("current", {}).items():
         states[n] = c["state"]

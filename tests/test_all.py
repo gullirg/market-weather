@@ -209,6 +209,124 @@ def test_jodi_and_cot_fixtures_parse():
     assert c.loc[pd.Period("2026-07", "M")] == 220000
 
 
+def _claim_site():
+    return {"months": ["2026-07", "2026-08"],
+            "hazard": {"current": {"state": "supply_glut", "elapsed": 3},
+                       "lamp": {"supply_glut": {"tail_freq": 0.29},
+                                "unconditional": 0.15},
+                       "durations": {"supply_glut": {
+                           "continuation_at_current": 0.7}}}}
+
+
+def test_forward_claims_start_at_bulletin_002():
+    """Bulletin 001 was written without the wiring and is not
+    backfilled; 002 registers both scoreable forward claims."""
+    site = _claim_site()
+    assert B.forward_claims(site, "001", "2026-08") == []
+    cl = B.forward_claims(site, "002", "2026-08")
+    ids = {c["id"] for c in cl}
+    assert ids == {"B002-LAMP", "B002-CONT"}
+    for c in cl:
+        assert c["status"] == "pending" and c["auto"] is True
+        assert c["group"] == B.CLAIM_GROUP
+        assert c["rule"]["p"] is not None and "source" in c["rule"]
+        assert c["note"].startswith("resolution rule, registered at publish")
+    lamp = next(c for c in cl if c["id"] == "B002-LAMP")
+    assert lamp["window"] == "2026-09..2026-11"
+    assert lamp["matures"] == "2026-11"
+    assert lamp["rule"]["side"] is False          # 0.29 is below one half
+    cont = next(c for c in cl if c["id"] == "B002-CONT")
+    assert cont["window"] == "2026-09..2026-09"
+    assert cont["rule"]["side"] is True           # 0.70 is above one half
+
+
+def test_forward_claim_ties_register_nothing():
+    """A stated probability of exactly one half commits to no side."""
+    site = _claim_site()
+    site["hazard"]["durations"]["supply_glut"][
+        "continuation_at_current"] = 0.5
+    site["hazard"]["lamp"]["supply_glut"]["tail_freq"] = 0.5
+    assert B.forward_claims(site, "002", "2026-08") == []
+
+
+def _mk_chain(claims):
+    chain = B.append([], {"id": "GENESIS", "group": "operations",
+                          "status": "hit", "claim": "root",
+                          "window": "2026-08"})
+    for c in claims:
+        chain = B.append(chain, c)
+    return chain
+
+
+def test_lamp_claim_resolves_both_ways_and_only_once():
+    """The registered side is 'no tail move'. A quiet window is a hit,
+    a crash is a miss, and neither is ever scored twice."""
+    site = _claim_site()
+    cl = [c for c in B.forward_claims(site, "002", "2026-08")
+          if c["id"] == "B002-LAMP"]
+    idx = pd.period_range("2026-08", "2026-11", freq="M")
+    quiet = pd.Series([100.0, 99.0, 101.0, 98.0], index=idx)
+    crash = pd.Series([100.0, 99.0, 80.0, 98.0], index=idx)
+    for prices, want in [(quiet, "hit"), (crash, "miss")]:
+        chain = _mk_chain(cl)
+        out = B.score_pending(chain, {}, "2026-11",
+                              series={"real_brent": prices})
+        B.verify(out)
+        new = out[len(chain):]
+        assert len(new) == 1, new
+        assert new[0]["id"] == "B002-LAMP-scored"
+        assert new[0]["status"] == want, new[0]["note"]
+        assert new[0]["group"] == B.CLAIM_SCORE_GROUP
+        again = B.score_pending(out, {}, "2026-11",
+                                series={"real_brent": prices})
+        assert len(again) == len(out), "a scored claim was scored twice"
+
+
+def test_continuation_claim_resolves_against_the_decoder():
+    site = _claim_site()
+    cl = [c for c in B.forward_claims(site, "002", "2026-08")
+          if c["id"] == "B002-CONT"]
+    idx = pd.period_range("2026-09", "2026-09", freq="M")
+    for state, want in [("supply_glut", "hit"), ("calm", "miss")]:
+        chain = _mk_chain(cl)
+        out = B.score_pending(chain, {"oil": pd.Series([state], index=idx)},
+                              "2026-09")
+        new = out[len(chain):]
+        assert len(new) == 1 and new[0]["status"] == want, new
+
+
+def test_unmatured_and_unrealized_claims_stay_pending():
+    """Nothing scores before maturity, and nothing scores while the
+    realization is still absent from the pipeline."""
+    site = _claim_site()
+    cl = B.forward_claims(site, "002", "2026-08")
+    chain = _mk_chain(cl)
+    early = B.score_pending(chain, {"oil": pd.Series(dtype=object)},
+                            "2026-08", series={})
+    assert len(early) == len(chain)
+    idx = pd.period_range("2026-08", "2026-09", freq="M")
+    short = pd.Series([100.0, 99.0], index=idx)
+    late = B.score_pending(chain, {"oil": pd.Series(dtype=object)},
+                           "2026-12", series={"real_brent": short})
+    lamp = [e for e in late[len(chain):] if "LAMP" in e["id"]]
+    assert lamp == [], "scored a claim whose realization is not in yet"
+
+
+def test_open_and_closed_pendings_split_by_closure_record():
+    import runpy
+    run = runpy.run_path(os.path.join(ROOT, "run.py"))
+    entries = [
+        {"id": "P1", "status": "pending"},
+        {"id": "P2", "status": "pending"},
+        {"id": "P3", "status": "pending"},
+        {"id": "P2-CLOSED", "status": "note"},
+        {"id": "P3-scored", "status": "hit"},
+        {"id": "X1", "status": "hit"}]
+    p = run["_pendings"](entries)
+    assert p["open"] == ["P1"] and p["n_open"] == 1
+    assert sorted(p["closed"]) == ["P2", "P3"] and p["n_closed"] == 2
+
+
 def test_pages_execute_headlessly():
     """Both built pages must run without script errors: load, three
     animation frames, a scrub event, a canvas click."""

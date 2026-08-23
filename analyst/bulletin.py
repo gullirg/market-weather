@@ -47,30 +47,211 @@ def append(entries, new):
     return entries + [new]
 
 
-def score_pending(entries, preds, asof):
+# ------------------------------------------------ forward claim wiring
+# From bulletin 002 onward every scoreable forward claim the bulletin
+# makes is appended at publish as a pending auto entry carrying its own
+# resolution rule. score_pending resolves exactly the matured ones.
+# Bulletin 001 was written without this wiring and is not backfilled.
+CLAIM_GROUP = "bulletin claim, registered at publish"
+CLAIM_SCORE_GROUP = "bulletin claim scoring"
+FIRST_WIRED_BULLETIN = 2
+LAMP_THRESHOLD_PCT = -15.0
+LAMP_HORIZON_M = 3
+
+
+def _side(p):
+    """The side a stated probability commits the bulletin to. Above one
+    half the bulletin's side is that the event occurs, below it that it
+    does not, and exactly one half commits to nothing."""
+    if p is None:
+        return None
+    if p > 0.5:
+        return True
+    if p < 0.5:
+        return False
+    return None
+
+
+def forward_claims(site, bulletin_no, asof):
+    """The scoreable forward claims of one bulletin, as pending auto
+    entries. Empty before the first wired bulletin."""
+    import pandas as pd
+    try:
+        no = int(str(bulletin_no))
+    except (TypeError, ValueError):
+        return []
+    if no < FIRST_WIRED_BULLETIN:
+        return []
+    hz = (site or {}).get("hazard")
+    if not hz or not hz.get("current"):
+        return []
+    base = pd.Period(site["months"][-1], "M")
+    state = hz["current"]["state"]
+    word = STATE_WORD.get(state, state)
+    out = []
+
+    lp = (hz.get("lamp") or {}).get(state, {})
+    tail = lp.get("tail_freq")
+    unc = (hz.get("lamp") or {}).get("unconditional")
+    side = _side(tail)
+    if tail is not None and side is not None:
+        a, b = base + 1, base + LAMP_HORIZON_M
+        out.append({
+            "id": f"B{no:03d}-LAMP",
+            "group": CLAIM_GROUP,
+            "status": "pending",
+            "auto": True,
+            "claim": (f"risk lamp, bulletin {no:03d}: from the {word} "
+                      f"regime the stated chance of a real Brent "
+                      f"drawdown of fifteen percent or worse within "
+                      f"three months is {tail}, against {unc} "
+                      f"unconditionally"),
+            "window": f"{a}..{b}",
+            "matures": str(b),
+            "rule": {"kind": "drawdown", "series": "real_brent",
+                     "base": str(base),
+                     "threshold_pct": LAMP_THRESHOLD_PCT,
+                     "p": tail, "side": side,
+                     "source": f"hazard.lamp['{state}'].tail_freq"},
+            "note": ("resolution rule, registered at publish: at "
+                     "maturity the pipeline takes real Brent from "
+                     "instrument.nodes.real_brent, the same series the "
+                     "lamp is estimated on, and computes the minimum "
+                     "log return of the window months against the base "
+                     "month. The event is a drawdown of fifteen "
+                     "percent or worse. The stated probability is "
+                     f"{tail}, so the bulletin's side is that the "
+                     f"event does {'occur' if side else 'not occur'}; "
+                     "hit if the realization falls on that side, miss "
+                     "if it falls on the other. A stated probability "
+                     "of exactly one half resolves unscoreable and no "
+                     "claim is registered. The probability is recorded "
+                     "here because one realization cannot score a "
+                     "frequency: this binary resolution is deliberately "
+                     "coarse and the accumulated set is what a Brier "
+                     "score will later be computed over.")})
+
+    dr = (hz.get("durations") or {}).get(state, {})
+    cont = dr.get("continuation_at_current")
+    cside = _side(cont)
+    if cont is not None and cside is not None:
+        a = base + 1
+        out.append({
+            "id": f"B{no:03d}-CONT",
+            "group": CLAIM_GROUP,
+            "status": "pending",
+            "auto": True,
+            "claim": (f"continuation, bulletin {no:03d}: the stated "
+                      f"share of past {word} episodes that ran longer "
+                      f"than the current one is {cont}, which is the "
+                      f"chance the regime is still {word} next month"),
+            "window": f"{a}..{a}",
+            "matures": str(a),
+            "rule": {"kind": "state", "node": "oil", "target": state,
+                     "mode": "present", "p": cont, "side": cside,
+                     "source": (f"hazard.durations['{state}']"
+                                ".continuation_at_current")},
+            "note": ("resolution rule, registered at publish: at "
+                     "maturity the pipeline reads the decoded oil state "
+                     "for the window month from the monthly decoder. "
+                     f"The event is that the state is still {state}. "
+                     f"The stated probability is {cont}, so the "
+                     f"bulletin's side is that the regime does "
+                     f"{'continue' if cside else 'not continue'}; hit "
+                     "if the realization falls on that side, miss if it "
+                     "falls on the other. A stated probability of "
+                     "exactly one half resolves unscoreable and no "
+                     "claim is registered.")})
+    return out
+
+
+def _resolve(rule, a, b, preds, series):
+    """(status, note) for a matured rule, or None while the realization
+    is not yet in the pipeline."""
+    import numpy as np
+    import pandas as pd
+    side = rule.get("side")
+    if side is None:
+        return ("un", "no side: the stated probability was exactly one half")
+    if rule["kind"] == "drawdown":
+        s = (series or {}).get(rule["series"])
+        if s is None:
+            return None
+        base = pd.Period(rule["base"], "M")
+        if base not in s.index or b not in s.index:
+            return None
+        w = s.loc[a:b].dropna()
+        if len(w) == 0:
+            return None
+        lp = np.log(w / float(s.loc[base]))
+        worst = float(lp.min())
+        occurred = bool(worst <= np.log(1 + rule["threshold_pct"] / 100.0))
+        measured = round(float(np.expm1(worst) * 100), 1)
+        detail = (f"worst real Brent move over the window {measured} "
+                  f"percent against a threshold of "
+                  f"{rule['threshold_pct']} percent")
+    elif rule["kind"] == "state":
+        pr = (preds or {}).get(rule["node"])
+        if pr is None:
+            return None
+        w = pr.loc[a:b].dropna()
+        if len(w) == 0:
+            return None
+        occurred = bool((w == rule["target"]).any())
+        detail = (f"decoded {rule['node']} state over the window "
+                  f"{', '.join(map(str, w.tolist()))} against a target "
+                  f"of {rule['target']}")
+    else:
+        return ("un", f"unknown resolution kind {rule['kind']}")
+    hit = (occurred == side)
+    note = (f"stated probability {rule['p']}, registered side "
+            f"{'event occurs' if side else 'event does not occur'}, "
+            f"realization {'event occurred' if occurred else 'event did not occur'}; "
+            + detail)
+    return ("hit" if hit else "miss", note)
+
+
+def score_pending(entries, preds, asof, series=None):
     """Score any pending auto-scorable claim whose window closed by asof.
-    Claims carry node, window (a..b), target, mode (dominant|present)."""
+    Rule-carrying claims resolve through their registered rule. Legacy
+    claims carry node, window (a..b), target, mode (dominant|present).
+    An entry that already has a scored record on the chain is never
+    scored twice."""
     import pandas as pd
     out = list(entries)
     A = pd.Period(asof, "M")
+    seen = {e["id"] for e in entries}
     for e in [e for e in entries if e.get("status") == "pending"
               and e.get("auto")]:
+        if e["id"] + "-scored" in seen:
+            continue
         b = pd.Period(e["window"].split("..")[1], "M")
         if b > A:
             continue
         a = pd.Period(e["window"].split("..")[0], "M")
-        w = preds[e["node"]].loc[a:b].dropna()
-        if len(w) == 0:
-            status, note = "unscoreable", "window has no data"
+        rule = e.get("rule")
+        if rule:
+            res = _resolve(rule, a, b, preds, series or {})
+            if res is None:
+                continue
+            status, note = res
         else:
-            dom = w.value_counts().index[0]
-            hit = (dom == e["target"] if e["mode"] == "dominant"
-                   else (w == e["target"]).any())
-            status = "hit" if hit else "miss"
-            note = f"dominant {dom}, share {float((w == e['target']).mean()):.2f}"
-        out = append(out, {"id": e["id"] + "-scored", "claim": e["claim"],
+            w = preds[e["node"]].loc[a:b].dropna()
+            if len(w) == 0:
+                status, note = "unscoreable", "window has no data"
+            else:
+                dom = w.value_counts().index[0]
+                hit = (dom == e["target"] if e["mode"] == "dominant"
+                       else (w == e["target"]).any())
+                status = "hit" if hit else "miss"
+                note = (f"dominant {dom}, share "
+                        f"{float((w == e['target']).mean()):.2f}")
+        out = append(out, {"id": e["id"] + "-scored",
+                           "group": CLAIM_SCORE_GROUP,
+                           "claim": e["claim"],
                            "window": e["window"], "status": status,
                            "note": note})
+        seen.add(e["id"] + "-scored")
     return out
 
 

@@ -518,6 +518,37 @@ def test_bust_lamp_is_words_only_and_dark_without_an_envelope():
     assert run["_next_revision"]("2026-10") == "2026-11"
 
 
+def test_bust_lamp_lights_amber_on_a_registered_breach_run():
+    """The amber path, which live data has never exercised: a synthetic
+    envelope the observation sits outside of must light the lamp after
+    the registered run of business days, and not before."""
+    import runpy
+    import numpy as np
+    from instrument import nodes, outlook as O
+    run = runpy.run_path(os.path.join(ROOT, "run.py"))
+    F = nodes.load_feeds(os.path.join(ROOT, "data"))
+    rb = nodes.real_brent(F)
+    months = [str(p) for p in rb.index[-6:]]
+    lo = float(rb.iloc[-6:].min())
+
+    def issue(band_lo, band_hi):
+        return {"asof": months[0], "instruments": {"oil": {"envelope": {
+            "series": "real_brent", "months": months,
+            "band": [{"lo": band_lo, "hi": band_hi} for _ in months],
+            "percentiles": [O.ENVELOPE_LO, O.ENVELOPE_HI]}}}}
+
+    wide = run["_bust_lamp"](issue(lo * 0.1, lo * 10.0), F, "2026-08")
+    assert wide["state"] == "dark", wide
+    tight = run["_bust_lamp"](issue(lo * 100.0, lo * 200.0), F, "2026-08")
+    assert tight["state"] == "amber", tight
+    assert tight["words"] == "outside this outlook's expected range"
+    assert tight["instrument"] == "oil"
+    assert tight["next_revision"] == "2026-09"
+    assert tight["since"]
+    assert not any(isinstance(v, (int, float))
+                   for k, v in tight.items() if k != "state")
+
+
 def test_pages_execute_headlessly():
     """Both built pages must run without script errors: load, three
     animation frames, a scrub event, a canvas click."""

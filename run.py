@@ -152,6 +152,79 @@ def _laboratory(entries):
     return {"entries": rows, "totals": tot, "matched": len(sel)}
 
 
+OUTLOOK_DISPLAY_FORECASTER = "M"
+
+
+def _lead_instrument(block, site):
+    """The block's lead instrument by the same strongest-non-calm rule
+    the tiles use: the non-calm member with the highest confidence, or
+    failing that the most confident member."""
+    members = ((site.get("v3") or {}).get("members") or {}).get(block) or []
+    cur = dict(site.get("current") or {})
+    cur.update(((site.get("network") or {}).get("current")) or {})
+    best, best_p = None, -1.0
+    for m in members:
+        c = cur.get(m)
+        if not c:
+            continue
+        p = float(c.get("prob", 0.0))
+        score = p if c.get("state") != "calm" else p * 0.55
+        if score > best_p:
+            best, best_p = m, score
+    return best
+
+
+def _outlook_display(site):
+    """The read layer's forecast rows, from the current frozen issue.
+    Absent until the first monthly issue exists, which is what the
+    page's registered empty state is for."""
+    ol = site.get("outlook") or {}
+    if ol.get("cadence") != "monthly":
+        return None
+    inst = ol.get("instruments") or {}
+    lm = ol.get("lead_months") or {}
+    leads = [str(L) for L in (ol.get("leads") or [])][:3]
+    if not inst or not leads:
+        return None
+    fc = OUTLOOK_DISPLAY_FORECASTER
+
+    def chips(dist_by_h, fam_map):
+        out = []
+        for L in leads:
+            d = (dist_by_h or {}).get(L) or {}
+            if not d:
+                continue
+            st = max(d, key=lambda k: d[k])
+            fam = fam_map.get(st, 0)
+            out.append({"month": lm.get(L, L),
+                        "word": {0: "calm", 1: "easing", 2: "up",
+                                 3: "strained", 4: "hot"}.get(fam, "calm"),
+                        "fam": fam,
+                        "prob": int(round(float(d[st]) * 100))})
+        return out
+
+    rows = []
+    for b in ("energy", "rates_expectations", "credit", "fx", "equities",
+              "metals", "activity", "liquidity"):
+        lead_i = _lead_instrument(b, site)
+        if not lead_i or lead_i not in inst:
+            continue
+        c = chips((inst[lead_i] or {}).get(fc), FAM_CODE)
+        if c:
+            rows.append({"block": b, "lead_instrument": lead_i,
+                         "months": c})
+    syn = None
+    if ((site.get("synoptic") or {}).get("gate") == "open"
+            and ol.get("synoptic")):
+        syn = chips(ol["synoptic"].get(fc), SYN_FAM) or None
+    if not rows and not syn:
+        return None
+    return {"rows": rows, "synoptic": syn,
+            "forecaster": fc, "issue": ol.get("issue"),
+            "note": f"issued {ol.get('issued') or ol.get('issue_month')}, "
+                    f"revised monthly"}
+
+
 def _bust_lamp(ol, F, asof):
     """BUST-REG. Compares daily observations to the issue's envelope
     and reports one amber lamp after a registered run of breaches.
@@ -442,6 +515,11 @@ def cmd_month(args):
         site["outlook"] = None
         print("outlook layer degraded:", e)
     site["bust"] = _bust_lamp(site.get("outlook"), F, args.asof)
+    site["bust"]["on"] = (site["bust"].get("state") == "amber")
+    site["changed_line"] = _since_last_bulletin(site)
+    od = _outlook_display(site)
+    if od:
+        site["outlook_display"] = od
     site["outlook_issues"] = _outlook_issues()
     frames = transmission.frames(DATA, args.asof)
     json.dump(frames, open(os.path.join(STATE, "spill_frames.json"), "w"))
@@ -571,7 +649,7 @@ def cmd_month(args):
     changes_line = _since_last_bulletin(site)
     og_desc = _og_description(site)
     import html as _html
-    for src, dst in [("graph_v5.html", "index.html"),
+    for src, dst in [("graph_v6.html", "index.html"),
                      ("template.html", "report.html")]:
         tpl = open(os.path.join(SITE, src)).read()
         page = tpl.replace("__DATA__", payload)

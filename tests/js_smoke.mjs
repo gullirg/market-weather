@@ -75,6 +75,16 @@ function runPass(reduceMotion) {
   const click = listeners['g:click'];
   if (click) for (const fn of click) fn({ clientX: 490, clientY: 242 });
   if (raf.length) raf.shift()(500);
+  // v6 tabs: both panes must render headlessly. TODAY first, since it
+  // is the landing pane, then MAP, then back, so neither is left
+  // unexercised and setTab runs in both directions.
+  for (const t of ['tab-today', 'tab-map', 'tab-today', 'tab-map']) {
+    const fns = listeners[t + ':click'];
+    if (fns) {
+      for (const fn of fns) fn({});
+      if (raf.length) raf.shift()(700);
+    }
+  }
   // OUTLOOK toggle: exercise the cone, plume and meteogram paths with a
   // card open, then toggle back so the analysis-only path runs again.
   const outlook = listeners['voutlook:click'];

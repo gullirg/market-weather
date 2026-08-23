@@ -496,6 +496,15 @@ def build_payload(site, scorecard_counts, bulletin_no, issued,
         add(len(nw.get("awaiting") or []))
         add(len([m for m in (nw.get("membership") or [])
                  if m.get("member")]))
+    od = site.get("outlook_display")
+    if od:
+        for r in od.get("rows", []):
+            for c in r.get("months", []):
+                add(c["prob"])
+                add(c["fam"])
+        for c in (od.get("synoptic") or []):
+            add(c["prob"])
+            add(c["fam"])
     hz = site.get("horizon")
     if hz:
         for r in hz.get("curve", []):

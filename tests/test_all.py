@@ -552,8 +552,15 @@ def test_bust_lamp_is_words_only_and_dark_without_an_envelope():
     assert b["state"] in ("dark", "amber", "none")
     if b["state"] == "amber":
         assert b["words"] == "outside this outlook's expected range"
-    assert not any(isinstance(v, (int, float))
-                   for k, v in b.items() if k != "state")
+    # the lamp carries no numeral. The v6 read layer adds an `on`
+    # flag, which is a boolean and not a number shown to a reader, so
+    # booleans are excluded explicitly rather than by Python treating
+    # them as ints.
+    numerals = [k for k, v in b.items()
+                if k != "state" and isinstance(v, (int, float))
+                and not isinstance(v, bool)]
+    assert not numerals, numerals
+    assert isinstance(b.get("on"), bool)
     assert run["_next_revision"]("2026-10") == "2026-11"
 
 
@@ -902,6 +909,100 @@ def test_horizon2_uses_the_identical_forecasts():
         assert a["lead"] == b["lead"] and a["n"] == b["n"]
         assert abs(a["rps_forecast"] - b["rps_forecast"]) < 1e-9, a["lead"]
     assert h2["baseline_name"] == "persistence"
+
+
+def _v6_site(cadence="monthly", gate="open"):
+    """A site payload shaped like the real one, for the read layer's
+    forecast rows."""
+    return {
+        "current": {"oil": {"state": "supply_glut", "prob": 0.95},
+                    "gas": {"state": "calm", "prob": 0.80}},
+        "network": {"current": {"coal": {"state": "calm", "prob": 0.99}}},
+        "synoptic": {"gate": gate},
+        "v3": {"members": {"energy": ["oil", "gas", "coal"]}},
+        "outlook": {
+            "cadence": cadence, "issue": "2026-10",
+            "issued": "2026-10-05", "issue_month": "2026-10",
+            "leads": [3, 6, 12],
+            "lead_months": {"3": "2027-01", "6": "2027-04",
+                            "12": "2027-10"},
+            "instruments": {
+                "oil": {"M": {"3": {"supply_glut": 0.62, "calm": 0.38},
+                              "6": {"calm": 0.55, "supply_glut": 0.45},
+                              "12": {"calm": 0.71, "supply_glut": 0.29}}},
+                "gas": {"M": {"3": {"calm": 1.0}}},
+                "coal": {"M": {"3": {"calm": 1.0}}}},
+            "synoptic": {"M": {"3": {"post_shock_glut": 0.66,
+                                     "risk_on_calm": 0.34},
+                               "6": {"risk_on_calm": 0.52,
+                                     "post_shock_glut": 0.48},
+                               "12": {"risk_on_calm": 0.60,
+                                      "post_shock_glut": 0.40}}}}}
+
+
+def test_read_layer_forecast_rows_fire_when_populated():
+    """The populated branch of the chips, which live data cannot reach
+    until the first monthly issue exists."""
+    import runpy
+    run = runpy.run_path(os.path.join(ROOT, "run.py"))
+    od = run["_outlook_display"](_v6_site())
+    assert od is not None
+    assert od["note"] == "issued 2026-10-05, revised monthly"
+    assert od["forecaster"] == run["OUTLOOK_DISPLAY_FORECASTER"]
+    row = next(r for r in od["rows"] if r["block"] == "energy")
+    # oil is the only non-calm member, so it leads the block
+    assert row["lead_instrument"] == "oil"
+    assert len(row["months"]) == 3
+    months = [c["month"] for c in row["months"]]
+    assert months == ["2027-01", "2027-04", "2027-10"], months
+    first = row["months"][0]
+    assert first["fam"] == run["FAM_CODE"]["supply_glut"]
+    assert first["word"] == "strained"
+    assert first["prob"] == 62 and isinstance(first["prob"], int)
+    assert row["months"][2]["word"] == "calm"
+    assert od["synoptic"] and len(od["synoptic"]) == 3
+    assert od["synoptic"][0]["fam"] == run["SYN_FAM"]["post_shock_glut"]
+
+
+def test_read_layer_forecast_rows_are_absent_until_a_monthly_issue():
+    """The empty branch, which is what the live page shows today."""
+    import runpy
+    run = runpy.run_path(os.path.join(ROOT, "run.py"))
+    assert run["_outlook_display"](_v6_site(cadence="quarterly")) is None
+    assert run["_outlook_display"]({}) is None
+    site = json.load(open(os.path.join(ROOT, "state", "site_data.json")))
+    assert "outlook_display" not in site, \
+        "the current issue is quarterly, so the key must be absent"
+
+
+def test_read_layer_synoptic_row_follows_the_banner_gate():
+    import runpy
+    run = runpy.run_path(os.path.join(ROOT, "run.py"))
+    shut = run["_outlook_display"](_v6_site(gate="closed"))
+    assert shut is not None and shut["synoptic"] is None
+    assert shut["rows"], "blocks still render with the gate shut"
+
+
+def test_lead_instrument_uses_the_strongest_non_calm_rule():
+    import runpy
+    run = runpy.run_path(os.path.join(ROOT, "run.py"))
+    site = _v6_site()
+    assert run["_lead_instrument"]("energy", site) == "oil"
+    # with every member calm, the most confident calm member leads
+    site["current"]["oil"] = {"state": "calm", "prob": 0.60}
+    assert run["_lead_instrument"]("energy", site) == "coal"
+    assert run["_lead_instrument"]("nosuchblock", site) is None
+
+
+def test_v6_lamp_keys_are_bound_and_absent_when_they_should_be():
+    site = json.load(open(os.path.join(ROOT, "state", "site_data.json")))
+    assert site["bust"]["on"] is (site["bust"]["state"] == "amber")
+    assert isinstance(site["changed_line"], str)
+    assert site["changed_line"].startswith("Since last bulletin")
+    # the storm watch does not exist, so the key must not appear
+    assert "watch" not in site
+    # no observation fetchers exist, so the ticker key must not appear
+    assert "daily_obs" not in site
 
 
 def test_pages_execute_headlessly():

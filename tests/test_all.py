@@ -327,6 +327,48 @@ def test_open_and_closed_pendings_split_by_closure_record():
     assert sorted(p["closed"]) == ["P2", "P3"] and p["n_closed"] == 2
 
 
+def test_forecaster_c_shrinks_toward_the_pool():
+    """OUTLOOK-REG-2: h = (n h_own + k h_pool) / (n + k), k = 24. A cell
+    with no history of its own is the pooled hazard exactly; a cell with
+    plenty of its own history moves toward it."""
+    from instrument import outlook as O
+    seqs = {"a": ["x"] * 40 + ["y"] * 40, "b": ["x"] * 5 + ["y"] * 60}
+    ctxs = {"a": ["calm"] * 80, "b": ["calm"] * 65}
+    tab = O.conditioned_hazards(seqs, ctxs, 100)
+    ps = tab["pool_sv"].get(("calm", 3), 0.0)
+    pe = tab["pool_ex"].get(("calm", 3), 0.0)
+    pooled = pe / ps if ps else 0.0
+    h_empty = O._shrunk_hazard(tab, "nosuch", "zzz", "calm", 3, 0.5)
+    assert abs(h_empty - max(pooled, 1e-4)) < 1e-9
+    assert O.C_SHRINK_K == 24.0
+
+
+def test_forecaster_c_only_issues_from_its_registered_quarter():
+    from instrument import outlook as O
+    assert O.C_FIRST_QUARTER == "2026Q4"
+    assert O.quarter_of("2026-08") < O.C_FIRST_QUARTER
+    assert O.quarter_of("2026-11") >= O.C_FIRST_QUARTER
+    assert O.quarter_of("2027-02") >= O.C_FIRST_QUARTER
+
+
+def test_forecaster_c_simulation_is_a_distribution():
+    import numpy as np
+    from instrument import outlook as O
+    seq = (["calm"] * 30 + ["boom"] * 20) * 6
+    ctx = ["risk_on_calm"] * len(seq)
+    sm = O.semi_markov(seq)
+    tab = O.conditioned_hazards({"n": seq}, {"n": ctx}, sm["dmax"])
+    rng = np.random.default_rng(1)
+    paths = np.empty((50, 12), dtype=object)
+    paths[:] = "risk_on_calm"
+    out = O.simulate_c(sm, seq, {"calm": 1.0}, tab, "n", paths, rng,
+                       n_paths=50)
+    for h in O.HORIZONS:
+        d = out[h]
+        assert abs(sum(d.values()) - 1.0) < 1e-6, (h, d)
+        assert set(d) <= set(sm["states"])
+
+
 def test_pages_execute_headlessly():
     """Both built pages must run without script errors: load, three
     animation frames, a scrub event, a canvas click."""

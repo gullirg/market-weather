@@ -1415,5 +1415,14 @@
   "window": "2026-08",
   "note": "earned under the registered rule: 3 of 3 checks and a hit on the diagnosed window CB1. Coal was replaced on the shared-feature-set hypothesis rather than on a recorded miss of its own; coal v1 was 3 of 3 and its record stands unchanged. The v1 checks are not re-run against v2 and no scored result is revised",
   "hash": "9c635754ce6a70be"
+ },
+ {
+  "id": "OUTLOOK-REG-2",
+  "group": "registration, recorded before estimation",
+  "status": "note",
+  "claim": "an append-only amendment to OUTLOOK-REG adding forecaster C, a synoptic-conditioned semi-Markov forecaster. Per instrument the exit hazard becomes h(duration, current synoptic state), shrunk toward the pooled across-instrument hazard by h = (n * h_own + k * h_pool) / (n + k) with k fixed at 24 and n the survivor count of the own cell. Next state distributions are conditioned on the synoptic state the same way and shrunk by the same formula with the same k. Forward simulation is identical to forecaster M, 2000 sampled paths from the current posterior to horizons 1 through 12",
+  "window": "2026-08",
+  "note": "definitions fixed here so nothing can be chosen later. The pooled hazard h_pool is indexed by duration and synoptic state and is pooled over every instrument and every instrument state, since instrument state spaces differ and only duration and weather are common. The pooling target for a next-state distribution is that instrument and state's own unconditional next-state row, which is exactly forecaster M's, because next states must live in the instrument's own state space. The synoptic path is itself simulated from forecaster M's semi-Markov structure for the synoptic series, and one shared set of simulated synoptic paths conditions every instrument, so instruments are conditioned on a common weather rather than on independent weathers. Seeding is deterministic from the asof month as for M and A. C first issues with the 2026Q4 outlook and cannot join the frozen 2026Q3 issue, which predates it; the Q3 file is not touched. C is scored from 2027Q1 on the same RPSS schedule as M and A. Success gate for C, registered now: C beats both M and A on three month RPSS in each of its first two scored quarters. Nothing is estimated or scored by this entry.",
+  "hash": "3264d54c9da44b12"
  }
 ]

@@ -53,6 +53,10 @@ K_ANALOGUE = 20
 EXCLUDE_M = 12
 N_PATHS = 2000
 SR_DISCOUNT = 0.9
+# forecaster C, added by OUTLOOK-REG-2. Shrinkage weight and the first
+# quarter C may issue in; C cannot join the frozen 2026Q3 issue.
+C_SHRINK_K = 24.0
+C_FIRST_QUARTER = "2026Q4"
 
 
 def seed_for(asof):
@@ -167,6 +171,147 @@ def simulate(sm, seq, post_now, rng, n_paths=N_PATHS,
     return out
 
 
+# ------------------------------------------------- forecaster C
+def _runs_with_ctx(seq, ctx):
+    """[(state, length, context at the run's first month), ...]"""
+    out = []
+    for i, s in enumerate(seq):
+        if out and out[-1][0] == s:
+            out[-1][1] += 1
+        else:
+            out.append([s, 1, ctx[i] if i < len(ctx) else None])
+    return [(a, b, c) for a, b, c in out]
+
+
+def conditioned_hazards(seq_by_node, ctx_by_node, d_max):
+    """Exit counts and survivor counts keyed by (node, state, context,
+    duration), plus the pooled-over-instruments table keyed by
+    (context, duration). Registered in OUTLOOK-REG-2."""
+    own_ex, own_sv = {}, {}
+    pool_ex = {}
+    pool_sv = {}
+    nxt_ex = {}
+    for node, seq in seq_by_node.items():
+        ctx = ctx_by_node.get(node) or [None] * len(seq)
+        runs = _runs_with_ctx(seq, ctx)
+        for j, (st, ln, cx) in enumerate(runs):
+            censored = (j == len(runs) - 1)
+            for d in range(1, min(ln, d_max) + 1):
+                own_sv[(node, st, cx, d)] = own_sv.get(
+                    (node, st, cx, d), 0.0) + 1.0
+                pool_sv[(cx, d)] = pool_sv.get((cx, d), 0.0) + 1.0
+            if not censored and ln <= d_max:
+                own_ex[(node, st, cx, ln)] = own_ex.get(
+                    (node, st, cx, ln), 0.0) + 1.0
+                pool_ex[(cx, ln)] = pool_ex.get((cx, ln), 0.0) + 1.0
+                nxt = runs[j + 1][0]
+                key = (node, st, cx)
+                nxt_ex.setdefault(key, {})
+                nxt_ex[key][nxt] = nxt_ex[key].get(nxt, 0.0) + 1.0
+    return {"own_ex": own_ex, "own_sv": own_sv, "pool_ex": pool_ex,
+            "pool_sv": pool_sv, "nxt_ex": nxt_ex}
+
+
+def _shrunk_hazard(tab, node, state, cx, d, fallback):
+    n = tab["own_sv"].get((node, state, cx, d), 0.0)
+    e = tab["own_ex"].get((node, state, cx, d), 0.0)
+    ps = tab["pool_sv"].get((cx, d), 0.0)
+    pe = tab["pool_ex"].get((cx, d), 0.0)
+    h_pool = (pe / ps) if ps > 0 else fallback
+    h_own = (e / n) if n > 0 else h_pool
+    h = (n * h_own + C_SHRINK_K * h_pool) / (n + C_SHRINK_K)
+    return float(min(max(h, 1e-4), 1.0))
+
+
+def _shrunk_next(tab, node, state, cx, states, m_row):
+    """Own conditioned next-state counts shrunk toward forecaster M's
+    unconditional row for the same instrument and state."""
+    own = tab["nxt_ex"].get((node, state, cx), {})
+    n = float(sum(own.values()))
+    out = []
+    for j, s2 in enumerate(states):
+        o = (own.get(s2, 0.0) / n) if n > 0 else float(m_row[j])
+        out.append((n * o + C_SHRINK_K * float(m_row[j]))
+                   / (n + C_SHRINK_K))
+    tot = sum(out)
+    return np.array([v / tot for v in out]) if tot > 0 else m_row
+
+
+def simulate_c(sm, seq, post_now, tab, node, syn_paths, rng,
+               n_paths=N_PATHS, horizons=HORIZONS):
+    """Forward simulation identical to forecaster M except that the
+    exit hazard and the next-state row are conditioned on the synoptic
+    state of the shared simulated weather path."""
+    states = sm["states"]
+    k = len(states)
+    p0 = np.array([float(post_now.get(s, 0.0)) for s in states])
+    if p0.sum() <= 0:
+        p0 = np.zeros(k)
+        p0[sm["idx"].get(seq[-1], 0)] = 1.0
+    p0 = p0 / p0.sum()
+    cur = rng.choice(k, size=n_paths, p=p0)
+    analysis = seq[-1] if seq else None
+    dur = np.where(cur == sm["idx"].get(analysis, -1),
+                   _start_duration(seq, analysis), 1)
+    out = {}
+    hmax = max(horizons)
+    for h in range(1, hmax + 1):
+        cx_h = syn_paths[:, h - 1]
+        u = rng.random(n_paths)
+        leave = np.zeros(n_paths, bool)
+        for i in range(n_paths):
+            st = states[cur[i]]
+            d = int(min(dur[i], sm["dmax"]))
+            hz = _shrunk_hazard(tab, node, st, cx_h[i], d,
+                                float(sm["fallback"][cur[i]]))
+            leave[i] = u[i] < hz
+        if leave.any():
+            newc = cur.copy()
+            for i in np.where(leave)[0]:
+                st = states[cur[i]]
+                row = _shrunk_next(tab, node, st, cx_h[i], states,
+                                   sm["next"][cur[i]])
+                newc[i] = rng.choice(k, p=row)
+            cur = newc
+            dur = dur + 1
+            dur[leave] = 1
+        else:
+            dur = dur + 1
+        if h in horizons:
+            cnt = np.bincount(cur, minlength=k).astype(float)
+            out[h] = {states[i]: round(float(cnt[i] / n_paths), 4)
+                      for i in range(k) if cnt[i] > 0}
+    return out
+
+
+def simulate_synoptic_paths(sm, sseq, rng, n_paths=N_PATHS,
+                            hmax=max(HORIZONS)):
+    """One shared set of simulated weather paths, from forecaster M's
+    semi-Markov structure for the synoptic series."""
+    states = sm["states"]
+    k = len(states)
+    cur = np.full(n_paths, sm["idx"].get(sseq[-1], 0))
+    dur = np.full(n_paths, _start_duration(sseq, sseq[-1]))
+    cnxt = np.cumsum(sm["next"], axis=1)
+    paths = np.empty((n_paths, hmax), dtype=object)
+    for h in range(1, hmax + 1):
+        dcap = np.minimum(dur, sm["dmax"])
+        hz = sm["haz"][cur, dcap]
+        hz = np.where(hz > 0, hz, sm["fallback"][cur])
+        leaving = rng.random(n_paths) < hz
+        if leaving.any():
+            u = rng.random(int(leaving.sum()))
+            picked = (u[:, None] < cnxt[cur[leaving]]).argmax(1)
+            cur = cur.copy()
+            cur[leaving] = picked
+            dur = dur + 1
+            dur[leaving] = 1
+        else:
+            dur = dur + 1
+        paths[:, h - 1] = [states[i] for i in cur]
+    return paths
+
+
 def climatology(seq):
     s = pd.Series(seq)
     v = s.value_counts(normalize=True)
@@ -259,6 +404,40 @@ def run(preds, posts, syn_series, months, asof, issued=None):
             "climatology": climatology(seq),
             "persistence": persistence(seq),
             "analogues_used": nk}
+    # forecaster C, under OUTLOOK-REG-2, from its registered first
+    # quarter onward. It cannot join an earlier frozen issue.
+    syn_full = pd.Series({p: syn_series.get(str(p)) for p in months})
+    if out["quarter"] >= C_FIRST_QUARTER:
+        sfull = [syn_series.get(str(p)) for p in months]
+        sfull = [x for x in sfull if isinstance(x, str)]
+        sm_syn = semi_markov(sfull) if len(sfull) >= 24 else None
+        if sm_syn is not None:
+            seq_by, ctx_by = {}, {}
+            for name in out["instruments"]:
+                pr = preds[name].dropna()
+                pr = pr[[isinstance(x, str) for x in pr]]
+                cx = [syn_full.get(p) for p in pr.index]
+                seq_by[name] = list(pr)
+                ctx_by[name] = cx
+            dmax = max(len(v) for v in seq_by.values())
+            tab = conditioned_hazards(seq_by, ctx_by, dmax)
+            syn_paths = simulate_synoptic_paths(sm_syn, sfull, rng)
+            for name in out["instruments"]:
+                seq = seq_by[name]
+                sm = semi_markov(seq)
+                po = posts.get(name)
+                post_now = {}
+                if po is not None and len(po):
+                    row = po.iloc[-1]
+                    post_now = {str(c): float(row[c])
+                                for c in po.columns}
+                c = simulate_c(sm, seq, post_now, tab, name,
+                               syn_paths, rng)
+                out["instruments"][name]["C"] = {
+                    str(h): c.get(h, {}) for h in HORIZONS}
+            out["forecaster_c"] = {"first_quarter": C_FIRST_QUARTER,
+                                   "shrink_k": C_SHRINK_K,
+                                   "registration": "OUTLOOK-REG-2"}
     sseq = [syn_series.get(str(p)) for p in months]
     sseq = [x for x in sseq if isinstance(x, str)]
     if len(sseq) >= 24:

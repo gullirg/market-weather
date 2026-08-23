@@ -444,6 +444,80 @@ def test_forecaster_c_simulation_is_a_distribution():
         assert set(d) <= set(sm["states"])
 
 
+def test_issue_keys_go_monthly_at_the_registered_month():
+    """OUTLOOK-REG-3: monthly from 2026-10, quarterly before it, so the
+    frozen 2026Q3 issue keeps its name."""
+    from instrument import outlook as O
+    assert O.MONTHLY_FROM == "2026-10"
+    assert O.issue_key("2026-08") == "2026Q3"
+    assert O.issue_key("2026-09") == "2026Q3"
+    assert O.issue_key("2026-10") == "2026-10"
+    assert O.issue_key("2027-03") == "2027-03"
+    assert O.LEADS == [3, 6, 12]
+
+
+def test_leads_are_labelled_by_calendar_month():
+    """Probabilities are labelled by the month they refer to, never by
+    a relative horizon."""
+    from instrument import outlook as O
+    lm = O.lead_months("2026-10")
+    assert lm["3"] == "2027-01"
+    assert lm["6"] == "2027-04"
+    assert lm["12"] == "2027-10"
+
+
+def test_envelope_band_is_registered_and_widens_with_lead():
+    """BUST-REG: a 10th to 90th percentile band, widening as the paths
+    spread, mapped through the registered per-state return pools."""
+    import numpy as np
+    from instrument import outlook as O
+    assert (O.ENVELOPE_LO, O.ENVELOPE_HI) == (10, 90)
+    assert O.BUST_RUN_BD == 5
+    assert O.OBSERVABLE == {"oil": "real_brent"}
+    idx = pd.period_range("2000-01", periods=200, freq="M")
+    rng = np.random.default_rng(0)
+    seq = ["calm"] * 100 + ["bust"] * 100
+    lvl = pd.Series(np.exp(np.cumsum(rng.normal(0, 0.05, 200))),
+                    index=idx)
+    pools = O.state_return_pools(seq, lvl, idx)
+    assert set(pools) == {"calm", "bust"}
+    trail = np.zeros((500, 12), dtype=int)
+    band = O.envelope(trail, ["calm", "bust"], pools,
+                      float(lvl.iloc[-1]), rng)
+    assert len(band) == 12
+    for b in band:
+        assert b["hi"] > b["lo"] > 0
+    assert (band[11]["hi"] - band[11]["lo"]) > (band[0]["hi"] - band[0]["lo"])
+
+
+def test_frozen_outlook_issues_are_never_rewritten():
+    """An issue is written once. Rebuilding a month that reuses an
+    existing issue must leave the frozen artifact byte-identical."""
+    import subprocess
+    p = os.path.join(ROOT, "state", "outlook_2026Q3.json")
+    before = open(p, "rb").read()
+    r = subprocess.run([sys.executable, "run.py", "month", "--asof",
+                        "2026-08", "--issued", "2026-08-18"],
+                       cwd=ROOT, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    assert open(p, "rb").read() == before
+    d = json.loads(before.decode())
+    assert "issue" not in d, "display labelling leaked into the issue"
+
+
+def test_bust_lamp_is_words_only_and_dark_without_an_envelope():
+    import runpy
+    run = runpy.run_path(os.path.join(ROOT, "run.py"))
+    site = json.load(open(os.path.join(ROOT, "state", "site_data.json")))
+    b = site["bust"]
+    assert b["state"] in ("dark", "amber", "none")
+    if b["state"] == "amber":
+        assert b["words"] == "outside this outlook's expected range"
+    assert not any(isinstance(v, (int, float))
+                   for k, v in b.items() if k != "state")
+    assert run["_next_revision"]("2026-10") == "2026-11"
+
+
 def test_pages_execute_headlessly():
     """Both built pages must run without script errors: load, three
     animation frames, a scrub event, a canvas click."""

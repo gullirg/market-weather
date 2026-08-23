@@ -149,6 +149,88 @@ def _laboratory(entries):
     return {"entries": rows, "totals": tot, "matched": len(sel)}
 
 
+def _bust_lamp(ol, F, asof):
+    """BUST-REG. Compares daily observations to the issue's envelope
+    and reports one amber lamp after a registered run of breaches.
+    Words only: this mechanism revises no probability and re-issues
+    nothing."""
+    if not ol:
+        return {"state": "none", "reason": "no outlook issue"}
+    band_of = {}
+    for name, v in (ol.get("instruments") or {}).items():
+        env = v.get("envelope")
+        if env:
+            band_of[name] = env
+    if not band_of:
+        return {"state": "dark",
+                "reason": "this issue carries no envelope",
+                "next_revision": _next_revision(asof)}
+    out = {"state": "dark", "next_revision": _next_revision(asof),
+           "checked": sorted(band_of)}
+    for name, env in sorted(band_of.items()):
+        daily = {"real_brent": "brent_d"}.get(env["series"])
+        if daily is None or daily not in F:
+            continue
+        px = F[daily].dropna()
+        defl = nodes._splice_deflator(F)
+        per = pd.PeriodIndex(px.index, freq="M")
+        real = px / defl.reindex(per).ffill().to_numpy()
+        run_len, breached_from = 0, None
+        for d, lvl, p in zip(px.index, real.to_numpy(), per):
+            key = str(p)
+            if key not in env["months"]:
+                continue
+            b = env["band"][env["months"].index(key)]
+            if lvl < b["lo"] or lvl > b["hi"]:
+                run_len += 1
+                if breached_from is None:
+                    breached_from = str(d.date())
+            else:
+                run_len, breached_from = 0, None
+        if run_len >= outlook.BUST_RUN_BD:
+            out.update({"state": "amber", "instrument": name,
+                        "words": "outside this outlook's expected range",
+                        "since": breached_from})
+            break
+    return out
+
+
+def _outlook_issues():
+    """Every frozen issue, newest first, with its own leads. A
+    superseded issue is never withdrawn: it stays reachable and keeps
+    the leads it was issued under."""
+    import glob as _g
+    out = []
+    for pth in _g.glob(os.path.join(BULL, "outlook_*.json")):
+        try:
+            d = json.load(open(pth))
+        except Exception:
+            continue
+        asof = d.get("asof")
+        if not asof:
+            continue
+        out.append({
+            "issue": d.get("issue") or outlook.issue_key(asof),
+            "asof": asof,
+            "issued": d.get("issued"),
+            "cadence": d.get("cadence")
+                       or ("monthly" if str(asof) >= outlook.MONTHLY_FROM
+                           else "quarterly"),
+            "leads": d.get("leads") or list(outlook.LEADS),
+            "lead_months": d.get("lead_months")
+                           or outlook.lead_months(asof),
+            "instruments": len(d.get("instruments") or {}),
+            "has_envelope": any("envelope" in v for v in
+                                (d.get("instruments") or {}).values()),
+            "file": "bulletins/" + os.path.basename(pth)})
+    return sorted(out, key=lambda r: r["asof"], reverse=True)
+
+
+def _next_revision(asof):
+    """Monthly adjudication under OUTLOOK-REG-3."""
+    return str(pd.Period(str(asof), "M") + 1)
+
+
 def _pendings(entries):
     """Open versus closed pendings, for display only. A pending is
     closed when the chain carries a closure record for it, either the
@@ -319,24 +401,45 @@ def cmd_month(args):
         # If this quarter's outlook has already been issued, the build
         # reuses it rather than re-estimating inside the quarter: a
         # forecast is scored as issued, not as later revised.
-        q = outlook.quarter_of(args.asof)
+        q = outlook.issue_key(args.asof)
         qpath = os.path.join(STATE, f"outlook_{q}.json")
-        if os.path.exists(qpath):
+        fresh = not os.path.exists(qpath)
+        if not fresh:
             ol = json.load(open(qpath))
             print(f"outlook {q} already issued, reused as issued")
         else:
             ol = outlook.run(diag["preds"], allposts, synj2["series"],
                              months, args.asof,
-                             issued=args.issued or f"{args.asof}-05")
+                             issued=args.issued or f"{args.asof}-05",
+                             observables={
+                                 "real_brent": nodes.real_brent(F)})
+        # display-only labelling for an issue frozen before
+        # OUTLOOK-REG-3. The frozen file is not rewritten and the issue
+        # is not revised: only the page's labels are derived here, from
+        # the issue's own asof.
+        if not ol.get("issue"):
+            ol["issue"] = outlook.issue_key(ol["asof"])
+            ol["issue_month"] = ol["asof"]
+            ol["cadence"] = "quarterly"
+            ol["leads"] = list(outlook.LEADS)
+            ol["lead_months"] = outlook.lead_months(ol["asof"])
+            ol["labels_derived"] = True
         ol["family_map"] = FAM_CODE
         ol["synoptic_family_map"] = SYN_FAM
         site["outlook"] = ol
-        json.dump({k: v for k, v in ol.items()
-                   if k not in ("family_map", "synoptic_family_map")},
-                  open(qpath, "w"), indent=1)
+        if fresh:
+            # an issue is written once. A reused issue is never
+            # rewritten, so display-only labelling cannot leak back
+            # into a frozen artifact.
+            json.dump({k: v for k, v in ol.items()
+                       if k not in ("family_map",
+                                    "synoptic_family_map")},
+                      open(qpath, "w"), indent=1)
     except Exception as e:
         site["outlook"] = None
         print("outlook layer degraded:", e)
+    site["bust"] = _bust_lamp(site.get("outlook"), F, args.asof)
+    site["outlook_issues"] = _outlook_issues()
     frames = transmission.frames(DATA, args.asof)
     json.dump(frames, open(os.path.join(STATE, "spill_frames.json"), "w"))
     site["frames"] = frames

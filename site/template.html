@@ -137,6 +137,14 @@
     Select a row for its full chain entry.</div>
   <div id="streaktbl"></div>
 
+  <h2 id="outlook-issues">Outlook issues</h2>
+  <div class="note">Every issue the machine has frozen, newest first.
+    An issue is superseded by the next one for display but is never
+    withdrawn: it keeps the leads it was issued under and is scored on
+    the schedule it was issued on. Probabilities are labelled by the
+    calendar month they refer to, never by a relative horizon.</div>
+  <div id="issuetbl"></div>
+
   <h2 id="laboratory-record">The laboratory record</h2>
   <div class="note">Development and qualification, most recent first:
     instrument checks, membership decisions, upgrade gates and
@@ -371,6 +379,21 @@ if(DATA.s2){
     q.baseline+' on the same panel un-removed, while the fast '+
     'frequency band reached '+q.fast+' and the slow band '+q.slow+
     ', all short of the bar of '+q.bar+'.';
+}
+if(DATA.outlook_issues&&DATA.outlook_issues.length){
+  const cur=(DATA.outlook||{}).issue;
+  let ih='<table><tr><th>issue</th><th>issued</th><th>cadence</th>'+
+    '<th>leads land on</th><th>status</th></tr>';
+  for(const q of DATA.outlook_issues){
+    const lm=(q.leads||[]).map(function(L){
+      return (q.lead_months||{})[String(L)]||'';}).filter(Boolean);
+    ih+='<tr><td class="n"><a href="'+q.file+'">'+q.issue+'</a></td>'+
+      '<td class="n">'+(q.issued||q.asof)+'</td><td class="n">'+
+      q.cadence+'</td><td class="n">'+lm.join(' &middot; ')+'</td>'+
+      '<td class="n">'+(q.issue===cur?'current':'superseded')+
+      (q.has_envelope?' &middot; envelope':'')+'</td></tr>';}
+  ih+='</table>';
+  document.getElementById('issuetbl').innerHTML=ih;
 }
 if(DATA.laboratory&&DATA.laboratory.entries){
   const L=DATA.laboratory;

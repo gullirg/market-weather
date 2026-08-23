@@ -373,6 +373,9 @@ init();
   color:var(--ink);margin-bottom:6px}
 .olab{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
   color:var(--faint);text-transform:uppercase;margin:9px 0 3px}
+.bustlamp{margin-top:8px;color:var(--glut)}
+.bustlamp i{display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:var(--glut);box-shadow:0 0 6px var(--glut);margin-right:6px}
 #card .meteo{margin:2px 0 6px;display:block}
 #card.wide{width:288px;max-height:74vh;overflow-y:auto}
 </style>
@@ -472,6 +475,16 @@ const CHANGES = __CHANGES__;
     g+='<text x="0" y="'+(AH-3)+'" fill="'+getCss('--faint')+
       '" font-size="8">now</text>';
     var HT=lastRow[1]+lastRow[2]+11;
+    // OUTLOOK-REG-3: probabilities are labelled by the calendar month
+    // they refer to, never by a relative horizon.
+    var LM=O.lead_months||{};
+    var firstM=LM[String(HS[0])],lastM=LM[String(HS[nb-1])];
+    if(firstM)g+='<text x="'+(LW+nb*cw+1)+'" y="'+(AH-3)+
+      '" fill="'+getCss('--faint')+'" font-size="8" '+
+      'text-anchor="start">'+firstM+'</text>';
+    if(lastM)g+='<text x="'+(WD-1)+'" y="'+(AH-3)+
+      '" fill="'+getCss('--faint')+'" font-size="8" '+
+      'text-anchor="end">'+lastM+'</text>';
     g+='<line x1="'+(LW+nb*cw)+'" y1="0" x2="'+(LW+nb*cw)+'" y2="'+
       (HT-11)+'" stroke="'+getCss('--dim')+'" stroke-width=".7"/>';
     g+='<text x="'+(LW+nb*cw*0.5)+'" y="'+(HT-2)+'" fill="'+
@@ -502,13 +515,17 @@ const CHANGES = __CHANGES__;
     g+='<circle cx="'+X0+'" cy="'+MID+'" r="3" fill="'+col+'"/>';
     g+='<text x="'+X0+'" y="'+(MID+18)+'" fill="'+getCss('--faint')+
       '" font-size="8" text-anchor="middle">now</text>';
-    var marks=[HS[2],HS[5],HS[11]];
+    var LM=O.lead_months||{};
+    var marks=(O.leads||[HS[2],HS[5],HS[11]]);
     for(var k=0;k<marks.length;k++){
       var idx=HS.indexOf(marks[k]);
       if(idx<0)continue;
       var mx=X0+(idx+1)*((WD-X0-6)/HS.length);
-      g+='<text x="'+mx+'" y="'+(HT-3)+'" fill="'+getCss('--faint')+
-        '" font-size="8" text-anchor="middle">'+marks[k]+'</text>';}
+      var lab=LM[String(marks[k])]||String(marks[k]);
+      var last=(k===marks.length-1);
+      g+='<text x="'+(last?(WD-1):mx)+'" y="'+(HT-3)+'" fill="'+
+        getCss('--faint')+'" font-size="8" text-anchor="'+
+        (last?'end':'middle')+'">'+lab+'</text>';}
     return '<svg width="'+WD+'" height="'+HT+'" viewBox="0 0 '+WD+
       ' '+HT+'">'+g+'</svg>';}
   function renderPanel(){
@@ -518,6 +535,8 @@ const CHANGES = __CHANGES__;
     var O=DATA.outlook,h='<div class=hd>OUTLOOK <span '+
       'style="color:var(--faint);font-weight:400">synoptic cone</span>'+
       '</div>';
+    h+='<div class=olab>issued '+(O.issued||O.issue_month||'')+
+      ' &middot; '+(O.cadence||'')+' issue '+(O.issue||'')+'</div>';
     h+='<div class=olab>analysis: '+
       String(O.synoptic.analysis.state).replace(/_/g,' ')+'</div>';
     h+=coneSvg();
@@ -526,9 +545,14 @@ const CHANGES = __CHANGES__;
     h+=bandsSvg(null,true);
     var fc=(O.synoptic&&O.synoptic.C)?'M, then A, then C':'M above A';
     h+='<div>Bands are probabilities by family, forecaster '+fc+
-      ', labelled by letter. Nothing here is a state word prediction: '+
-      'the bulletin stays silent until a forecaster is scored '+
-      'skillful.</div>';
+      ', labelled by letter, and every column is the calendar month '+
+      'it refers to. Nothing here is a state word prediction: the '+
+      'bulletin stays silent until a forecaster is scored skillful.'+
+      '</div>';
+    var bu=DATA.bust;
+    if(bu&&bu.state==='amber')
+      h+='<div class=bustlamp><i></i>'+bu.words+
+        '. Next revision '+bu.next_revision+'.</div>';
     op.innerHTML=h;
     if(op.style)op.style.display='block';}
   var origShow=(typeof window!=='undefined'&&window.showCard)||
@@ -544,7 +568,8 @@ const CHANGES = __CHANGES__;
         bandsSvg(mem[i],false);}
     if(add&&card&&card.insertAdjacentHTML)
       card.insertAdjacentHTML('beforeend',
-        '<div class=olab>analysis above, outlook below</div>'+add);}
+        '<div class=olab>analysis above, outlook below &middot; '+
+        'issue '+((DATA.outlook||{}).issue||'')+'</div>'+add);}
   if(typeof window!=='undefined'){
     window.showCard=wrappedShow;
     // named hook so the headless harness can execute the outlook card

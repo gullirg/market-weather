@@ -57,6 +57,15 @@ SR_DISCOUNT = 0.9
 # quarter C may issue in; C cannot join the frozen 2026Q3 issue.
 C_SHRINK_K = 24.0
 C_FIRST_QUARTER = "2026Q4"
+# OUTLOOK-REG-3: issuance moves from quarterly to monthly from this
+# month onward. Earlier issues keep their quarterly key and their
+# original scoring schedule.
+MONTHLY_FROM = "2026-10"
+LEADS = [3, 6, 12]
+# BUST-REG: the envelope and the only registered observable mapping.
+ENVELOPE_LO, ENVELOPE_HI = 10, 90
+BUST_RUN_BD = 5
+OBSERVABLE = {"oil": "real_brent"}
 
 
 def seed_for(asof):
@@ -68,6 +77,19 @@ def seed_for(asof):
 def quarter_of(asof):
     p = pd.Period(asof, "M")
     return f"{p.year}Q{(p.month - 1) // 3 + 1}"
+
+
+def issue_key(asof):
+    """The key an issue is filed under. Monthly from MONTHLY_FROM,
+    quarterly before it, so the frozen 2026Q3 issue keeps its name."""
+    return str(asof) if str(asof) >= MONTHLY_FROM else quarter_of(asof)
+
+
+def lead_months(asof, horizons=None):
+    """Calendar month each lead lands on. Probabilities are labelled by
+    the month they refer to, never by a relative horizon."""
+    base = pd.Period(str(asof), "M")
+    return {str(h): str(base + h) for h in (horizons or HORIZONS)}
 
 
 def _runs(seq):
@@ -149,6 +171,7 @@ def simulate(sm, seq, post_now, rng, n_paths=N_PATHS,
     cnxt = np.cumsum(sm["next"], axis=1)
     hmax = max(horizons)
     out = {}
+    trail = np.zeros((n_paths, hmax), dtype=int)
     for h in range(1, hmax + 1):
         dcap = np.minimum(dur, sm["dmax"])
         hz = sm["haz"][cur, dcap]
@@ -164,11 +187,52 @@ def simulate(sm, seq, post_now, rng, n_paths=N_PATHS,
             dur[leaving] = 1
         else:
             dur = dur + 1
+        trail[:, h - 1] = cur
         if h in horizons:
             cnt = np.bincount(cur, minlength=k).astype(float)
             out[h] = {states[i]: round(float(cnt[i] / n_paths), 4)
                       for i in range(k) if cnt[i] > 0}
-    return out
+    return out, trail
+
+
+# ---------------------------------------------------------- BUST-REG
+def state_return_pools(seq, obs, index):
+    """Per decoded state, the pool of monthly log returns of the
+    observable in months decoded to that state. Registered mapping."""
+    o = pd.Series(obs).reindex(pd.Index(index))
+    lr = np.log(o.astype(float)).diff()
+    pools = {}
+    for st, r in zip(seq, lr.to_numpy()):
+        if isinstance(st, str) and np.isfinite(r):
+            pools.setdefault(st, []).append(float(r))
+    return {k: np.asarray(v) for k, v in pools.items() if len(v)}
+
+
+def envelope(trail, states, pools, last_level, rng,
+             lo=ENVELOPE_LO, hi=ENVELOPE_HI):
+    """The 10th to 90th percentile band of the sampled paths mapped
+    onto the observable, month by month."""
+    if not pools or last_level is None or not np.isfinite(last_level):
+        return None
+    n_paths, hmax = trail.shape
+    allr = np.concatenate([v for v in pools.values()])
+    cum = np.zeros(n_paths)
+    band = []
+    for h in range(hmax):
+        draw = np.zeros(n_paths)
+        for i, st in enumerate(states):
+            m = trail[:, h] == i
+            if not m.any():
+                continue
+            pool = pools.get(st)
+            if pool is None or len(pool) == 0:
+                pool = allr
+            draw[m] = rng.choice(pool, size=int(m.sum()), replace=True)
+        cum = cum + draw
+        lvl = float(last_level) * np.exp(cum)
+        band.append({"lo": round(float(np.percentile(lvl, lo)), 2),
+                     "hi": round(float(np.percentile(lvl, hi)), 2)})
+    return band
 
 
 # ------------------------------------------------- forecaster C
@@ -370,12 +434,20 @@ def _series_list(pred):
     return [x for x in s.tolist() if isinstance(x, str)], s.index
 
 
-def run(preds, posts, syn_series, months, asof, issued=None):
+def run(preds, posts, syn_series, months, asof, issued=None,
+        observables=None):
     """Issue the outlook. Scores nothing."""
     rng = np.random.default_rng(seed_for(asof))
     mlist = list(months)
+    observables = observables or {}
     tab = analogue.state_table(preds, syn_series, months)
+    monthly_issue = str(asof) >= MONTHLY_FROM
     out = {"asof": str(asof), "quarter": quarter_of(asof),
+           "issue": issue_key(asof), "issue_month": str(asof),
+           "cadence": "monthly" if monthly_issue else "quarterly",
+           "leads": list(LEADS), "lead_months": lead_months(asof),
+           "envelope_band": [ENVELOPE_LO, ENVELOPE_HI],
+           "bust_run_bd": BUST_RUN_BD,
            "issued": issued, "horizons": list(HORIZONS),
            "k_analogue": K_ANALOGUE, "exclusion_months": EXCLUDE_M,
            "paths": N_PATHS, "sr_discount": SR_DISCOUNT,
@@ -393,7 +465,7 @@ def run(preds, posts, syn_series, months, asof, issued=None):
         if po is not None and len(po):
             row = po.iloc[-1]
             post_now = {str(c): float(row[c]) for c in po.columns}
-        m = simulate(sm, seq, post_now, rng)
+        m, trail = simulate(sm, seq, post_now, rng)
         a, nk = analogue_ensemble(tab, mlist, preds[name], name)
         out["instruments"][name] = {
             "states": sm["states"],
@@ -404,6 +476,26 @@ def run(preds, posts, syn_series, months, asof, issued=None):
             "climatology": climatology(seq),
             "persistence": persistence(seq),
             "analogues_used": nk}
+        # BUST-REG: the envelope, only for registered observables and
+        # only from the first monthly issue onward.
+        obs_key = OBSERVABLE.get(name)
+        obs = observables.get(obs_key) if obs_key else None
+        if monthly_issue and obs is not None:
+            pr = preds[name].dropna()
+            pr = pr[[isinstance(x, str) for x in pr]]
+            o = pd.Series(obs).reindex(pr.index).astype(float)
+            pools = state_return_pools(list(pr), o, pr.index)
+            last = o.dropna()
+            band = envelope(trail, sm["states"], pools,
+                            float(last.iloc[-1]) if len(last) else None,
+                            rng)
+            if band:
+                out["instruments"][name]["envelope"] = {
+                    "series": obs_key, "band": band,
+                    "months": [str(pd.Period(str(asof), "M") + i + 1)
+                               for i in range(len(band))],
+                    "last_observed": round(float(last.iloc[-1]), 2),
+                    "percentiles": [ENVELOPE_LO, ENVELOPE_HI]}
     # forecaster C, under OUTLOOK-REG-2, from its registered first
     # quarter onward. It cannot join an earlier frozen issue.
     syn_full = pd.Series({p: syn_series.get(str(p)) for p in months})
@@ -442,7 +534,7 @@ def run(preds, posts, syn_series, months, asof, issued=None):
     sseq = [x for x in sseq if isinstance(x, str)]
     if len(sseq) >= 24:
         sm = semi_markov(sseq)
-        m = simulate(sm, sseq, {sseq[-1]: 1.0}, rng)
+        m, _syn_trail = simulate(sm, sseq, {sseq[-1]: 1.0}, rng)
         sser = pd.Series(
             {p: syn_series.get(str(p)) for p in months})
         a, nk = analogue_ensemble(tab, mlist, sser, "synoptic")

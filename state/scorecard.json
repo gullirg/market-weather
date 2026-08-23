@@ -1487,5 +1487,14 @@
   "window": "2026-08",
   "note": "registered mapping today, and the only one: oil to real Brent under the existing spliced deflator, the same series the risk lamp is estimated on. The mapping is empirical and fixed here: for each decoded oil state the monthly log returns of real Brent in months decoded to that state form a pool; each sampled state path draws one return from the pool of its state at each month and accumulates; the envelope at each month is the 10th and 90th percentile of the resulting level paths across the sample. Envelopes are monthly and a business day is compared to the band of the month it falls in. No other instrument is mapped today; adding one requires its own registration. Thresholds fixed here and nowhere else: the band is the 10th to 90th percentile, and the lamp requires 5 consecutive breach business days. The lamp is words only on the page and carries no numeral from this mechanism. This mechanism never revises any probability, never re-issues an outlook and never alters a scored result: it reports that observation has left the band the outlook drew, and nothing more. The frozen 2026Q3 issue predates this registration and carries no envelope, so the lamp stays dark until the 2026-10 issue exists.",
   "hash": "dc25c326b30b66cc"
+ },
+ {
+  "id": "OPS-INVARIANTS-2",
+  "group": "operations, registered before enforcement",
+  "status": "hit",
+  "claim": "two standing invariants join the project. First, every frozen artifact carries a byte-identity-after-rebuild test: rebuilding a month must leave every published bulletin, record page and outlook issue byte-identical, and only an explicit publish may write one. Second, no registered mechanism is wired until a test has made it fire: a code path that a registration describes but that no test has actually executed does not count as built",
+  "window": "2026-08",
+  "note": "both come from defects this project already produced rather than from principle. A reused outlook issue was silently rewritten by the monthly build, so display-only labelling leaked into an artifact that had been frozen for scoring; that is what the first invariant now forbids by test rather than by care. The scoring path could not resolve a claim on any instrument outside the founding seven, and the bust lamp's amber branch had never executed, both discovered only because a later stage forced them to run; that is what the second invariant now forbids. The invariants are recorded here so the tests that enforce them have a stated purpose and so a future stage cannot quietly drop one. Enforcement is by test, not by review.",
+  "hash": "ad9e7081e5dc2c38"
  }
 ]

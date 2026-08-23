@@ -490,6 +490,44 @@ def test_envelope_band_is_registered_and_widens_with_lead():
     assert (band[11]["hi"] - band[11]["lo"]) > (band[0]["hi"] - band[0]["lo"])
 
 
+FROZEN = ["bulletins/2026-08.md", "bulletins/2026-08.html",
+          "bulletins/2026-08_record.html",
+          "bulletins/outlook_2026Q3.json",
+          "state/outlook_2026Q3.json"]
+
+
+def test_every_frozen_artifact_survives_a_rebuild_byte_identical():
+    """OPS-INVARIANTS-2, first invariant. A monthly rebuild must not
+    write a single byte into anything already published. Only an
+    explicit publish may."""
+    import subprocess
+    before = {}
+    for rel in FROZEN:
+        p = os.path.join(ROOT, rel)
+        assert os.path.exists(p), f"frozen artifact missing: {rel}"
+        before[rel] = open(p, "rb").read()
+    r = subprocess.run([sys.executable, "run.py", "month", "--asof",
+                        "2026-08", "--issued", "2026-08-18"],
+                       cwd=ROOT, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    changed = [rel for rel in FROZEN
+               if open(os.path.join(ROOT, rel), "rb").read() != before[rel]]
+    assert not changed, f"rebuild mutated frozen artifacts: {changed}"
+
+
+def test_frozen_artifact_list_covers_every_published_file():
+    """The guard is only as good as its list, so the list is checked
+    against what is actually on disk."""
+    import glob
+    on_disk = set()
+    for pat in ("bulletins/*.md", "bulletins/*.html",
+                "bulletins/outlook_*.json"):
+        for p in glob.glob(os.path.join(ROOT, pat)):
+            on_disk.add(os.path.relpath(p, ROOT))
+    missing = on_disk - set(FROZEN)
+    assert not missing, f"published files with no identity test: {missing}"
+
+
 def test_frozen_outlook_issues_are_never_rewritten():
     """An issue is written once. Rebuilding a month that reuses an
     existing issue must leave the frozen artifact byte-identical."""
@@ -547,6 +585,75 @@ def test_bust_lamp_lights_amber_on_a_registered_breach_run():
     assert tight["since"]
     assert not any(isinstance(v, (int, float))
                    for k, v in tight.items() if k != "state")
+
+
+def test_outlook_issue_index_fires():
+    """OPS-INVARIANTS-2, second invariant. OUTLOOK-REG-3 promises a
+    superseded issue stays reachable with its own leads, so the code
+    that builds that index is made to run."""
+    import runpy
+    run = runpy.run_path(os.path.join(ROOT, "run.py"))
+    idx = run["_outlook_issues"]()
+    assert idx, "no frozen issue was indexed"
+    cur = {r["issue"] for r in idx}
+    assert "2026Q3" in cur
+    for r in idx:
+        assert r["leads"] == [3, 6, 12]
+        for L in r["leads"]:
+            assert r["lead_months"][str(L)] > r["asof"], r
+        assert r["file"].startswith("bulletins/")
+        assert os.path.exists(os.path.join(ROOT, r["file"]))
+    asofs = [r["asof"] for r in idx]
+    assert asofs == sorted(asofs, reverse=True), "not newest first"
+
+
+def test_since_last_bulletin_line_fires_on_a_real_change():
+    """The changed-since line has only ever rendered 'no state
+    changes' against live data, so both branches are driven here."""
+    import runpy, json as _j, tempfile, shutil
+    run = runpy.run_path(os.path.join(ROOT, "run.py"))
+    site = _j.load(open(os.path.join(ROOT, "state", "site_data.json")))
+    prev = os.path.join(ROOT, "state", "prev_states.json")
+    had = os.path.exists(prev)
+    backup = open(prev, "rb").read() if had else None
+    try:
+        cur = {n: c["state"] for n, c in site["current"].items()}
+        _j.dump(cur, open(prev, "w"))
+        assert run["_since_last_bulletin"](site) == \
+            "Since last bulletin: no state changes"
+        moved = dict(cur)
+        moved["oil"] = "calm" if cur["oil"] != "calm" else "glut"
+        _j.dump(moved, open(prev, "w"))
+        line = run["_since_last_bulletin"](site)
+        assert line.startswith("Since last bulletin: oil moved "), line
+        assert " to " in line
+        assert not any(ch.isdigit() for ch in line), line
+    finally:
+        if had:
+            open(prev, "wb").write(backup)
+        elif os.path.exists(prev):
+            os.remove(prev)
+
+
+def test_legacy_score_pending_path_fires():
+    """score_pending still carries the pre-rule claim shape. It is
+    wired, so it is made to fire rather than left as dead code."""
+    idx = pd.period_range("2026-09", "2026-11", freq="M")
+    legacy = {"id": "LEG1", "group": "bulletin claim scoring",
+              "status": "pending", "auto": True, "claim": "legacy shape",
+              "window": "2026-09..2026-11", "node": "oil",
+              "target": "glut", "mode": "dominant"}
+    for states, want in [(["glut", "glut", "calm"], "hit"),
+                         (["calm", "calm", "glut"], "miss")]:
+        chain = _mk_chain([legacy])
+        out = B.score_pending(chain, {"oil": pd.Series(states, index=idx)},
+                              "2026-11")
+        new = out[len(chain):]
+        assert len(new) == 1 and new[0]["status"] == want, new
+    chain = _mk_chain([legacy])
+    empty = pd.Series(dtype=object, index=pd.PeriodIndex([], freq="M"))
+    out = B.score_pending(chain, {"oil": empty}, "2026-11")
+    assert out[len(chain):][0]["status"] == "unscoreable"
 
 
 def test_pages_execute_headlessly():

@@ -61,6 +61,9 @@ C_FIRST_QUARTER = "2026Q4"
 # month onward. Earlier issues keep their quarterly key and their
 # original scoring schedule.
 MONTHLY_FROM = "2026-10"
+# BLEND-REG: forecaster E, the equal weight average of whichever
+# forecasters issue in a month. Weights are never fitted.
+E_FIRST_MONTH = "2026-10"
 LEADS = [3, 6, 12]
 # BUST-REG: the envelope and the only registered observable mapping.
 ENVELOPE_LO, ENVELOPE_HI = 10, 90
@@ -376,6 +379,22 @@ def simulate_synoptic_paths(sm, sseq, rng, n_paths=N_PATHS,
     return paths
 
 
+def blend(dists):
+    """BLEND-REG: equal weight average over the union of states. The
+    inputs are distributions, so the mean is already normalized; it is
+    renormalized anyway against rounding."""
+    dists = [d for d in dists if d]
+    if not dists:
+        return {}
+    states = sorted({k for d in dists for k in d})
+    out = {k: sum(float(d.get(k, 0.0)) for d in dists) / len(dists)
+           for k in states}
+    tot = sum(out.values())
+    if tot <= 0:
+        return {}
+    return {k: round(v / tot, 4) for k, v in out.items() if v > 0}
+
+
 def climatology(seq):
     s = pd.Series(seq)
     v = s.value_counts(normalize=True)
@@ -530,6 +549,18 @@ def run(preds, posts, syn_series, months, asof, issued=None,
             out["forecaster_c"] = {"first_quarter": C_FIRST_QUARTER,
                                    "shrink_k": C_SHRINK_K,
                                    "registration": "OUTLOOK-REG-2"}
+    # forecaster E, under BLEND-REG, from its registered first month.
+    if str(asof) >= E_FIRST_MONTH:
+        members = None
+        for name, v in out["instruments"].items():
+            present = [f for f in ("M", "A", "C") if f in v]
+            members = members or present
+            v["E"] = {str(h): blend([v[f][str(h)] for f in present])
+                      for h in HORIZONS}
+        out["forecaster_e"] = {"first_month": E_FIRST_MONTH,
+                               "members": members or [],
+                               "weights": "equal",
+                               "registration": "BLEND-REG"}
     sseq = [syn_series.get(str(p)) for p in months]
     sseq = [x for x in sseq if isinstance(x, str)]
     if len(sseq) >= 24:
@@ -548,4 +579,9 @@ def run(preds, posts, syn_series, months, asof, issued=None,
             "persistence": persistence(sseq),
             "sr_occupancy": successor_representation(sseq),
             "analogues_used": nk}
+        if str(asof) >= E_FIRST_MONTH:
+            sp = [f for f in ("M", "A", "C") if f in out["synoptic"]]
+            out["synoptic"]["E"] = {
+                str(h): blend([out["synoptic"][f][str(h)] for f in sp])
+                for h in HORIZONS}
     return out

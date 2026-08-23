@@ -1496,5 +1496,41 @@
   "window": "2026-08",
   "note": "both come from defects this project already produced rather than from principle. A reused outlook issue was silently rewritten by the monthly build, so display-only labelling leaked into an artifact that had been frozen for scoring; that is what the first invariant now forbids by test rather than by care. The scoring path could not resolve a claim on any instrument outside the founding seven, and the bust lamp's amber branch had never executed, both discovered only because a later stage forced them to run; that is what the second invariant now forbids. The invariants are recorded here so the tests that enforce them have a stated purpose and so a future stage cannot quietly drop one. Enforcement is by test, not by review.",
   "hash": "ad9e7081e5dc2c38"
+ },
+ {
+  "id": "PROPER-SCORE-REG",
+  "group": "registration, recorded before estimation",
+  "status": "hit",
+  "claim": "from bulletin 003 onward every bulletin claim carries its stated probability and is scored at maturity by its Brier score against the Brier score of the persistence baseline for the same event. The dot is a hit if and only if the claim's Brier is strictly lower than the baseline's, and both numbers appear in the scoring entry",
+  "window": "2026-08",
+  "note": "registered before any affected claim exists, so no claim on the chain is rescored by it. The persistence baseline is defined here, per claim kind, and nowhere else. For a state continuation claim and for the synoptic persistence claim, persistence forecasts that the analysis state continues, so the baseline probability is one. For the risk lamp tail event, persistence forecasts that the most recent realized outcome of the same event repeats: at issue the pipeline evaluates whether the three months ending at the base month contained a real Brent drawdown of the registered size, and the baseline probability is one if they did and zero if they did not. A tie scores a miss, because a claim that merely equals the baseline has not beaten it. Bulletin 002's slate is untouched: it scores exactly by the binary side rules registered in B-CLAIMS-REG, and both Brier numbers are computed and carried in its scoring entries informationally, where they change no status and no dot. The reason for the change is that a binary side rule rewards a confident claim and a barely committed one identically, and rewards a low probability claim for an event that usually does not happen; Brier against persistence prices both the direction and the confidence, and prices them against the baseline every regime forecast has to beat.",
+  "hash": "48b4e77bc7ae1f59"
+ },
+ {
+  "id": "BLEND-REG",
+  "group": "registration, recorded before estimation",
+  "status": "hit",
+  "claim": "forecaster E is the equal weight average of the probability distributions of every forecaster issuing that month, taken over the union of their states and renormalized. M and A issue today and C issues from 2026-10, so E enters with the 2026-10 issue and averages all three from that month on. E is frozen and scored per lead identically to the others",
+  "window": "2026-08",
+  "note": "no weights are ever fitted. Equal weight is the registration, not a starting point: a scheme that learns weights from realized skill would be a different forecaster and would need its own registration and its own gate, because fitted weights turn a forecast into an in-sample fit of the scoring rule. E is defined only over forecasters that actually issued in the month it is built for, so it is the average of two before 2026-10 by construction and of three afterwards, and its composition is recorded in each issue. E carries no gate of its own beyond the scoring schedule already registered for M, A and C.",
+  "hash": "f4caec86dd3a749b"
+ },
+ {
+  "id": "HORIZON-1",
+  "group": "registration, recorded before estimation",
+  "status": "note",
+  "claim": "causal pseudo-issues of forecaster M are produced at every adjudication month over history using data through that month only, an expanding window on the CAL-1 pattern, and scored by ranked probability skill score against climatology at leads 1 through 12. The pooled mean skill by lead is published as a curve on the record page, together with the first lead at which that mean is at or below zero, published as where the edge ends: a property of the system, carrying the date it was estimated",
+  "window": "2026-08",
+  "note": "definitions fixed before the run. Each pseudo-issue re-estimates forecaster M's semi-Markov structure on the decoded history through its own month, draws the registered number of paths, and is scored against the states the record later settled on. Climatology at each pseudo-issue is computed from data through that month only, so the baseline is causal too. The ranked probability score needs an order over categories: it is fixed here as the family code of each state, calm before easing before up before strained before hot, with ties broken by state name, so the order cannot be chosen after seeing a result. The published curve is the mean across instruments per lead. Where the edge ends is a descriptive property and not a gate: nothing is published or withheld on the strength of it. One run. The curve refreshes only at each yearly adjudication, and between those it is frozen and carries its estimation date.",
+  "hash": "af999e48eb15e870"
+ },
+ {
+  "id": "HORIZON-1-SCORED",
+  "group": "system property, registered before estimation",
+  "status": "note",
+  "claim": "where the edge ends: the mean skill of forecaster M against climatology does not reach zero within the registered lead range of one to twelve months, so no crossing lead exists to publish",
+  "window": "1998-2026, 22 instruments",
+  "note": "one run, 7906 causal pseudo-issues across all 22 live instruments, each fitted on the causal decoded history through its own month, started from the causal posterior at that month, and scored against the states the full record later settled on. Mean ranked probability skill score by lead: 0.4689 at one month, 0.2937 at two, 0.1850 at three, 0.1205 at four, 0.0821 at five, 0.0561 at six, 0.0379 at seven, 0.0239 at eight, 0.0164 at nine, 0.0127 at ten, 0.0114 at eleven, 0.0122 at twelve. The curve decays fast and flattens just above zero rather than crossing it, so the registered answer is that there is no crossing lead, not that the edge is long. Two things belong beside that number. The mean hides dispersion: the worst instrument at each lead is already negative from lead four, at -0.0318, and reaches -0.3190 by lead eight, so some instruments are worse than climatology beyond one quarter while the average is not. And climatology is the easy baseline for a sticky process; persistence is the hard one, and PERF-GOAL requires beating both. This is a descriptive property, not a gate: nothing is published or withheld on the strength of it. Estimated at 2026-08 and frozen until the next yearly adjudication.",
+  "hash": "dea9eca5d2eeccae"
  }
 ]

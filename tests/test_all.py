@@ -493,7 +493,8 @@ def test_envelope_band_is_registered_and_widens_with_lead():
 FROZEN = ["bulletins/2026-08.md", "bulletins/2026-08.html",
           "bulletins/2026-08_record.html",
           "bulletins/outlook_2026Q3.json",
-          "state/outlook_2026Q3.json"]
+          "state/outlook_2026Q3.json",
+          "state/horizon1.json"]
 
 
 def test_every_frozen_artifact_survives_a_rebuild_byte_identical():
@@ -654,6 +655,115 @@ def test_legacy_score_pending_path_fires():
     empty = pd.Series(dtype=object, index=pd.PeriodIndex([], freq="M"))
     out = B.score_pending(chain, {"oil": empty}, "2026-11")
     assert out[len(chain):][0]["status"] == "unscoreable"
+
+
+def test_brier_scoring_fires_both_ways_from_bulletin_003():
+    """PROPER-SCORE-REG. A claim beats the persistence baseline or it
+    does not, and both Brier numbers land in the entry."""
+    site = _claim_site()
+    cl = B.forward_claims(site, "003", "2026-08")
+    assert cl and all(c["rule"]["scoring"] == "brier" for c in cl)
+    oil = next(c for c in cl if c["id"] == "B003-CONT-oil")
+    idx = pd.period_range("2026-11", "2026-11", freq="M")
+    # persistence says the state continues, Brier 0 when it does, so a
+    # claim at 0.80 cannot beat it; when it does not continue the
+    # baseline scores 1 and the claim beats it
+    for state, want in [("supply_glut", "miss"), ("calm", "hit")]:
+        chain = _mk_chain([oil])
+        out = B.score_pending(chain, {"oil": pd.Series([state], index=idx)},
+                              "2026-11")
+        new = out[len(chain):]
+        assert len(new) == 1 and new[0]["status"] == want, new
+        assert "scored by Brier under PROPER-SCORE-REG" in new[0]["note"]
+        assert "persistence baseline" in new[0]["note"]
+
+
+def test_bulletin_002_keeps_binary_rules_and_reports_brier_beside():
+    """002's slate is untouched: the side rule decides, and the Brier
+    numbers ride along changing nothing."""
+    site = _claim_site()
+    oil = next(c for c in B.forward_claims(site, "002", "2026-08")
+               if c["id"] == "B002-CONT-oil")
+    assert oil["rule"]["scoring"] == "binary"
+    idx = pd.period_range("2026-11", "2026-11", freq="M")
+    chain = _mk_chain([oil])
+    out = B.score_pending(chain, {"oil": pd.Series(["supply_glut"],
+                                                   index=idx)}, "2026-11")
+    e = out[len(chain):][0]
+    assert e["status"] == "hit", e          # side rule, not Brier
+    assert "Reported informationally and changing nothing" in e["note"]
+    assert "Brier claim" in e["note"]
+
+
+def test_persistence_baseline_is_defined_per_claim_kind():
+    from analyst import bulletin as _B
+    import numpy as np
+    assert _B._persistence_p({"kind": "state"}, {}) == 1.0
+    idx = pd.period_range("2026-05", "2026-08", freq="M")
+    quiet = pd.Series([100.0, 99.0, 101.0, 98.0], index=idx)
+    crash = pd.Series([100.0, 99.0, 80.0, 98.0], index=idx)
+    rule = {"kind": "drawdown", "series": "real_brent",
+            "base": "2026-08", "threshold_pct": -15.0}
+    assert _B._persistence_p(rule, {"real_brent": quiet}) == 0.0
+    assert _B._persistence_p(rule, {"real_brent": crash}) == 1.0
+    assert _B._persistence_p(rule, {}) is None
+
+
+def test_forecaster_e_is_an_equal_weight_blend_and_is_gated():
+    from instrument import outlook as O
+    assert O.E_FIRST_MONTH == "2026-10"
+    b = O.blend([{"a": 1.0}, {"b": 1.0}])
+    assert b == {"a": 0.5, "b": 0.5}
+    b3 = O.blend([{"a": 0.6, "b": 0.4}, {"a": 0.0, "b": 1.0},
+                  {"a": 0.9, "b": 0.1}])
+    assert abs(sum(b3.values()) - 1.0) < 1e-9
+    assert abs(b3["a"] - 0.5) < 1e-9
+    assert O.blend([]) == {}
+
+
+def test_horizon_ordering_mirrors_the_family_map():
+    """horizon.FAM_CODE is a copy; if run.FAM_CODE ever moves, this
+    fails rather than the ordering silently diverging."""
+    import runpy
+    from instrument import horizon as H
+    run = runpy.run_path(os.path.join(ROOT, "run.py"))
+    assert H.FAM_CODE == run["FAM_CODE"]
+    order = H.order_states(["hot_none", "calm", "bust", "boom"])
+    assert order[0] == "calm"
+    assert order.index("boom") < order.index("bust")
+
+
+def test_horizon_rps_and_pool_fire():
+    from instrument import horizon as H
+    order = ["calm", "boom", "bust"]
+    perfect = H.rps({"calm": 1.0}, "calm", order)
+    worst = H.rps({"bust": 1.0}, "calm", order)
+    assert perfect == 0.0 and worst > perfect
+    assert H.rps({}, "calm", order) is None
+    rows = [{"instrument": "x", "issues": 2, "states": 3,
+             "per_lead": {str(L): {"f": [0.1], "c": [0.2]}
+                          for L in H.LEADS}},
+            {"instrument": "y", "issues": 2, "states": 3,
+             "per_lead": {str(L): {"f": [0.3], "c": [0.2]}
+                          for L in H.LEADS}}]
+    p = H.pool(rows)
+    assert p["instruments"] == 2 and p["issues"] == 4
+    # x has skill, y does not; the mean of +0.5 and -0.5 is zero, so the
+    # edge ends at the first lead
+    assert p["curve"][0]["rpss"] == 0.0
+    assert p["edge_ends_at_lead"] == 1
+    assert p["curve"][0]["rpss_worst_instrument"] == -0.5
+
+
+def test_horizon_result_is_published_and_frozen():
+    site = json.load(open(os.path.join(ROOT, "state", "site_data.json")))
+    h = site["horizon"]
+    assert h["instruments"] >= 20 and h["issues"] > 1000
+    leads = [r["lead"] for r in h["curve"]]
+    assert leads == sorted(leads) and leads[0] == 1
+    vals = [r["rpss"] for r in h["curve"]]
+    assert vals[0] > vals[-1], "skill should decay with lead"
+    assert h["refresh"] == "yearly adjudication" and h["estimated_at"]
 
 
 def test_pages_execute_headlessly():

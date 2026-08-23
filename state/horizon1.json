@@ -1,0 +1,147 @@
+{
+ "curve": [
+  {
+   "lead": 1,
+   "n": 7906,
+   "instruments": 22,
+   "rpss": 0.4689,
+   "rpss_sum_pooled": 0.4811,
+   "rpss_worst_instrument": 0.2654,
+   "rps_forecast": 0.11247,
+   "rps_climatology": 0.21673
+  },
+  {
+   "lead": 2,
+   "n": 7906,
+   "instruments": 22,
+   "rpss": 0.2937,
+   "rpss_sum_pooled": 0.3156,
+   "rpss_worst_instrument": 0.0479,
+   "rps_forecast": 0.14924,
+   "rps_climatology": 0.21805
+  },
+  {
+   "lead": 3,
+   "n": 7906,
+   "instruments": 22,
+   "rpss": 0.185,
+   "rpss_sum_pooled": 0.2091,
+   "rpss_worst_instrument": 0.0018,
+   "rps_forecast": 0.17338,
+   "rps_climatology": 0.21923
+  },
+  {
+   "lead": 4,
+   "n": 7906,
+   "instruments": 22,
+   "rpss": 0.1205,
+   "rpss_sum_pooled": 0.1438,
+   "rpss_worst_instrument": -0.0318,
+   "rps_forecast": 0.18845,
+   "rps_climatology": 0.2201
+  },
+  {
+   "lead": 5,
+   "n": 7906,
+   "instruments": 22,
+   "rpss": 0.0821,
+   "rpss_sum_pooled": 0.1043,
+   "rpss_worst_instrument": -0.1522,
+   "rps_forecast": 0.19781,
+   "rps_climatology": 0.22086
+  },
+  {
+   "lead": 6,
+   "n": 7906,
+   "instruments": 22,
+   "rpss": 0.0561,
+   "rpss_sum_pooled": 0.0786,
+   "rpss_worst_instrument": -0.2425,
+   "rps_forecast": 0.20407,
+   "rps_climatology": 0.22146
+  },
+  {
+   "lead": 7,
+   "n": 7906,
+   "instruments": 22,
+   "rpss": 0.0379,
+   "rpss_sum_pooled": 0.0601,
+   "rpss_worst_instrument": -0.2803,
+   "rps_forecast": 0.20869,
+   "rps_climatology": 0.22204
+  },
+  {
+   "lead": 8,
+   "n": 7906,
+   "instruments": 22,
+   "rpss": 0.0239,
+   "rpss_sum_pooled": 0.0463,
+   "rpss_worst_instrument": -0.319,
+   "rps_forecast": 0.21224,
+   "rps_climatology": 0.22253
+  },
+  {
+   "lead": 9,
+   "n": 7906,
+   "instruments": 22,
+   "rpss": 0.0164,
+   "rpss_sum_pooled": 0.0369,
+   "rpss_worst_instrument": -0.2902,
+   "rps_forecast": 0.21476,
+   "rps_climatology": 0.22299
+  },
+  {
+   "lead": 10,
+   "n": 7906,
+   "instruments": 22,
+   "rpss": 0.0127,
+   "rpss_sum_pooled": 0.0305,
+   "rpss_worst_instrument": -0.2563,
+   "rps_forecast": 0.21657,
+   "rps_climatology": 0.22337
+  },
+  {
+   "lead": 11,
+   "n": 7906,
+   "instruments": 22,
+   "rpss": 0.0114,
+   "rpss_sum_pooled": 0.0274,
+   "rpss_worst_instrument": -0.2196,
+   "rps_forecast": 0.21761,
+   "rps_climatology": 0.22374
+  },
+  {
+   "lead": 12,
+   "n": 7906,
+   "instruments": 22,
+   "rpss": 0.0122,
+   "rpss_sum_pooled": 0.0255,
+   "rpss_worst_instrument": -0.1579,
+   "rps_forecast": 0.21843,
+   "rps_climatology": 0.22416
+  }
+ ],
+ "edge_ends_at_lead": null,
+ "instruments": 22,
+ "issues": 7906,
+ "leads": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12
+ ],
+ "id": "HORIZON-1",
+ "estimated_at": "2026-08",
+ "registration": "HORIZON-1",
+ "refresh": "yearly adjudication",
+ "min_history_months": 60,
+ "paths": 2000
+}

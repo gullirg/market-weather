@@ -60,6 +60,40 @@ LAMP_HORIZON_M = 3
 # B-CLAIMS-REG: the slate every bulletin registers from 002 onward.
 CONT_HORIZON_M = 3
 CONT_BAND = 0.15
+# PROPER-SCORE-REG: from this bulletin onward a claim is scored by its
+# Brier against the persistence baseline's Brier for the same event.
+FIRST_BRIER_BULLETIN = 3
+
+
+def _scoring_mode(no):
+    return "brier" if int(no) >= FIRST_BRIER_BULLETIN else "binary"
+
+
+def _persistence_p(rule, series):
+    """The persistence baseline probability for this event, defined in
+    PROPER-SCORE-REG and nowhere else. Returns None if it cannot be
+    evaluated yet."""
+    import numpy as np
+    import pandas as pd
+    if rule["kind"] == "state":
+        # persistence says the analysis state continues, and the claim's
+        # target is that state
+        return 1.0
+    if rule["kind"] == "drawdown":
+        s = (series or {}).get(rule["series"])
+        if s is None:
+            return None
+        base = pd.Period(rule["base"], "M")
+        ref = base - LAMP_HORIZON_M
+        if ref not in s.index or base not in s.index:
+            return None
+        w = s.loc[ref + 1:base].dropna()
+        if len(w) == 0:
+            return None
+        worst = float(np.log(w / float(s.loc[ref])).min())
+        thr = float(np.log(1 + rule["threshold_pct"] / 100.0))
+        return 1.0 if worst <= thr else 0.0
+    return None
 
 
 def _side(p):
@@ -111,7 +145,7 @@ def forward_claims(site, bulletin_no, asof):
                       f"unconditionally"),
             "window": f"{a}..{b}",
             "matures": str(b),
-            "rule": {"kind": "drawdown", "series": "real_brent",
+            "rule": {"kind": "drawdown", "series": "real_brent", "scoring": _scoring_mode(no),
                      "base": str(base),
                      "threshold_pct": LAMP_THRESHOLD_PCT,
                      "p": tail, "side": side,
@@ -168,7 +202,7 @@ def forward_claims(site, bulletin_no, asof):
                           f"months later at {p}"),
                 "window": f"{tgt}..{tgt}",
                 "matures": str(tgt),
-                "rule": {"kind": "state", "node": name, "target": st,
+                "rule": {"kind": "state", "node": name, "target": st, "scoring": _scoring_mode(no),
                          "mode": "present", "p": p, "side": sd,
                          "claim_kind": "continuation",
                          "outlook_quarter": q,
@@ -208,7 +242,7 @@ def forward_claims(site, bulletin_no, asof):
                               f"months later at {p}"),
                     "window": f"{tgt}..{tgt}",
                     "matures": str(tgt),
-                    "rule": {"kind": "state", "node": "synoptic",
+                    "rule": {"kind": "state", "node": "synoptic", "scoring": _scoring_mode(no),
                              "target": st, "mode": "present", "p": p,
                              "side": sd, "claim_kind": "synoptic",
                              "outlook_quarter": q,
@@ -273,11 +307,30 @@ def _resolve(rule, a, b, preds, series):
                   f"of {rule['target']}")
     else:
         return ("un", f"unknown resolution kind {rule['kind']}")
-    hit = (occurred == side)
-    note = (f"stated probability {rule['p']}, registered side "
-            f"{'event occurs' if side else 'event does not occur'}, "
-            f"realization {'event occurred' if occurred else 'event did not occur'}; "
-            + detail)
+    y = 1.0 if occurred else 0.0
+    p = float(rule["p"])
+    pb = _persistence_p(rule, series)
+    bc = round((p - y) ** 2, 5)
+    bb = round((pb - y) ** 2, 5) if pb is not None else None
+    mode = rule.get("scoring", "binary")
+    if mode == "brier":
+        if bb is None:
+            return None
+        hit = bc < bb
+        verdict = (f"scored by Brier under PROPER-SCORE-REG: claim "
+                   f"{bc} against persistence baseline {bb} at "
+                   f"probability {pb}; "
+                   f"{'beats' if hit else 'does not beat'} the baseline")
+    else:
+        hit = (occurred == side)
+        verdict = (f"scored by the registered side rule: side "
+                   f"{'event occurs' if side else 'event does not occur'}"
+                   f", realization "
+                   f"{'event occurred' if occurred else 'event did not occur'}"
+                   f". Reported informationally and changing nothing: "
+                   f"Brier claim {bc}, persistence baseline "
+                   f"{bb if bb is not None else 'not evaluable'}")
+    note = (f"stated probability {rule['p']}. {verdict}. " + detail)
     return ("hit" if hit else "miss", note)
 
 
@@ -374,6 +427,15 @@ def build_payload(site, scorecard_counts, bulletin_no, issued,
         add(len(nw.get("awaiting") or []))
         add(len([m for m in (nw.get("membership") or [])
                  if m.get("member")]))
+    hz = site.get("horizon")
+    if hz:
+        for r in hz.get("curve", []):
+            for k in ("lead", "rpss", "worst"):
+                if r.get(k) is not None:
+                    add(r[k])
+        for k in ("edge_ends_at_lead", "instruments", "issues"):
+            if hz.get(k) is not None:
+                add(hz[k])
     cb = site.get("calibration")
     if cb:
         for k, v in cb.items():

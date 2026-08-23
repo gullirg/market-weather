@@ -137,6 +137,15 @@
     Select a row for its full chain entry.</div>
   <div id="streaktbl"></div>
 
+  <h2 id="horizon">Where the edge ends</h2>
+  <div class="note">Forecaster M re-issued at every month of history
+    using only the data available at the time, and scored against
+    climatology at each lead. The question the study asks is the lead
+    at which skill first falls to zero. Descriptive only: nothing is
+    published or withheld on the strength of it, and the curve is
+    frozen between yearly adjudications.</div>
+  <div id="hztbl"></div>
+
   <h2 id="outlook-issues">Outlook issues</h2>
   <div class="note">Every issue the machine has frozen, newest first.
     An issue is superseded by the next one for display but is never
@@ -379,6 +388,30 @@ if(DATA.s2){
     q.baseline+' on the same panel un-removed, while the fast '+
     'frequency band reached '+q.fast+' and the slow band '+q.slow+
     ', all short of the bar of '+q.bar+'.';
+}
+if(DATA.horizon&&DATA.horizon.curve&&DATA.horizon.curve.length){
+  const H=DATA.horizon;
+  let hh='<table><tr><th>lead, months</th><th>mean skill</th>'+
+    '<th>worst instrument</th></tr>';
+  for(const r of H.curve)
+    hh+='<tr><td class="n">'+r.lead+'</td><td class="n">'+r.rpss+
+      '</td><td class="n">'+(r.worst===null?'':r.worst)+'</td></tr>';
+  hh+='</table><div class="note">'+
+    (H.edge_ends_at_lead===null
+      ? 'Mean skill does not reach zero inside the leads studied, so '+
+        'there is no crossing lead to report. It decays fast and then '+
+        'flattens just above zero rather than crossing it.'
+      : 'Mean skill first reaches zero at lead '+H.edge_ends_at_lead+
+        ' months.')+
+    ' The mean hides dispersion: the worst instrument at each lead '+
+    'turns negative well before the average does, so some instruments '+
+    'are worse than climatology at leads where the average is not. '+
+    'Climatology is also the easy baseline for a sticky process; '+
+    'persistence is the hard one. From '+H.issues+' causal pseudo '+
+    'issues across '+H.instruments+' instruments, estimated at '+
+    H.estimated_at+', refreshed at each '+H.refresh+
+    '. Chained as HORIZON-1-SCORED.</div>';
+  document.getElementById('hztbl').innerHTML=hh;
 }
 if(DATA.outlook_issues&&DATA.outlook_issues.length){
   const cur=(DATA.outlook||{}).issue;

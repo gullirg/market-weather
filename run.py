@@ -503,6 +503,17 @@ def cmd_month(args):
     except Exception as e:
         site["v3"] = None
         print("v3 layer degraded:", e)
+    hzp = os.path.join(STATE, "horizon1.json")
+    if os.path.exists(hzp):
+        hz1 = json.load(open(hzp))
+        site["horizon"] = {
+            "curve": [{"lead": r["lead"], "rpss": r["rpss"],
+                       "worst": r.get("rpss_worst_instrument")}
+                      for r in hz1["curve"] if r.get("rpss") is not None],
+            "edge_ends_at_lead": hz1["edge_ends_at_lead"],
+            "estimated_at": hz1["estimated_at"],
+            "instruments": hz1["instruments"],
+            "issues": hz1["issues"], "refresh": hz1["refresh"]}
     calp = os.path.join(STATE, "cal_result.json")
     if os.path.exists(calp):
         c = json.load(open(calp))

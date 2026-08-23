@@ -84,7 +84,7 @@ def audit_instrument(name, spec, seed, leads=None, min_history=MIN_HISTORY,
             last = int(pos[0])
     rng = np.random.default_rng(seed)
     order = order_states(states)
-    out = {L: {"f": [], "c": []} for L in leads}
+    out = {L: {"f": [], "c": [], "p": []} for L in leads}
     issues = 0
     hi = last - max(leads)
     for i in range(min_history - 1, hi + 1):
@@ -103,22 +103,29 @@ def audit_instrument(name, spec, seed, leads=None, min_history=MIN_HISTORY,
             continue
         vc = pd.Series(seq).value_counts(normalize=True)
         clim = {str(k): float(v) for k, v in vc.items()}
+        # HORIZON-2: persistence is a point mass on the causal state at
+        # the issue month, carried unchanged to every lead. Deterministic,
+        # so it consumes no randomness and cannot perturb the forecasts.
+        pers = {seq[-1]: 1.0}
         issues += 1
         for L in leads:
             obs = truth[i + L]
             a = rps(dist.get(L, {}), obs, order)
             b = rps(clim, obs, order)
-            if a is None or b is None:
+            c2 = rps(pers, obs, order)
+            if a is None or b is None or c2 is None:
                 continue
             out[L]["f"].append(a)
             out[L]["c"].append(b)
+            out[L]["p"].append(c2)
     return {"instrument": name, "issues": issues,
             "states": len(states),
-            "per_lead": {str(L): {"f": out[L]["f"], "c": out[L]["c"]}
+            "per_lead": {str(L): {"f": out[L]["f"], "c": out[L]["c"],
+                                  "p": out[L]["p"]}
                          for L in leads}}
 
 
-def pool(rows, leads=None):
+def pool(rows, leads=None, baseline="c"):
     """Skill by lead and the lead where the edge ends.
 
     The published statistic is the one registered: the mean across
@@ -132,29 +139,52 @@ def pool(rows, leads=None):
         per_inst = []
         for r in rows:
             f = r["per_lead"][str(L)]["f"]
-            c = r["per_lead"][str(L)]["c"]
+            c = r["per_lead"][str(L)].get(baseline) or []
             if f and c and sum(c) > 0:
-                per_inst.append(1.0 - float(np.sum(f)) / float(np.sum(c)))
+                per_inst.append((r["instrument"],
+                                 1.0 - float(np.sum(f)) / float(np.sum(c))))
         f = [v for r in rows for v in r["per_lead"][str(L)]["f"]]
-        c = [v for r in rows for v in r["per_lead"][str(L)]["c"]]
+        c = [v for r in rows
+             for v in (r["per_lead"][str(L)].get(baseline) or [])]
         if not per_inst or not f or sum(c) <= 0:
             curve.append({"lead": L, "n": 0, "rpss": None})
             continue
+        vals = [v for _n, v in per_inst]
         curve.append({"lead": L, "n": len(f),
                       "instruments": len(per_inst),
-                      "rpss": round(float(np.mean(per_inst)), 4),
+                      "rpss": round(float(np.mean(vals)), 4),
                       "rpss_sum_pooled": round(
                           1.0 - float(np.sum(f)) / float(np.sum(c)), 4),
                       "rpss_worst_instrument": round(
-                          float(np.min(per_inst)), 4),
+                          float(np.min(vals)), 4),
                       "rps_forecast": round(float(np.mean(f)), 5),
-                      "rps_climatology": round(float(np.mean(c)), 5)})
+                      "rps_baseline": round(float(np.mean(c)), 5),
+                      "per_instrument": {n: round(v, 4)
+                                         for n, v in per_inst}})
     ends = None
     for row in curve:
         if row["rpss"] is not None and row["rpss"] <= 0:
             ends = row["lead"]
             break
+    # per-instrument crossing leads: the first lead at which that
+    # instrument's own skill is at or below zero
+    cross = {}
+    for r in rows:
+        cross[r["instrument"]] = None
+        for row in curve:
+            v = (row.get("per_instrument") or {}).get(r["instrument"])
+            if v is not None and v <= 0:
+                cross[r["instrument"]] = row["lead"]
+                break
+    seen = [v for v in cross.values() if v is not None]
+    spread = (max(seen) - min(seen)) if len(seen) > 1 else 0
     return {"curve": curve, "edge_ends_at_lead": ends,
+            "baseline": baseline,
+            "per_instrument_crossing": cross,
+            "crossing_spread_leads": spread,
+            "crossing_materially_different": bool(spread >= 3
+                                                  or (seen and
+                                                      len(seen) < len(rows))),
             "instruments": len(rows),
             "issues": int(sum(r["issues"] for r in rows)),
             "leads": list(leads)}

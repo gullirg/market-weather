@@ -391,11 +391,17 @@ if(DATA.s2){
 }
 if(DATA.horizon&&DATA.horizon.curve&&DATA.horizon.curve.length){
   const H=DATA.horizon;
-  let hh='<table><tr><th>lead, months</th><th>mean skill</th>'+
-    '<th>worst instrument</th></tr>';
+  const hasP=H.curve.some(function(r){
+    return r.rpss_persistence!==undefined;});
+  let hh='<table><tr><th>lead, months</th>'+
+    '<th>skill vs climatology</th>'+
+    (hasP?'<th>skill vs persistence</th>':'')+
+    '<th>worst instrument, vs climatology</th></tr>';
   for(const r of H.curve)
     hh+='<tr><td class="n">'+r.lead+'</td><td class="n">'+r.rpss+
-      '</td><td class="n">'+(r.worst===null?'':r.worst)+'</td></tr>';
+      '</td>'+(hasP?('<td class="n">'+
+        (r.rpss_persistence===undefined?'':r.rpss_persistence)+'</td>'):'')+
+      '<td class="n">'+(r.worst===null?'':r.worst)+'</td></tr>';
   hh+='</table><div class="note">'+
     (H.edge_ends_at_lead===null
       ? 'Mean skill does not reach zero inside the leads studied, so '+
@@ -403,6 +409,20 @@ if(DATA.horizon&&DATA.horizon.curve&&DATA.horizon.curve.length){
         'flattens just above zero rather than crossing it.'
       : 'Mean skill first reaches zero at lead '+H.edge_ends_at_lead+
         ' months.')+
+    (hasP
+      ? ' Against persistence the answer is '+
+        (H.edge_ends_vs_persistence===null||
+         H.edge_ends_vs_persistence===undefined
+          ? 'the same, no crossing lead, and no single instrument '+
+            'crosses zero at any lead either, so there is no '+
+            'per-instrument table to show. That curve rises with lead '+
+            'rather than falling: persistence is hard to beat over one '+
+            'month, because a regime usually does hold, and easy over a '+
+            'year, because it usually does not. The two baselines fail '+
+            'in opposite directions, so the honest edge at each lead is '+
+            'whichever column is smaller.'
+          : 'a crossing at lead '+H.edge_ends_vs_persistence+' months.')
+      : '')+
     ' The mean hides dispersion: the worst instrument at each lead '+
     'turns negative well before the average does, so some instruments '+
     'are worse than climatology at leads where the average is not. '+

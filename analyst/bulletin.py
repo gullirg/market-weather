@@ -54,6 +54,10 @@ def append(entries, new):
 # Bulletin 001 was written without this wiring and is not backfilled.
 CLAIM_GROUP = "bulletin claim, registered at publish"
 CLAIM_SCORE_GROUP = "bulletin claim scoring"
+# PROPER-SCORE-REG-2: from bulletin 003 a per-claim scoring is
+# laboratory and the surface carries one dot for the whole slate.
+CLAIM_SCORE_PERCLAIM_GROUP = "bulletin claim scoring, per claim"
+SLATE_SCORE_GROUP = "bulletin slate scoring"
 FIRST_WIRED_BULLETIN = 2
 LAMP_THRESHOLD_PCT = -15.0
 LAMP_HORIZON_M = 3
@@ -276,7 +280,8 @@ def _resolve(rule, a, b, preds, series):
         return None
     side = rule.get("side")
     if side is None:
-        return ("un", "no side: the stated probability was exactly one half")
+        return ("un", "no side: the stated probability was exactly one half",
+                {})
     if rule["kind"] == "drawdown":
         s = (series or {}).get(rule["series"])
         if s is None:
@@ -306,7 +311,7 @@ def _resolve(rule, a, b, preds, series):
                   f"{', '.join(map(str, w.tolist()))} against a target "
                   f"of {rule['target']}")
     else:
-        return ("un", f"unknown resolution kind {rule['kind']}")
+        return ("un", f"unknown resolution kind {rule['kind']}", {})
     y = 1.0 if occurred else 0.0
     p = float(rule["p"])
     pb = _persistence_p(rule, series)
@@ -331,7 +336,8 @@ def _resolve(rule, a, b, preds, series):
                    f"Brier claim {bc}, persistence baseline "
                    f"{bb if bb is not None else 'not evaluable'}")
     note = (f"stated probability {rule['p']}. {verdict}. " + detail)
-    return ("hit" if hit else "miss", note)
+    return ("hit" if hit else "miss", note,
+            {"brier": bc, "brier_baseline": bb, "mode": mode})
 
 
 def score_pending(entries, preds, asof, series=None):
@@ -353,11 +359,12 @@ def score_pending(entries, preds, asof, series=None):
             continue
         a = pd.Period(e["window"].split("..")[0], "M")
         rule = e.get("rule")
+        metrics = {}
         if rule:
             res = _resolve(rule, a, b, preds, series or {})
             if res is None:
                 continue
-            status, note = res
+            status, note, metrics = res
         else:
             w = preds[e["node"]].loc[a:b].dropna()
             if len(w) == 0:
@@ -369,12 +376,74 @@ def score_pending(entries, preds, asof, series=None):
                 status = "hit" if hit else "miss"
                 note = (f"dominant {dom}, share "
                         f"{float((w == e['target']).mean()):.2f}")
-        out = append(out, {"id": e["id"] + "-scored",
-                           "group": CLAIM_SCORE_GROUP,
-                           "claim": e["claim"],
-                           "window": e["window"], "status": status,
-                           "note": note})
+        entry = {"id": e["id"] + "-scored",
+                 "group": (CLAIM_SCORE_PERCLAIM_GROUP
+                           if metrics.get("mode") == "brier"
+                           else CLAIM_SCORE_GROUP),
+                 "claim": e["claim"],
+                 "window": e["window"], "status": status,
+                 "note": note}
+        for k in ("brier", "brier_baseline"):
+            if metrics.get(k) is not None:
+                entry[k] = metrics[k]
+        out = append(out, entry)
         seen.add(e["id"] + "-scored")
+    return _close_slates(out)
+
+
+def _bulletin_of(cid):
+    m = re.match(r"^B(\d{3})-", str(cid))
+    return int(m.group(1)) if m else None
+
+
+def _close_slates(entries):
+    """PROPER-SCORE-REG-2. Once every claim of a slate has resolved,
+    append the single surface entry for that bulletin: a hit if and
+    only if the slate's mean Brier beats the persistence baseline's
+    mean Brier over the same events. Ties are a miss."""
+    have = {e["id"] for e in entries}
+    by = {}
+    for e in entries:
+        if e.get("group") != CLAIM_GROUP or not e.get("auto"):
+            continue
+        n = _bulletin_of(e["id"])
+        if n is None or (e.get("rule") or {}).get("scoring") != "brier":
+            continue
+        by.setdefault(n, []).append(e)
+    out = entries
+    for n in sorted(by):
+        sid = f"B{n:03d}-SLATE"
+        if sid in have:
+            continue
+        scored = [next((x for x in out if x["id"] == c["id"] + "-scored"),
+                       None) for c in by[n]]
+        if any(x is None for x in scored):
+            continue
+        pairs = [(x.get("brier"), x.get("brier_baseline")) for x in scored]
+        pairs = [(a, b) for a, b in pairs if a is not None and b is not None]
+        if not pairs or len(pairs) != len(scored):
+            continue
+        mc = round(sum(a for a, _ in pairs) / len(pairs), 5)
+        mb = round(sum(b for _, b in pairs) / len(pairs), 5)
+        wins = sum(1 for a, b in pairs if a < b)
+        matures = sorted(c.get("matures", "") for c in by[n])
+        out = append(out, {
+            "id": sid, "group": SLATE_SCORE_GROUP,
+            "status": "hit" if mc < mb else "miss",
+            "claim": (f"bulletin {n:03d} slate: mean Brier {mc} against "
+                      f"the persistence baseline's {mb} over "
+                      f"{len(pairs)} claims"),
+            "window": f"{matures[0]}..{matures[-1]}" if matures else "",
+            "brier": mc, "brier_baseline": mb, "claims": len(pairs),
+            "note": (f"one dot for the whole slate under "
+                     f"PROPER-SCORE-REG-2. {wins} of {len(pairs)} "
+                     f"individual claims beat their own baseline; the "
+                     f"dot follows the slate mean, not the count. "
+                     f"Every per-claim score stays on the chain under "
+                     f"the group '{CLAIM_SCORE_PERCLAIM_GROUP}' and is "
+                     f"expandable on the record page. A tie scores a "
+                     f"miss.")})
+        have.add(sid)
     return out
 
 
@@ -430,7 +499,8 @@ def build_payload(site, scorecard_counts, bulletin_no, issued,
     hz = site.get("horizon")
     if hz:
         for r in hz.get("curve", []):
-            for k in ("lead", "rpss", "worst"):
+            for k in ("lead", "rpss", "worst", "rpss_persistence",
+                      "worst_persistence"):
                 if r.get(k) is not None:
                     add(r[k])
         for k in ("edge_ends_at_lead", "instruments", "issues"):

@@ -58,8 +58,11 @@ def _raw_shiller(data_dir, col):
 # surface streak is published analyst calls only. Every other group
 # with a scored status is the laboratory record, which renders in full
 # on the record page: nothing is deleted, it is relabelled.
+# PROPER-SCORE-REG-2 adds the slate dot to the surface. Per-claim
+# scorings from bulletin 003 carry their own group and are laboratory.
 STREAK_GROUPS = ("out of sample", "corrections",
-                 "bulletin claim scoring", "outlook quarter scoring")
+                 "bulletin claim scoring", "bulletin slate scoring",
+                 "outlook quarter scoring")
 STREAK_N = 40
 SCORED_STATUSES = ("hit", "miss", "fail", "null", "un", "oos",
                    "ret", "rev")
@@ -514,6 +517,21 @@ def cmd_month(args):
             "estimated_at": hz1["estimated_at"],
             "instruments": hz1["instruments"],
             "issues": hz1["issues"], "refresh": hz1["refresh"]}
+    hz2p = os.path.join(STATE, "horizon2.json")
+    if os.path.exists(hz2p) and site.get("horizon"):
+        hz2 = json.load(open(hz2p))
+        by = {r["lead"]: r for r in hz2["curve"]}
+        for row in site["horizon"]["curve"]:
+            r2 = by.get(row["lead"])
+            if r2:
+                row["rpss_persistence"] = r2["rpss"]
+                row["worst_persistence"] = r2.get("rpss_worst_instrument")
+        site["horizon"]["edge_ends_vs_persistence"] = \
+            hz2["edge_ends_at_lead"]
+        site["horizon"]["persistence_crossings_differ"] = \
+            hz2["crossing_materially_different"]
+        site["horizon"]["persistence_crossing"] = \
+            hz2["per_instrument_crossing"]
     calp = os.path.join(STATE, "cal_result.json")
     if os.path.exists(calp):
         c = json.load(open(calp))

@@ -1532,5 +1532,32 @@
   "window": "1998-2026, 22 instruments",
   "note": "one run, 7906 causal pseudo-issues across all 22 live instruments, each fitted on the causal decoded history through its own month, started from the causal posterior at that month, and scored against the states the full record later settled on. Mean ranked probability skill score by lead: 0.4689 at one month, 0.2937 at two, 0.1850 at three, 0.1205 at four, 0.0821 at five, 0.0561 at six, 0.0379 at seven, 0.0239 at eight, 0.0164 at nine, 0.0127 at ten, 0.0114 at eleven, 0.0122 at twelve. The curve decays fast and flattens just above zero rather than crossing it, so the registered answer is that there is no crossing lead, not that the edge is long. Two things belong beside that number. The mean hides dispersion: the worst instrument at each lead is already negative from lead four, at -0.0318, and reaches -0.3190 by lead eight, so some instruments are worse than climatology beyond one quarter while the average is not. And climatology is the easy baseline for a sticky process; persistence is the hard one, and PERF-GOAL requires beating both. This is a descriptive property, not a gate: nothing is published or withheld on the strength of it. Estimated at 2026-08 and frozen until the next yearly adjudication.",
   "hash": "dea9eca5d2eeccae"
+ },
+ {
+  "id": "HORIZON-2",
+  "group": "registration, recorded before estimation",
+  "status": "note",
+  "claim": "the identical causal pseudo-issue set built for HORIZON-1 is scored again by ranked probability skill score against the persistence baseline, by lead one through twelve, reported as a mean across instruments and per instrument, and published beside HORIZON-1 on the record page. The crossing lead, if any, is stated as where the edge ends against persistence. Same yearly refresh as HORIZON-1",
+  "window": "2026-08",
+  "note": "identical means identical: the same instruments, the same adjudication months, the same seeds and therefore the same forecasts. Only the baseline changes. The persistence baseline at each pseudo-issue is a point mass on the causal state at the issue month, carried unchanged to every lead, which is the same persistence notion PROPER-SCORE-REG uses for a state claim. It is deterministic and consumes no randomness, so adding it cannot perturb the forecasts. That the forecasts are unchanged is asserted by test against HORIZON-1's own recorded per-lead scores rather than assumed. If per-instrument crossing leads differ materially the table shows each instrument's own lead rather than only the mean, because a mean crossing lead over instruments that cross at very different leads describes none of them. No display policy changes on the strength of these numbers; that decision waits until they exist. Descriptive only, and not a gate.",
+  "hash": "9281e5503e5fa092"
+ },
+ {
+  "id": "PROPER-SCORE-REG-2",
+  "group": "registration, recorded before estimation",
+  "status": "hit",
+  "claim": "per-claim probabilities and Brier records continue exactly as PROPER-SCORE-REG states. From bulletin 003 onward the surface streak carries one dot per bulletin slate rather than one per claim, and that dot is a hit if and only if the slate's mean Brier beats the persistence baseline's mean Brier over the same events. Every per-claim score stays on the chain and is expandable on the record page. Ties score a miss",
+  "window": "2026-08",
+  "note": "registered before any affected claim exists, so nothing on the chain is rescored or reclassified by it. Mechanically: from bulletin 003 a per-claim scoring entry carries the group 'bulletin claim scoring, per claim', which is laboratory under STREAK-DEF-2, and once every claim of a slate has resolved a single entry with the group 'bulletin slate scoring' is appended and is what the surface carries. Bulletin 002 is untouched in every respect: its per-claim scorings keep the group 'bulletin claim scoring' and remain surface dots, exactly as B-CLAIMS-REG and STREAK-DEF-2 already state. The reason for the change is that a slate of eleven continuation claims issued from one forecast is one act of forecasting, and letting it deposit eleven dots would let a single monthly judgement dominate a surface that is supposed to count published calls. Each claim's own Brier and baseline Brier are stored as fields on its scoring entry rather than only as prose, so the slate mean is computed from the chain rather than recomputed from the pipeline.",
+  "hash": "fe432174d462f55b"
+ },
+ {
+  "id": "HORIZON-2-SCORED",
+  "group": "system property, registered before estimation",
+  "status": "note",
+  "claim": "where the edge ends against persistence: the mean skill of forecaster M against the persistence baseline does not reach zero within the registered lead range, and no instrument crosses zero at any lead, so there is no crossing lead to publish and no per-instrument table is needed",
+  "window": "1998-2026, 22 instruments",
+  "note": "the identical pseudo-issue set as HORIZON-1, verified before publication: the same 7906 pseudo-issues, and the per-lead mean forecast scores match HORIZON-1's recorded values exactly at every lead, so only the baseline changed. Mean skill against persistence by lead: 0.2472 at one month, 0.2079 at two, 0.2166 at three, 0.2405 at four, 0.2581 at five, 0.2766 at six, 0.2992 at seven, 0.3156 at eight, 0.3293 at nine, 0.3443 at ten, 0.3565 at eleven, 0.3686 at twelve. The curve rises with lead, which is the mirror image of HORIZON-1's, and the two together say more than either alone: persistence is the hard baseline at short leads because a regime usually does hold for a month, and the easy one at long leads because a regime rarely holds for a year, while climatology is the reverse. Reading the two registered curves against each other, the binding baseline is persistence at leads one and two and climatology from lead three onward, so the skill against whichever baseline is harder at that lead runs 0.2472, 0.2079, 0.1850, 0.1205, 0.0821, 0.0561, 0.0379, 0.0239, 0.0164, 0.0127, 0.0114 and 0.0122. That last quantity is arithmetic on two published curves and not a third registered metric. Every instrument's own crossing lead against persistence is never, with a spread of zero, so the materially-different condition does not fire. No display policy changes on the strength of these numbers. Descriptive only, estimated at 2026-08 and frozen until the next yearly adjudication.",
+  "hash": "1025bf308305acae"
  }
 ]

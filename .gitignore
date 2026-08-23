@@ -4,3 +4,4 @@ __pycache__/
 .env
 state/cal_ckpt/
 state/horizon_ckpt/
+state/horizon2_ckpt/

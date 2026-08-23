@@ -494,7 +494,7 @@ FROZEN = ["bulletins/2026-08.md", "bulletins/2026-08.html",
           "bulletins/2026-08_record.html",
           "bulletins/outlook_2026Q3.json",
           "state/outlook_2026Q3.json",
-          "state/horizon1.json"]
+          "state/horizon1.json", "state/horizon2.json"]
 
 
 def test_every_frozen_artifact_survives_a_rebuild_byte_identical():
@@ -673,9 +673,13 @@ def test_brier_scoring_fires_both_ways_from_bulletin_003():
         out = B.score_pending(chain, {"oil": pd.Series([state], index=idx)},
                               "2026-11")
         new = out[len(chain):]
-        assert len(new) == 1 and new[0]["status"] == want, new
-        assert "scored by Brier under PROPER-SCORE-REG" in new[0]["note"]
-        assert "persistence baseline" in new[0]["note"]
+        per = [e for e in new if e["group"] == B.CLAIM_SCORE_PERCLAIM_GROUP]
+        assert len(per) == 1 and per[0]["status"] == want, new
+        assert "scored by Brier under PROPER-SCORE-REG" in per[0]["note"]
+        assert "persistence baseline" in per[0]["note"]
+        # a one-claim slate closes too, and agrees with its only claim
+        slate = [e for e in new if e["group"] == B.SLATE_SCORE_GROUP]
+        assert len(slate) == 1 and slate[0]["status"] == want, new
 
 
 def test_bulletin_002_keeps_binary_rules_and_reports_brier_beside():
@@ -764,6 +768,140 @@ def test_horizon_result_is_published_and_frozen():
     vals = [r["rpss"] for r in h["curve"]]
     assert vals[0] > vals[-1], "skill should decay with lead"
     assert h["refresh"] == "yearly adjudication" and h["estimated_at"]
+
+
+def _slate_site():
+    return {"months": ["2026-07", "2026-08"], "synoptic": {"gate": "open"},
+            "hazard": {"current": {"state": "supply_glut", "elapsed": 3},
+                       "lamp": {"supply_glut": {"tail_freq": 0.29},
+                                "unconditional": 0.15},
+                       "durations": {"supply_glut": {
+                           "continuation_at_current": 0.7}}},
+            "outlook": {"asof": "2026-08", "quarter": "2026Q3",
+                        "instruments": {
+                            "oil": {"analysis": {"state": "supply_glut"},
+                                    "M": {"3": {"supply_glut": 0.80,
+                                                "calm": 0.20}}},
+                            "gold": {"analysis": {"state": "selloff"},
+                                     "M": {"3": {"selloff": 0.20,
+                                                 "calm": 0.80}}}},
+                        "synoptic": {
+                            "analysis": {"state": "post_shock_glut"},
+                            "M": {"3": {"post_shock_glut": 0.70,
+                                        "risk_on_calm": 0.30}}}}}
+
+
+def _run_slate(states):
+    idx = pd.period_range("2026-11", "2026-11", freq="M")
+    cl = [c for c in B.forward_claims(_slate_site(), "003", "2026-08")
+          if c["id"] != "B003-LAMP"]
+    chain = _mk_chain(cl)
+    preds = {k: pd.Series([v], index=idx) for k, v in states.items()}
+    out = B.score_pending(chain, preds, "2026-11")
+    B.verify(out)
+    new = out[len(chain):]
+    per = [e for e in new if e["group"] == B.CLAIM_SCORE_PERCLAIM_GROUP]
+    slate = [e for e in new if e["group"] == B.SLATE_SCORE_GROUP]
+    return per, slate
+
+
+def test_slate_dot_fires_hit_and_miss():
+    """PROPER-SCORE-REG-2: one dot per slate, hit only if the slate's
+    mean Brier beats the persistence baseline's mean Brier."""
+    per, slate = _run_slate({"oil": "calm", "gold": "calm",
+                             "synoptic": "risk_on_calm"})
+    assert len(per) == 3 and len(slate) == 1
+    assert slate[0]["status"] == "hit", slate[0]
+    assert slate[0]["brier"] < slate[0]["brier_baseline"]
+    per2, slate2 = _run_slate({"oil": "supply_glut", "gold": "selloff",
+                               "synoptic": "post_shock_glut"})
+    assert slate2[0]["status"] == "miss", slate2[0]
+    assert slate2[0]["brier"] > slate2[0]["brier_baseline"]
+    assert slate2[0]["claims"] == 3
+
+
+def test_slate_dot_is_surface_and_per_claim_is_laboratory():
+    import runpy
+    run = runpy.run_path(os.path.join(ROOT, "run.py"))
+    assert B.SLATE_SCORE_GROUP in run["STREAK_GROUPS"]
+    assert B.CLAIM_SCORE_PERCLAIM_GROUP not in run["STREAK_GROUPS"]
+    # bulletin 002 is untouched: its scorings stay surface
+    assert B.CLAIM_SCORE_GROUP in run["STREAK_GROUPS"]
+    per, slate = _run_slate({"oil": "calm", "gold": "calm",
+                             "synoptic": "risk_on_calm"})
+    for e in per:
+        assert "brier" in e and "brier_baseline" in e
+    assert slate[0]["id"] == "B003-SLATE"
+
+
+def test_slate_closes_only_once_and_only_when_complete():
+    per, slate = _run_slate({"oil": "calm", "gold": "calm",
+                             "synoptic": "risk_on_calm"})
+    idx = pd.period_range("2026-11", "2026-11", freq="M")
+    cl = [c for c in B.forward_claims(_slate_site(), "003", "2026-08")
+          if c["id"] != "B003-LAMP"]
+    chain = _mk_chain(cl)
+    # only one instrument resolves: the slate must stay open
+    partial = B.score_pending(chain, {"oil": pd.Series(["calm"], index=idx)},
+                              "2026-11")
+    assert not [e for e in partial if e["group"] == B.SLATE_SCORE_GROUP]
+    # a second pass over an already closed slate adds nothing
+    full = B.score_pending(chain, {k: pd.Series([v], index=idx) for k, v in
+                                   {"oil": "calm", "gold": "calm",
+                                    "synoptic": "risk_on_calm"}.items()},
+                           "2026-11")
+    again = B.score_pending(full, {k: pd.Series([v], index=idx) for k, v in
+                                   {"oil": "calm", "gold": "calm",
+                                    "synoptic": "risk_on_calm"}.items()},
+                            "2026-11")
+    assert len(again) == len(full)
+
+
+def test_horizon_table_states_both_crossing_branches():
+    """The no-crossing branch is what live data produces; the crossing
+    branch is driven synthetically so both are known to render."""
+    from instrument import horizon as H
+    good = {"instrument": "x", "issues": 1, "states": 3,
+            "per_lead": {str(L): {"f": [0.1], "c": [0.2], "p": [0.2]}
+                         for L in H.LEADS}}
+    p = H.pool([good], baseline="p")
+    assert p["edge_ends_at_lead"] is None
+    assert p["per_instrument_crossing"]["x"] is None
+    assert p["crossing_materially_different"] is False
+    bad = {"instrument": "y", "issues": 1, "states": 3,
+           "per_lead": {str(L): {"f": [0.3 if L >= 5 else 0.1],
+                                 "c": [0.2], "p": [0.2]}
+                        for L in H.LEADS}}
+    q = H.pool([bad], baseline="p")
+    assert q["edge_ends_at_lead"] == 5, q["curve"][:6]
+    assert q["per_instrument_crossing"]["y"] == 5
+    mixed = H.pool([good, bad], baseline="p")
+    assert mixed["per_instrument_crossing"] == {"x": None, "y": 5}
+    assert mixed["crossing_materially_different"] is True
+
+
+def test_horizon2_is_published_beside_horizon1():
+    site = json.load(open(os.path.join(ROOT, "state", "site_data.json")))
+    h = site["horizon"]
+    assert "edge_ends_vs_persistence" in h
+    withp = [r for r in h["curve"] if "rpss_persistence" in r]
+    assert len(withp) == len(h["curve"])
+    clim = [r["rpss"] for r in h["curve"]]
+    pers = [r["rpss_persistence"] for r in h["curve"]]
+    assert clim[0] > clim[-1], "climatology skill should decay"
+    assert pers[-1] > pers[0], "persistence skill should rise"
+
+
+def test_horizon2_uses_the_identical_forecasts():
+    """HORIZON-2 changed the baseline and nothing else."""
+    h1 = json.load(open(os.path.join(ROOT, "state", "horizon1.json")))
+    h2 = json.load(open(os.path.join(ROOT, "state", "horizon2.json")))
+    assert h1["issues"] == h2["issues"]
+    assert h1["instruments"] == h2["instruments"]
+    for a, b in zip(h1["curve"], h2["curve"]):
+        assert a["lead"] == b["lead"] and a["n"] == b["n"]
+        assert abs(a["rps_forecast"] - b["rps_forecast"]) < 1e-9, a["lead"]
+    assert h2["baseline_name"] == "persistence"
 
 
 def test_pages_execute_headlessly():

@@ -309,6 +309,10 @@ def build_payload(site, scorecard_counts, bulletin_no, issued,
         add(len(nw.get("awaiting") or []))
         add(len([m for m in (nw.get("membership") or [])
                  if m.get("member")]))
+    s2 = site.get("s2")
+    if s2:
+        for v in s2.values():
+            add(v)
     st = site.get("streak")
     if st:
         for v in st["totals"].values():

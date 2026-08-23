@@ -1307,5 +1307,32 @@
   "window": "2026-08",
   "note": "gate shut: DH1 hit, DH2 missed at 38.76 flips per decade. The registered diagnosis is falsified. The chatter was attributed to the geometric sojourn of a vanilla hidden Markov model; an explicit negative binomial sojourn with a hard five-day minimum, fitted by EM to mean stays of 42 to 86 business days per state, produced more flips rather than fewer, and the MAP segmentation that cannot contain a short run still flips 33.39 times per decade. The instability is in the daily features, not in the duration prior. The daily clock question is closed for the year. GATE-G12 was not reopened and the storm watch lamp is untouched: the watch is an alert, the chip is a state, and no chip appears",
   "hash": "898178f1ae2b0606"
+ },
+ {
+  "id": "REG-S2",
+  "group": "registration, recorded before estimation",
+  "status": "note",
+  "claim": "S2 is registered before computation. S2a: standardize the primary panel of every live instrument over its common sample, remove the first principal component, rerun the sparse map's rolling GFEVD on the residuals with its registered settings unchanged at 96 month windows stepped 6, and compare the mean directed within-sibling spillover to the mean directed between-sibling spillover against the unchanged bar of 1.5. S2b: on the same standardized panel, fast components are residuals from a centered 12 month moving average tested with the same windows and the same bar, and slow components are the moving averages themselves tested on a single full sample GFEVD and reported without a pass bar",
+  "window": "2026-08",
+  "note": "the diagnosis is S1's miss at a ratio of 1.34 against 1.5 on 14 instruments over 26 windows. The hypothesis under test is that the leak is the common factor and that Simon's thesis concerns residual structure; it is a hypothesis, not a reason to move the bar, and the bar is unchanged. Sibling sets are S1's four extended only where the composition tree names children that are now live: energy oil, gas, coal, uranium; currencies dollar, euro, yen, yuan, sterling; rates curve, real_yield, breakevens, inflation; metals gold, copper. Every other live instrument is ungrouped and contributes only to between-sibling pairs, exactly as equities and credit did under S1. em_dollar is deliberately not a currency sibling because it is not a child of the composition tree, and adding it would be inventing a family rather than extending one. The un-removed panel is also measured and published as a baseline so the effect of the removal is visible rather than asserted. One run, chained whichever way it falls.",
+  "hash": "1ed33f4bc51683e9"
+ },
+ {
+  "id": "S2a",
+  "group": "structural check, registered before computation",
+  "status": "miss",
+  "claim": "with the common factor removed, within-sibling mean spillover is at least 1.5 times between-sibling (Simon near-decomposability on residual structure)",
+  "window": "2009-2026, 18 windows, 22 instruments",
+  "note": "ratio 1.11, within 4.27 against between 3.85, on the panel with its first principal component removed. The same panel un-removed scores 1.31, so taking the common factor out made near-decomposability worse rather than better, and the registered hypothesis is falsified. The first principal component carries only 0.212 of panel variance and evidently carries within-family co-movement at least as much as cross-family. The bar was not moved",
+  "hash": "63ecedddf54a954d"
+ },
+ {
+  "id": "S2b",
+  "group": "structural check, registered before computation",
+  "status": "miss",
+  "claim": "the frequency split: fast components, residuals from a centered 12 month moving average, reach a within to between ratio of at least 1.5; slow components reported without a pass bar",
+  "window": "2009-2026, 22 instruments",
+  "note": "fast 1.38, within 5.14 against between 3.73, over 16 windows and 188 months: the best of the three measures and still short of the bar, so the check misses. Slow 1.28, within 4.84 against between 3.80, from a single full sample GFEVD over 188 months, published with no verdict claimed because the slow panel has too few effective observations for rolling windows. Ordering of the three ratios: fast 1.38, un-removed 1.31, common factor removed 1.11",
+  "hash": "811a862d56ecb689"
  }
 ]

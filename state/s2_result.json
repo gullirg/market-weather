@@ -1,0 +1,102 @@
+{
+ "nodes": [
+  "curve",
+  "real_yield",
+  "breakevens",
+  "copper",
+  "coal",
+  "uranium",
+  "euro",
+  "yen",
+  "yuan",
+  "sterling",
+  "em_dollar",
+  "activity",
+  "housing",
+  "money",
+  "claims",
+  "oil",
+  "gas",
+  "inflation",
+  "equities",
+  "gold",
+  "dollar",
+  "credit"
+ ],
+ "n_nodes": 22,
+ "sample": [
+  "2009-12",
+  "2026-06"
+ ],
+ "months": 199,
+ "bar": 1.5,
+ "siblings": {
+  "energy": [
+   "oil",
+   "gas",
+   "coal",
+   "uranium"
+  ],
+  "currencies": [
+   "dollar",
+   "euro",
+   "yen",
+   "yuan",
+   "sterling"
+  ],
+  "rates": [
+   "curve",
+   "real_yield",
+   "breakevens",
+   "inflation"
+  ],
+  "metals": [
+   "gold",
+   "copper"
+  ]
+ },
+ "s2a": {
+  "within_mean": 4.27,
+  "between_mean": 3.85,
+  "ratio": 1.11,
+  "n_within_pairs": 46,
+  "n_between_pairs": 416,
+  "id": "S2a",
+  "windows": 18,
+  "pc1_variance_share": 0.212,
+  "hit": false
+ },
+ "baseline_no_removal": {
+  "within_mean": 5.01,
+  "between_mean": 3.83,
+  "ratio": 1.31,
+  "n_within_pairs": 46,
+  "n_between_pairs": 416,
+  "id": "S2-baseline",
+  "windows": 18,
+  "hit": null
+ },
+ "s2b_fast": {
+  "within_mean": 5.14,
+  "between_mean": 3.73,
+  "ratio": 1.38,
+  "n_within_pairs": 46,
+  "n_between_pairs": 416,
+  "id": "S2b-fast",
+  "windows": 16,
+  "months": 188,
+  "hit": false
+ },
+ "s2b_slow": {
+  "within_mean": 4.84,
+  "between_mean": 3.8,
+  "ratio": 1.28,
+  "n_within_pairs": 46,
+  "n_between_pairs": 416,
+  "id": "S2b-slow",
+  "windows": 1,
+  "months": 188,
+  "hit": null,
+  "verdict": "none claimed: single full sample GFEVD, no pass bar registered"
+ }
+}

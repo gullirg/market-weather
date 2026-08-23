@@ -354,6 +354,15 @@ def cmd_month(args):
     except Exception as e:
         site["v3"] = None
         print("v3 layer degraded:", e)
+    s2p = os.path.join(STATE, "s2_result.json")
+    if os.path.exists(s2p):
+        s2 = json.load(open(s2p))
+        site["s2"] = {"baseline": s2["baseline_no_removal"]["ratio"],
+                      "pc1_removed": s2["s2a"]["ratio"],
+                      "fast": s2["s2b_fast"]["ratio"],
+                      "slow": s2["s2b_slow"]["ratio"],
+                      "bar": s2["bar"], "nodes": s2["n_nodes"],
+                      "windows": s2["s2a"]["windows"]}
     site["streak"] = _streak(load_scorecard())
     site["pendings"] = _pendings(load_scorecard())
     site["health"] = [{"feed": r_["feed"], "ok": not r_["FLAG"]}

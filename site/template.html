@@ -108,7 +108,8 @@
     (energy mix from the Energy Institute review; currency weights
     from BIS turnover, the dollar as numeraire). Leaf states are
     decoded through gates; parent readings are share-weighted
-    roll-ups and say so. Renewables enter share-only by design.</div>
+    roll-ups and say so. Renewables enter share-only by design.
+    <span id="s2note"></span></div>
 
   <h2>Analogues of now</h2>
   <div class="note">The months of the past whose full system state most
@@ -303,6 +304,16 @@ if(DATA.daily_shadow){
 }
 function sesc(x){return String(x==null?'':x).replace(/&/g,'&amp;')
   .replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+if(DATA.s2){
+  const q=DATA.s2;
+  document.getElementById('s2note').textContent=
+    ' S2 retested near-decomposability on residual structure and the '+
+    'registered hypothesis failed: taking the common factor out made '+
+    'the within to between ratio worse, '+q.pc1_removed+' against '+
+    q.baseline+' on the same panel un-removed, while the fast '+
+    'frequency band reached '+q.fast+' and the slow band '+q.slow+
+    ', all short of the bar of '+q.bar+'.';
+}
 const SDESC={};
 for(const G of SCORE)for(const R of G[2])SDESC[R[0]]=R[1];
 function sclaim(r){

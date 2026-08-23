@@ -118,6 +118,14 @@
   <div id="ana"></div>
   <div class="note" id="shadow"></div>
 
+  <h2 id="calibration">Are the confidences honest</h2>
+  <div class="note">Every instrument re-decoded month by month using
+    only the data available at the time, and the state it printed then
+    compared with the state the full record settled on. The curve is
+    the printed confidence against how often it was right. A point on
+    the diagonal is an honest number.</div>
+  <div id="caltbl"></div>
+
   <h2 id="scorecard-streak">The streak</h2>
   <div class="note">Scored forward-looking claims only, most recent
     first, under the definition chained as STREAK-DEF before this view
@@ -318,6 +326,27 @@ if(DATA.daily_shadow){
     '% against the 85% gate; measured median detection lead '+
     d.median_lead_bd+' business days at the pinned episode starts. '+
     'The daily state goes public only when the gate passes (G10).';
+}
+if(DATA.calibration){
+  const C=DATA.calibration;
+  let ch='<table><tr><th>printed confidence</th><th>mean printed</th>'+
+    '<th>how often right</th><th>months</th></tr>';
+  for(const b of C.curve)
+    ch+='<tr><td class="n">'+b.lo+' to '+b.hi+'</td><td class="n">'+
+      b.mean_p+'</td><td class="n">'+b.agreement+'</td>'+
+      '<td class="n">'+b.n+'</td></tr>';
+  ch+='</table><div class="note">Across '+C.n+' causal decodes the '+
+    'mean printed confidence is '+C.mean_p+' against a realized '+
+    'agreement of '+C.agreement+
+    ', so the printed numbers are if anything a little modest. '+
+    'Isotonic recalibration was fitted on the early years and '+
+    'validated on '+C.n_valid+' later months: Brier '+C.brier_raw+
+    ' raw against '+C.brier_calibrated+' recalibrated, a relative '+
+    'improvement of '+C.improvement+' against the registered '+
+    'adoption threshold of '+C.threshold+'. '+
+    (C.adopted?'Adopted.':'Not adopted, and the decoders are '+
+     'untouched either way.')+' Chained as CAL-1.</div>';
+  document.getElementById('caltbl').innerHTML=ch;
 }
 function sesc(x){return String(x==null?'':x).replace(/&/g,'&amp;')
   .replace(/</g,'&lt;').replace(/>/g,'&gt;');}

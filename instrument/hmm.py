@@ -54,6 +54,22 @@ class TemplateHMM:
         return np.exp(g - _logsumexp(g, 1)[:, None])
 
 
+    def filtered(self, X):
+        """Causal posterior: the state distribution at t given the
+        observations through t and nothing later. Additive; no live
+        decode path calls it. For fixed parameters this is exactly the
+        decode you would have had in real time at t, which is what the
+        calibration audit compares against."""
+        logB = self._loglik(np.asarray(X, float))
+        T = logB.shape[0]
+        la = np.zeros((T, self.k))
+        la[0] = -np.log(self.k) + logB[0]
+        for t in range(1, T):
+            la[t] = logB[t] + _logsumexp(la[t - 1][:, None] + self.logA, 0)
+            la[t] -= la[t].max()
+        return np.exp(la - _logsumexp(la, 1)[:, None])
+
+
 class SigmaHMM(TemplateHMM):
     def __init__(self, templates, sigmas, p_stay=0.90):
         super().__init__(templates, p_stay=p_stay)

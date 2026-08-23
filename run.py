@@ -354,6 +354,17 @@ def cmd_month(args):
     except Exception as e:
         site["v3"] = None
         print("v3 layer degraded:", e)
+    calp = os.path.join(STATE, "cal_result.json")
+    if os.path.exists(calp):
+        c = json.load(open(calp))
+        site["calibration"] = {
+            "n": c["n_total"], "n_valid": c["n_valid"],
+            "mean_p": c["raw_mean_p"], "agreement": c["raw_agreement"],
+            "brier_raw": c["brier_raw"],
+            "brier_calibrated": c["brier_calibrated"],
+            "improvement": c["relative_improvement"],
+            "threshold": c["threshold"], "adopted": c["adopted"],
+            "curve": [b for b in c["reliability"] if b["n"]]}
     s2p = os.path.join(STATE, "s2_result.json")
     if os.path.exists(s2p):
         s2 = json.load(open(s2p))

@@ -1424,5 +1424,23 @@
   "window": "2026-08",
   "note": "definitions fixed here so nothing can be chosen later. The pooled hazard h_pool is indexed by duration and synoptic state and is pooled over every instrument and every instrument state, since instrument state spaces differ and only duration and weather are common. The pooling target for a next-state distribution is that instrument and state's own unconditional next-state row, which is exactly forecaster M's, because next states must live in the instrument's own state space. The synoptic path is itself simulated from forecaster M's semi-Markov structure for the synoptic series, and one shared set of simulated synoptic paths conditions every instrument, so instruments are conditioned on a common weather rather than on independent weathers. Seeding is deterministic from the asof month as for M and A. C first issues with the 2026Q4 outlook and cannot join the frozen 2026Q3 issue, which predates it; the Q3 file is not touched. C is scored from 2027Q1 on the same RPSS schedule as M and A. Success gate for C, registered now: C beats both M and A on three month RPSS in each of its first two scored quarters. Nothing is estimated or scored by this entry.",
   "hash": "3264d54c9da44b12"
+ },
+ {
+  "id": "REG-CAL",
+  "group": "registration, recorded before estimation",
+  "status": "note",
+  "claim": "the calibration audit is registered before it is run. For every live instrument and every month t from 1998-01, the first month of the published site window, through the asof month, the instrument is decoded using observations through t only, an expanding window with the existing decoder unchanged, and the causal modal state and its maximum posterior p are recorded. The ground truth label at t is the final full sample modal state at t. Reliability: p is bucketed into deciles and the agreement frequency per bucket is measured and published on the record page. Recalibration: an isotonic regression of agreement on p is fitted on months before 2015-01 only and validated on 2015-01 onward. Adoption rule: the recalibrated posteriors are applied to displayed confidences, display layer only with the decoders untouched, if and only if the validation Brier score improves by at least 5 percent relative to raw",
+  "window": "2026-08",
+  "note": "the diagnosis is that no confidence number this system prints has ever been audited against outcomes. Two implementation facts disclosed before the run. First, the expanding-window decode is computed as a single forward pass per instrument rather than as one truncated decode per month: for fixed parameters the endpoint of a smoothed decode on observations through t is exactly the filtered posterior at t, an identity verified numerically to five parts in ten to the fifteenth, so this is exact and not an approximation. Second, the EM-fitted per-state spreads and the deflator splice constant are held at their full sample values and only the observation window expands, because the legacy decoders are untouchable under this campaign's first invariant. Those two are residual look-ahead in the audit and are named here rather than discovered later: the audit therefore measures whether smoothing inflates the printed confidence, not whether the parameter estimates themselves would have differed in real time. CAL-1 carries the validation numbers and the adoption verdict whichever way it falls.",
+  "hash": "e7c63b743757d9a9"
+ },
+ {
+  "id": "CAL-1",
+  "group": "calibration audit, registered before estimation",
+  "status": "miss",
+  "claim": "the recalibrated posteriors are adopted for displayed confidences if and only if the validation Brier score improves by at least 5 percent relative to raw",
+  "window": "1998-2026, 22 instruments",
+  "note": "not adopted. Validation Brier raw 0.09854 against calibrated 0.09841, a relative improvement of 0.0013, far below the registered threshold of 0.05. The isotonic map was fitted on 3769 causal decodes from 1998-01 to 2014-12 and validated on 3061 from 2015-01 to 2026-08, 6830 in total across all 22 live instruments. The reason there is nothing to fix: the printed confidences are already close to honest and, if anything, slightly under-confident. Over the whole audit the mean printed confidence is 0.8382 against a realized agreement of 0.8553, and the decile curve tracks the diagonal: 0.470 prints 0.461, 0.552 prints 0.558, 0.652 prints 0.638, 0.753 prints 0.720, 0.855 prints 0.885 and 0.962 prints 0.990. The check is scored a miss because its registered adoption condition was not met, not because the instrument failed: this is the first audit of any confidence number this system prints and it found them sound. Decoders are untouched either way",
+  "hash": "80417d51e3ed4da6"
  }
 ]

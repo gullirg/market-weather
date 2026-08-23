@@ -309,6 +309,15 @@ def build_payload(site, scorecard_counts, bulletin_no, issued,
         add(len(nw.get("awaiting") or []))
         add(len([m for m in (nw.get("membership") or [])
                  if m.get("member")]))
+    cb = site.get("calibration")
+    if cb:
+        for k, v in cb.items():
+            if isinstance(v, (int, float)):
+                add(v)
+        for b in cb.get("curve", []):
+            for k in ("lo", "hi", "n", "mean_p", "agreement"):
+                if b.get(k) is not None:
+                    add(b[k])
     s2 = site.get("s2")
     if s2:
         for v in s2.values():

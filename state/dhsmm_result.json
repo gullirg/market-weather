@@ -1,0 +1,69 @@
+{
+ "checks": [
+  {
+   "id": "DH1",
+   "value": {
+    "captured": {
+     "1990-08": true,
+     "2008-10": true,
+     "2014-11": false,
+     "2020-03": true,
+     "2026-03": true
+    },
+    "n": 4
+   },
+   "hit": true
+  },
+  {
+   "id": "DH2",
+   "value": {
+    "flips": 137,
+    "eligible_bd": 8906,
+    "per_decade": 38.76
+   },
+   "hit": false
+  },
+  {
+   "id": "DH3",
+   "value": {
+    "median_run_bd": 35.0,
+    "runs": 147
+   },
+   "hit": false
+  }
+ ],
+ "diagnostic": {
+  "id": "DH2b",
+  "diagnostic": true,
+  "value": {
+   "flips": 118,
+   "eligible_bd": 8906,
+   "per_decade": 33.39,
+   "median_run_bd": 54.5,
+   "runs": 128,
+   "min_run_bd": 5,
+   "captured": 3
+  },
+  "hit": null
+ },
+ "gate": "closed",
+ "current": {
+  "family": "downturn",
+  "prob": 0.99,
+  "date": "2026-08-11"
+ },
+ "span": [
+  "1989-07-20",
+  "2026-08-11"
+ ],
+ "fit": {
+  "iterations": 27,
+  "loglik": -31773.87,
+  "mean_sojourn_bd": {
+   "calm": 83.6,
+   "boom": 86.1,
+   "fear": 71.1,
+   "downturn": 42.4
+  }
+ }
+}

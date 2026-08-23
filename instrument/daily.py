@@ -139,6 +139,17 @@ Registered checks, scored once, published whichever way they fall:
       business days.
   DH3 Persistence. The median family run length over the whole
       filtered series is at least 40 business days.
+  DH2b Diagnostic only, not a gate. The same flip budget measured on
+      the model's MAP segmentation instead of the filtered marginal.
+      Registered as an amendment before estimation, after software
+      validation on synthetic data showed that a filtered marginal
+      does not inherit the model's minimum stay: the segmentation
+      cannot contain a run shorter than five business days, but the
+      day-by-day argmax of the filtered posterior can still
+      oscillate across an uncertain boundary. DH2b separates the
+      sojourn hypothesis from the decoder's point-estimate rule.
+      It is published whichever way it falls and it does not open
+      the gate.
 
 Registered public gate: the daily family chip appears on the site
 only if DH1 and DH2 both hit. The G12 gate is not reopened by this
@@ -440,3 +451,101 @@ def run_g12(data_dir, asof):
                         "prob": round(float(prob.iloc[-1]), 2),
                         "date": str(fam.index[-1].date())},
             "span": [str(fam.index[0].date()), str(fam.index[-1].date())]}
+
+
+# ------------------------------------------------------ D-HSMM v1
+DHSMM_STATES = list(G12_STATES)
+DHSMM_DMIN = 5
+DHSMM_DMAX = 250
+DHSMM_MAXIT = 60
+DHSMM_TOL = 1e-5
+DHSMM_INIT_MEAN_EXTRA = 35.0     # initial mean of d minus d_min
+
+
+def _capture(fam, periods, episodes, window_bd):
+    caps = {}
+    for start, target in episodes:
+        M = pd.Period(start, "M")
+        pos = np.where(periods == M)[0]
+        if len(pos) == 0:
+            caps[start] = None
+            continue
+        i = int(pos[0])
+        caps[start] = bool((fam.iloc[i:i + window_bd + 1] == target).any())
+    return caps
+
+
+def _flip_rate(fam, periods, episodes, halo_m, decade_bd):
+    excl = set()
+    for start, _t in episodes:
+        M = pd.Period(start, "M")
+        for j in range(-halo_m, halo_m + 1):
+            excl.add(M + j)
+    elig = np.array([p not in excl for p in periods])
+    v = fam.to_numpy()
+    flips = int(sum(1 for t in range(1, len(v))
+                    if elig[t] and elig[t - 1] and v[t] != v[t - 1]))
+    n = int(elig.sum())
+    rate = (flips / (n / decade_bd)) if n else None
+    return flips, n, rate
+
+
+def run_dhsmm(data_dir, asof, verbose=False):
+    """One estimation, one scoring of DH1, DH2, DH3 and DH2b."""
+    from instrument.hsmm import HSMM
+    f = build_g12_panel(data_dir, asof)
+    X = f.to_numpy(float)
+    s0 = np.where(~np.isnan(X[:, 0]))[0][0]
+    X, idx = X[s0:], f.index[s0:]
+    periods = pd.PeriodIndex(idx, freq="M")
+    K = G12_T.shape[0]
+    A0 = (np.full((K, K), 1.0) - np.eye(K)) / (K - 1)
+    r0 = np.full(K, 3.0)
+    p0 = r0 / (r0 + DHSMM_INIT_MEAN_EXTRA)
+    m = HSMM(mu=G12_T.copy(), var=np.ones_like(G12_T), A=A0,
+             r=r0, p=p0, d_min=DHSMM_DMIN, d_max=DHSMM_DMAX)
+    m.fit(X, max_iter=DHSMM_MAXIT, tol=DHSMM_TOL, verbose=verbose)
+    post = m.filtered(X)
+    fam_f = pd.Series([DHSMM_STATES[i] for i in post.argmax(1)],
+                      index=idx)
+    fam_m = pd.Series([DHSMM_STATES[i] for i in m.map_segmentation(X)],
+                      index=idx)
+
+    caps = _capture(fam_f, periods, G12_EPISODES, G12_CAPTURE_BD)
+    got = sum(1 for v in caps.values() if v)
+    dh1 = {"id": "DH1", "value": {"captured": caps, "n": got},
+           "hit": bool(got >= 4)}
+    flips, nd, rate = _flip_rate(fam_f, periods, G12_EPISODES,
+                                 G12_HALO_M, G12_DECADE_BD)
+    dh2 = {"id": "DH2", "value": {"flips": flips, "eligible_bd": nd,
+                                  "per_decade": round(rate, 2)},
+           "hit": bool(rate is not None and rate <= 6)}
+    lens = _runs(fam_f)
+    med = float(np.median(lens))
+    dh3 = {"id": "DH3", "value": {"median_run_bd": med,
+                                  "runs": len(lens)},
+           "hit": bool(med >= 40)}
+    flips_b, nd_b, rate_b = _flip_rate(fam_m, periods, G12_EPISODES,
+                                       G12_HALO_M, G12_DECADE_BD)
+    lens_b = _runs(fam_m)
+    caps_b = _capture(fam_m, periods, G12_EPISODES, G12_CAPTURE_BD)
+    dh2b = {"id": "DH2b", "diagnostic": True,
+            "value": {"flips": flips_b, "eligible_bd": nd_b,
+                      "per_decade": round(rate_b, 2),
+                      "median_run_bd": float(np.median(lens_b)),
+                      "runs": len(lens_b),
+                      "min_run_bd": int(min(lens_b)),
+                      "captured": sum(1 for v in caps_b.values() if v)},
+            "hit": None}
+    gate = "open" if (dh1["hit"] and dh2["hit"]) else "closed"
+    return {"checks": [dh1, dh2, dh3], "diagnostic": dh2b, "gate": gate,
+            "current": {"family": fam_f.iloc[-1],
+                        "prob": round(float(post[-1].max()), 2),
+                        "date": str(fam_f.index[-1].date())},
+            "span": [str(idx[0].date()), str(idx[-1].date())],
+            "fit": {"iterations": m.iterations,
+                    "loglik": round(float(m.loglik_history[-1]), 2),
+                    "mean_sojourn_bd": {
+                        DHSMM_STATES[k]: round(float(
+                            DHSMM_DMIN + m.r[k] * (1 - m.p[k]) / m.p[k]), 1)
+                        for k in range(K)}}}

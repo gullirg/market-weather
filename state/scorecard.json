@@ -1253,5 +1253,59 @@
   "window": "2026-08",
   "note": "the diagnosis is on the chain: G12-D2 failed at 32.26 family flips per decade against a budget of 6 while G12-D1 and G12-D3 hit, and the mechanism is the geometric sojourn of a vanilla hidden Markov model. Labelling is fixed before estimation: emission means are initialized at the G12 family templates and each fitted component keeps its template's label. The decode is filtered and causal, the same semantics G12 used, so the flip rate is comparable and the sojourn model is the only thing that changed. Three held-out checks fixed here: DH1 episode capture within 25 business days for at least 4 of the 5 pinned episodes, DH2 at most 6 family flips per decade outside the pinned months and their 3-month halos, DH3 median family run at least 40 business days. The public gate is DH1 and DH2 both hitting. GATE-G12 is not reopened and its fail stands; this is a new instrument attempting the same question.",
   "hash": "397909a8f950942d"
+ },
+ {
+  "id": "REG-DHSMM-AMEND",
+  "group": "registration, recorded before estimation",
+  "status": "note",
+  "claim": "DH2b is added to the D-HSMM registration before any estimation: the registered flip budget measured on the model's MAP segmentation rather than on the filtered marginal, published as a diagnostic and explicitly not part of the gate",
+  "window": "2026-08",
+  "note": "reason, disclosed before the estimation run: software validation of the engine on synthetic data with a known ground truth showed that the filtered marginal does not inherit the model's minimum stay. The MAP segmentation cannot contain a run shorter than five business days by construction, and on the synthetic series it recovered the true segmentation exactly, 196 runs against 196 true runs; the filtered argmax of the same fitted model produced 262 runs. Nothing about the real daily panel has been estimated or seen. DH1, DH2 and DH3 are unchanged and still measured on the filtered causal decode, and the public gate is still DH1 and DH2 both hitting, so this amendment makes no test easier. DH2b exists so that a DH2 failure can be attributed either to the sojourn model or to the point-estimate rule rather than to both at once.",
+  "hash": "4595e207ad578139"
+ },
+ {
+  "id": "DH1",
+  "group": "D-HSMM checks, registered before estimation",
+  "status": "hit",
+  "claim": "the D-HSMM daily family flips into each pinned episode's family within 25 business days, at least 4 of 5",
+  "window": "held-out",
+  "note": "4 of 5 captured: 1990-08 fear, 2008-10 downturn, 2020-03 downturn and 2026-03 fear were caught; 2014-11 downturn, the shale glut, was not",
+  "hash": "83a37d2a221d267c"
+ },
+ {
+  "id": "DH2",
+  "group": "D-HSMM checks, registered before estimation",
+  "status": "miss",
+  "claim": "outside the pinned episodes and their 3-month halos, no more than 6 D-HSMM family flips per decade",
+  "window": "held-out",
+  "note": "38.76 per decade: 137 flips over 8906 eligible business days, against a budget of 6 and against the 32.26 that G12 recorded on the same measure. The explicit sojourn model did not reduce the chatter; it slightly increased it",
+  "hash": "a4325135b042a1ac"
+ },
+ {
+  "id": "DH3",
+  "group": "D-HSMM checks, registered before estimation",
+  "status": "miss",
+  "claim": "median D-HSMM family run at least 40 business days",
+  "window": "held-out",
+  "note": "35.0 business days over 147 runs, below the floor of 40 and below the 46.0 G12 recorded",
+  "hash": "8be0f76d59631ee7"
+ },
+ {
+  "id": "DH2b",
+  "group": "D-HSMM diagnostic, registered before estimation",
+  "status": "note",
+  "claim": "the same flip budget measured on the model's MAP segmentation rather than the filtered marginal, published as a diagnostic and not as a gate",
+  "window": "held-out",
+  "note": "33.39 per decade: 118 flips over the same 8906 eligible business days, median run 54.5 business days over 128 runs, shortest run 5 business days as the model requires. The segmentation therefore honours the minimum stay exactly and still flips more than five times the budget, and it captures only 3 of the 5 pinned episodes. The point-estimate rule is not the problem",
+  "hash": "8d5e7845e81922b1"
+ },
+ {
+  "id": "DH-GATE",
+  "group": "D-HSMM public gate, registered before estimation",
+  "status": "fail",
+  "claim": "the public daily family chip appears only if DH1 and DH2 both hit",
+  "window": "2026-08",
+  "note": "gate shut: DH1 hit, DH2 missed at 38.76 flips per decade. The registered diagnosis is falsified. The chatter was attributed to the geometric sojourn of a vanilla hidden Markov model; an explicit negative binomial sojourn with a hard five-day minimum, fitted by EM to mean stays of 42 to 86 business days per state, produced more flips rather than fewer, and the MAP segmentation that cannot contain a short run still flips 33.39 times per decade. The instability is in the daily features, not in the duration prior. The daily clock question is closed for the year. GATE-G12 was not reopened and the storm watch lamp is untouched: the watch is an alert, the chip is a state, and no chip appears",
+  "hash": "898178f1ae2b0606"
  }
 ]

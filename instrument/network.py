@@ -97,6 +97,43 @@ claims: ICSA weekly to monthly mean, feature series -100*log(claims)
   Checks chosen from labour-market history alone; the series was not
   decoded before they were written and chained.
 
+Commodity v2, registered under the performance-1 campaign before any
+estimation of it. Diagnosis on the chain: copper v1 missed CO3, the
+2014-16 slow grind, with calm dominant and a bust share of 0.44,
+because three and twelve month momentum cannot see an eighteen month
+drift. Coal shares the feature set and plausibly the blind spot.
+Uranium is 3 of 3 with no recorded weakness and is not churned.
+
+copper v2 and coal v2 keep the two momentum features and add a third:
+the rolling z, 120 month window with a 24 month minimum, of log real
+price minus its own trailing 60 month mean of log real price. States
+and templates extend to three dimensions: calm [0, 0, 0], boom
+[0.9, 1.0, 0.8], bust [-1.0, -1.1, -0.9]. Everything else about the
+decoder, including the deflator splice and the masked-dimension
+handling, is unchanged.
+
+Held-out checks, fixed here before estimation:
+  copper v2: CV1 2014-09..2016-02 bust dominant, the diagnosed
+    window; CV2 1996-06..1998-12 bust dominant; CV3 2020-11..2021-06
+    boom dominant.
+  coal v2: CB1 2013-01..2015-12 bust dominant, the diagnosed window;
+    CB2 2016-07..2016-11 boom present; CB3 2020-03..2020-08 bust
+    present.
+
+Registered replacement rule: v2 replaces v1 in the live network only
+if it scores at least 2 of 3 AND hits its first check, the diagnosed
+window. Otherwise v1 stays and the attempt is chained as it fell. A
+replacement is recorded by an explicit REPLACE entry naming the
+version bump and the reason; v1's scored record stays on the chain
+forever and the record page keeps its rows.
+
+Disclosed before the run: the third feature needs sixty months of
+history before its rolling z can start, so it first exists in
+1998-11. CV2's window is 1996-06 to 1998-12, which means all but its
+last two months decode with the third dimension masked. CV2 is
+therefore a regression guard on the old features rather than a test
+of the new one. The window is registered as given and is not moved.
+
 Blocks (registered): energy {oil, gas}; rates_expectations {curve,
 real_yield, breakevens, inflation}; credit {credit}; fx {dollar,
 em_dollar}; equities {equities}; metals {gold, copper}; activity
@@ -183,24 +220,30 @@ REGISTRY = {
                    ("BE2", "2021-01", "2021-05", "reflation", "dom"),
                    ("BE3", "2020-03", "2020-04", "deflation_scare",
                     "pres")]},
+    # v2 since REPLACE-copper, 2026-08. v1's checks CO1, CO2 and CO3
+    # stay scored on the chain and are never re-run against v2.
     "copper": {
         "block": "metals",
-        "build": lambda F, defl: _mom(F["_copper"].dropna(), defl),
+        "version": 2,
+        "build": lambda F, defl: _mom3(F["_copper"].dropna(), defl),
         "needs": ["copper.csv"],
         "states": ["calm", "boom", "bust"],
-        "T": [[0.0, 0.0], [0.9, 1.0], [-1.0, -1.1]],
-        "checks": [("CO1", "2003-10", "2006-06", "boom", "dom"),
-                   ("CO2", "2008-10", "2009-03", "bust", "dom"),
-                   ("CO3", "2014-09", "2016-02", "bust", "dom")]},
+        "T": [[0.0, 0.0, 0.0], [0.9, 1.0, 0.8], [-1.0, -1.1, -0.9]],
+        "checks": [("CV1", "2014-09", "2016-02", "bust", "dom"),
+                   ("CV2", "1996-06", "1998-12", "bust", "dom"),
+                   ("CV3", "2020-11", "2021-06", "boom", "dom")]},
+    # v2 since REPLACE-coal, 2026-08. v1's checks CL1, CL2 and CL3
+    # stay scored on the chain and are never re-run against v2.
     "coal": {
         "block": "energy",
-        "build": lambda F, defl: _mom(F["_coal"].dropna(), defl),
+        "version": 2,
+        "build": lambda F, defl: _mom3(F["_coal"].dropna(), defl),
         "needs": ["coal.csv"],
         "states": ["calm", "boom", "bust"],
-        "T": [[0.0, 0.0], [0.9, 1.0], [-1.0, -1.1]],
-        "checks": [("CL1", "2008-01", "2008-09", "boom", "dom"),
-                   ("CL2", "2020-03", "2020-08", "bust", "pres"),
-                   ("CL3", "2021-06", "2022-09", "boom", "dom")]},
+        "T": [[0.0, 0.0, 0.0], [0.9, 1.0, 0.8], [-1.0, -1.1, -0.9]],
+        "checks": [("CB1", "2013-01", "2015-12", "bust", "dom"),
+                   ("CB2", "2016-07", "2016-11", "boom", "pres"),
+                   ("CB3", "2020-03", "2020-08", "bust", "pres")]},
     "uranium": {
         "block": "energy",
         "build": lambda F, defl: _mom(F["_uranium"].dropna(), defl),
@@ -313,6 +356,84 @@ REGISTRY = {
                    ("CJ2", "2020-03", "2020-05", "contraction", "pres"),
                    ("CJ3", "2022-01", "2022-06", "expansion", "pres")]},
 }
+def _mom3(series, defl):
+    """v2 features: the two momentum z-scores plus the gap between log
+    real price and its own trailing 60 month mean."""
+    lp = np.log(series / defl.reindex(series.index).ffill())
+    gap = lp - lp.rolling(60, min_periods=60).mean()
+    return pd.DataFrame({
+        "m3": rolling_z(lp.diff(3), 120, 24),
+        "m12": rolling_z(lp.diff(12), 120, 24),
+        "gap": rolling_z(gap, 120, 24)})
+
+
+REGISTRY_V2 = {
+    "copper": {
+        "block": "metals",
+        "build": lambda F, defl: _mom3(F["_copper"].dropna(), defl),
+        "needs": ["copper.csv"],
+        "states": ["calm", "boom", "bust"],
+        "T": [[0.0, 0.0, 0.0], [0.9, 1.0, 0.8], [-1.0, -1.1, -0.9]],
+        "checks": [("CV1", "2014-09", "2016-02", "bust", "dom"),
+                   ("CV2", "1996-06", "1998-12", "bust", "dom"),
+                   ("CV3", "2020-11", "2021-06", "boom", "dom")]},
+    "coal": {
+        "block": "energy",
+        "build": lambda F, defl: _mom3(F["_coal"].dropna(), defl),
+        "needs": ["coal.csv"],
+        "states": ["calm", "boom", "bust"],
+        "T": [[0.0, 0.0, 0.0], [0.9, 1.0, 0.8], [-1.0, -1.1, -0.9]],
+        "checks": [("CB1", "2013-01", "2015-12", "bust", "dom"),
+                   ("CB2", "2016-07", "2016-11", "boom", "pres"),
+                   ("CB3", "2020-03", "2020-08", "bust", "pres")]},
+}
+
+
+def decode_v2(data_dir, asof, name):
+    """Decode one v2 candidate and score its registered checks. Does
+    not touch the live network: replacement is a separate, explicit
+    step under the registered rule."""
+    spec = REGISTRY_V2[name]
+    A = pd.Period(asof, "M")
+    F = nodes.load_feeds(data_dir)
+    F = _load_extra(data_dir, F)
+    defl = nodes._splice_deflator(F)
+    f = spec["build"](F, defl).loc[:A]
+    T = np.asarray(spec["T"], float)
+    h = TemplateHMM(T, p_stay=0.90)
+    X = f.to_numpy(float)
+    ok = np.where((~np.isnan(X)).any(1))[0]
+    X, ni = X[ok[0]:], f.index[ok[0]:]
+    Xc = X.copy()
+    Xc[~np.isfinite(Xc)] = np.nan
+    po = h.posteriors(Xc)
+    pred = pd.Series([spec["states"][i] for i in po.argmax(1)], index=ni)
+    pv = f.iloc[:, 0].dropna()
+    if len(pv):
+        pred = pred.loc[:pv.index[-1]]
+    checks, hits = [], 0
+    for cid, a, b, target, mode in spec["checks"]:
+        w = pred.loc[pd.Period(a, "M"):pd.Period(b, "M")].dropna()
+        if len(w) == 0:
+            checks.append({"id": cid, "hit": False, "note": "no data"})
+            continue
+        dom = w.value_counts().index[0]
+        hit = (dom == target if mode == "dom"
+               else bool((w == target).any()))
+        hits += int(hit)
+        checks.append({"id": cid, "node": name, "target": target,
+                       "mode": mode, "dominant": dom,
+                       "share": round(float((w == target).mean()), 2),
+                       "hit": bool(hit)})
+    first = checks[0]
+    earned = bool(hits >= 2 and first.get("hit"))
+    return {"name": name, "checks": checks, "hits": hits,
+            "of": len(spec["checks"]), "replaces_v1": earned,
+            "span": [str(pred.index[0]), str(pred.index[-1])],
+            "current": {"state": pred.iloc[-1],
+                        "asof": str(pred.index[-1])}}
+
+
 BLOCKS = {"energy": ["oil", "gas", "coal", "uranium"],
           "rates_expectations": ["curve", "real_yield", "breakevens",
                                  "inflation"],

@@ -1334,5 +1334,86 @@
   "window": "2009-2026, 22 instruments",
   "note": "fast 1.38, within 5.14 against between 3.73, over 16 windows and 188 months: the best of the three measures and still short of the bar, so the check misses. Slow 1.28, within 4.84 against between 3.80, from a single full sample GFEVD over 188 months, published with no verdict claimed because the slow panel has too few effective observations for rolling windows. Ordering of the three ratios: fast 1.38, un-removed 1.31, common factor removed 1.11",
   "hash": "811a862d56ecb689"
+ },
+ {
+  "id": "REG-COMMODITY-V2",
+  "group": "registration, recorded before estimation",
+  "status": "note",
+  "claim": "copper v2 and coal v2 are registered before any estimation of them: the two existing momentum features plus a third, the rolling z over a 120 month window with a 24 month minimum of log real price minus its own trailing 60 month mean of log real price, with templates extended to calm [0, 0, 0], boom [0.9, 1.0, 0.8] and bust [-1.0, -1.1, -0.9]. Held-out checks: copper CV1 2014-09..2016-02 bust dominant, CV2 1996-06..1998-12 bust dominant, CV3 2020-11..2021-06 boom dominant; coal CB1 2013-01..2015-12 bust dominant, CB2 2016-07..2016-11 boom present, CB3 2020-03..2020-08 bust present",
+  "window": "2026-08",
+  "note": "the diagnosis is on the chain: copper v1 missed CO3, the 2014-16 slow grind, with calm dominant and a bust share of 0.44, because three and twelve month momentum cannot see an eighteen month drift; coal shares the feature set and plausibly the blind spot. Uranium is 3 of 3 with no recorded weakness and is not churned. Registered replacement rule: v2 replaces v1 in the live network only if it scores at least 2 of 3 and also hits its first check, the diagnosed window; otherwise v1 stays and the attempt is chained as it fell. Disclosed before the run: the third feature needs sixty months of history before its rolling z can start and first exists in 1998-11, so all but the last two months of CV2's window decode with the third dimension masked, making CV2 a regression guard on the old features rather than a test of the new one. The window is registered as given and is not moved. v1's scored record stays on the chain forever and the record page keeps its rows whatever happens.",
+  "hash": "18323e5e405492c0"
+ },
+ {
+  "id": "CV1",
+  "group": "commodity v2 checks, registered before estimation",
+  "status": "hit",
+  "claim": "copper v2 names the 2014-16 slow grind, the window copper v1 missed",
+  "window": "held-out",
+  "note": "dominant bust at share 1.00, against v1's calm dominant with a bust share of 0.44 on the same window",
+  "hash": "b768f22f75ce9e2c"
+ },
+ {
+  "id": "CV2",
+  "group": "commodity v2 checks, registered before estimation",
+  "status": "hit",
+  "claim": "copper v2 names the 1996-98 slide",
+  "window": "held-out",
+  "note": "dominant bust at share 0.68. Registered as a regression guard: all but the last two months of this window predate the third feature and decode with it masked",
+  "hash": "1c0727041eb46399"
+ },
+ {
+  "id": "CV3",
+  "group": "commodity v2 checks, registered before estimation",
+  "status": "hit",
+  "claim": "copper v2 names the 2020-21 reflation boom",
+  "window": "held-out",
+  "note": "dominant boom at share 1.00",
+  "hash": "11103429c3d5eff5"
+ },
+ {
+  "id": "CB1",
+  "group": "commodity v2 checks, registered before estimation",
+  "status": "hit",
+  "claim": "coal v2 names the 2013-15 slow bust",
+  "window": "held-out",
+  "note": "dominant bust at share 1.00",
+  "hash": "2b5cbf6ba045a67f"
+ },
+ {
+  "id": "CB2",
+  "group": "commodity v2 checks, registered before estimation",
+  "status": "hit",
+  "claim": "coal v2 sees the 2016 rally",
+  "window": "held-out",
+  "note": "present at share 0.80, dominant boom",
+  "hash": "d73ddbe14f386c4b"
+ },
+ {
+  "id": "CB3",
+  "group": "commodity v2 checks, registered before estimation",
+  "status": "hit",
+  "claim": "coal v2 sees the 2020 Covid bust",
+  "window": "held-out",
+  "note": "present at share 1.00, dominant bust",
+  "hash": "d08c2f4a1be4d3ca"
+ },
+ {
+  "id": "REPLACE-copper",
+  "group": "instrument replacement, registered rule",
+  "status": "hit",
+  "claim": "copper v2 replaces copper v1 in the live network",
+  "window": "2026-08",
+  "note": "earned under the registered rule: 3 of 3 checks and a hit on the diagnosed window CV1. The version bump adds one feature, the rolling z of log real price against its own trailing sixty month mean, which is the drift the momentum pair could not see. The reason is CO3, copper v1's recorded miss on 2014-16. v1's record stands unchanged on the chain and on the record page: CO1 hit, CO2 hit, CO3 miss. The v1 checks are not re-run against v2 and no scored result is revised",
+  "hash": "6f00b4a0ca26e19a"
+ },
+ {
+  "id": "REPLACE-coal",
+  "group": "instrument replacement, registered rule",
+  "status": "hit",
+  "claim": "coal v2 replaces coal v1 in the live network",
+  "window": "2026-08",
+  "note": "earned under the registered rule: 3 of 3 checks and a hit on the diagnosed window CB1. Coal was replaced on the shared-feature-set hypothesis rather than on a recorded miss of its own; coal v1 was 3 of 3 and its record stands unchanged. The v1 checks are not re-run against v2 and no scored result is revised",
+  "hash": "9c635754ce6a70be"
  }
 ]

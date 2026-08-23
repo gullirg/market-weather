@@ -1,0 +1,88 @@
+{
+ "copper": {
+  "name": "copper",
+  "checks": [
+   {
+    "id": "CV1",
+    "node": "copper",
+    "target": "bust",
+    "mode": "dom",
+    "dominant": "bust",
+    "share": 1.0,
+    "hit": true
+   },
+   {
+    "id": "CV2",
+    "node": "copper",
+    "target": "bust",
+    "mode": "dom",
+    "dominant": "bust",
+    "share": 0.68,
+    "hit": true
+   },
+   {
+    "id": "CV3",
+    "node": "copper",
+    "target": "boom",
+    "mode": "dom",
+    "dominant": "boom",
+    "share": 1.0,
+    "hit": true
+   }
+  ],
+  "hits": 3,
+  "of": 3,
+  "replaces_v1": true,
+  "span": [
+   "1994-03",
+   "2026-07"
+  ],
+  "current": {
+   "state": "boom",
+   "asof": "2026-07"
+  }
+ },
+ "coal": {
+  "name": "coal",
+  "checks": [
+   {
+    "id": "CB1",
+    "node": "coal",
+    "target": "bust",
+    "mode": "dom",
+    "dominant": "bust",
+    "share": 1.0,
+    "hit": true
+   },
+   {
+    "id": "CB2",
+    "node": "coal",
+    "target": "boom",
+    "mode": "pres",
+    "dominant": "boom",
+    "share": 0.8,
+    "hit": true
+   },
+   {
+    "id": "CB3",
+    "node": "coal",
+    "target": "bust",
+    "mode": "pres",
+    "dominant": "bust",
+    "share": 1.0,
+    "hit": true
+   }
+  ],
+  "hits": 3,
+  "of": 3,
+  "replaces_v1": true,
+  "span": [
+   "1994-03",
+   "2026-07"
+  ],
+  "current": {
+   "state": "calm",
+   "asof": "2026-07"
+  }
+ }
+}

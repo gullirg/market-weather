@@ -355,7 +355,36 @@ def test_network_membership_scored():
     for m in nw["membership"]:
         assert m["of"] >= 2 and isinstance(m["member"], bool)
     ids = {c["id"] for c in nw["checks"] if "id" in c}
-    assert {"CU1", "RY1", "BE1", "CO1"} <= ids
+    # the governing first check of each of these four instruments must
+    # be reported. Taken from the registry rather than hard-coded, so a
+    # registered version bump moves the assertion with it instead of
+    # having to be edited: copper reported CO1 as v1 and reports CV1
+    # since REPLACE-copper.
+    from instrument import network as _net
+    governing = {_net.REGISTRY[n]["checks"][0][0]
+                 for n in ("curve", "real_yield", "breakevens", "copper")}
+    assert governing <= ids, (governing - ids)
+
+
+def test_replaced_instruments_do_not_rerun_v1_checks():
+    """A version bump must never re-score the version it replaced: the
+    v1 results stay on the chain and are not recomputed by the live
+    decoder."""
+    import json
+    from instrument import network as _net
+    nw = json.load(open("state/network.json"))
+    ids = {c["id"] for c in nw["checks"] if "id" in c}
+    retired = {"copper": ["CO1", "CO2", "CO3"],
+               "coal": ["CL1", "CL2", "CL3"]}
+    for name, old in retired.items():
+        if _net.REGISTRY[name].get("version", 1) >= 2:
+            assert not (set(old) & ids), (name, set(old) & ids)
+    chain = json.load(open(os.path.join(ROOT, "state", "scorecard.json")))
+    chained = {e["id"] for e in chain}
+    for name, old in retired.items():
+        if _net.REGISTRY[name].get("version", 1) >= 2:
+            assert set(old) <= chained, name
+            assert f"REPLACE-{name}" in chained, name
 
 
 def test_sparse_map_structure():

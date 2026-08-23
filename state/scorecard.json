@@ -1442,5 +1442,14 @@
   "window": "1998-2026, 22 instruments",
   "note": "not adopted. Validation Brier raw 0.09854 against calibrated 0.09841, a relative improvement of 0.0013, far below the registered threshold of 0.05. The isotonic map was fitted on 3769 causal decodes from 1998-01 to 2014-12 and validated on 3061 from 2015-01 to 2026-08, 6830 in total across all 22 live instruments. The reason there is nothing to fix: the printed confidences are already close to honest and, if anything, slightly under-confident. Over the whole audit the mean printed confidence is 0.8382 against a realized agreement of 0.8553, and the decile curve tracks the diagonal: 0.470 prints 0.461, 0.552 prints 0.558, 0.652 prints 0.638, 0.753 prints 0.720, 0.855 prints 0.885 and 0.962 prints 0.990. The check is scored a miss because its registered adoption condition was not met, not because the instrument failed: this is the first audit of any confidence number this system prints and it found them sound. Decoders are untouched either way",
   "hash": "80417d51e3ed4da6"
+ },
+ {
+  "id": "PERF-GOAL-NOTE",
+  "group": "campaign goal annotation",
+  "status": "hit",
+  "claim": "CAL-1 falsified the precondition of PERF-GOAL's calibration term. The confidences were already honest, so there was no improvement available to validate. At maturity that term scores as unsatisfiable by falsified precondition, not as underperformance, and the December verdict rests on the two forecasting terms, whose bars are unchanged",
+  "window": "2026-08",
+  "note": "the calibration term required a validated Brier improvement from the stage E upgrade. The audit found the printed confidences already close to honest and if anything slightly modest: mean printed 0.8382 against realized agreement 0.8553 over 6830 causal decodes across all 22 live instruments, with the decile curve tracking the diagonal. Isotonic recalibration therefore had almost nothing to correct and returned a relative Brier gain of 0.0013 against the registered adoption bar of 0.05, so CAL-1 was scored a miss and the recalibration was not adopted. This annotation records that the term's precondition, that the confidences needed correcting, is false. It does not move any bar, does not rescore CAL-1, and does not resolve PERF-GOAL, which stays pending until December. The two forecasting terms are unchanged: at the first outlook scoring a majority of instruments must show positive RPSS against climatology and must also beat persistence at the three month horizon",
+  "hash": "c57e89531ecaa596"
  }
 ]

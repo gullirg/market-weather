@@ -353,6 +353,8 @@ init();
    touched, and every mounted control lives in the footer or overlays
    the graph box without moving a template element. */
 #since{color:var(--faint);font-size:11.5px;margin-top:3px}
+#streakwhere{color:var(--faint);font-family:var(--mono);font-size:11px;
+  margin-left:6px}
 .mwbtn{font:600 10px/1 Inter;letter-spacing:.08em;color:var(--dim);
   border:1px solid var(--line);border-radius:14px;padding:5px 11px;
   cursor:pointer;background:none}
@@ -387,6 +389,14 @@ const CHANGES = __CHANGES__;
     sub.insertAdjacentHTML('afterend','<div id=since></div>');
   var sinceEl=document.getElementById('since');
   if(sinceEl)sinceEl.textContent=CHANGES||'';
+  // the registered streak context line has two clauses. The v5 page
+  // renders the first inside the streak row; the second is restored
+  // here beside it rather than by overwriting what the page drew.
+  var stk=document.getElementById('streak');
+  if(stk&&stk.insertAdjacentHTML&&DATA.streak&&DATA.streak.row)
+    stk.insertAdjacentHTML('afterend','<span id=streakwhere>'+
+      'Instrument validation history lives on the record page.'+
+      '</span>');
   var tools=document.createElement('div');
   tools.innerHTML='<button class=mwbtn id=voutlook>OUTLOOK</button> '+
     '<button class=mwbtn id=legendbtn aria-label="what am I looking at">'+

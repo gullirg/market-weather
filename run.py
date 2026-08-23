@@ -94,6 +94,8 @@ def _streak(entries):
         d = STREAK_DOT.get(e.get("status"))
         if d:
             tot[key[d]] += 1
+    def _plural(n, one, many):
+        return f"{n} {one if n == 1 else many}"
     rows = []
     for e in sel[-STREAK_N:]:
         rows.append({"id": e.get("id"), "status": e.get("status"),
@@ -102,7 +104,14 @@ def _streak(entries):
                      "claim": e.get("claim", ""), "note": e.get("note", ""),
                      "hash": e.get("hash")})
     return {"entries": rows, "totals": tot, "matched": len(sel),
-            "window_size": STREAK_N}
+            "window_size": STREAK_N,
+            # v5 bindings: the dot row carries the STREAK-DEF dot class
+            # rather than the raw chain status, so the registered
+            # colours survive; the totals sentence is built here so its
+            # numerals come from the same totals build_payload admits.
+            "row": [{"status": r["dot"], "id": r["id"]} for r in rows],
+            "totals_words": (_plural(tot["hits"], "hit", "hits") + ", "
+                             + _plural(tot["misses"], "miss", "misses"))}
 
 
 def _pendings(entries):
@@ -363,7 +372,7 @@ def cmd_month(args):
     changes_line = _since_last_bulletin(site)
     og_desc = _og_description(site)
     import html as _html
-    for src, dst in [("graph_v3.html", "index.html"),
+    for src, dst in [("graph_v5.html", "index.html"),
                      ("template.html", "report.html")]:
         tpl = open(os.path.join(SITE, src)).read()
         page = tpl.replace("__DATA__", payload)

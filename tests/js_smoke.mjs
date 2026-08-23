@@ -29,6 +29,7 @@ function runPass(reduceMotion) {
     appendChild(){}, querySelector(){ return { onclick:null, addEventListener(){} }; },
     querySelectorAll(){ return []; },
     addEventListener(ev, fn){ (listeners[id+':'+ev] ||= []).push(fn); },
+    insertAdjacentHTML(){}, className:'', title:'', remove(){},
     getContext(){ return ctx; },
     getBoundingClientRect(){ return { left:0, top:0, width:980, height:605 }; },
     clientWidth:980, clientHeight:605, width:1960, height:1210,
@@ -38,7 +39,9 @@ function runPass(reduceMotion) {
   const raf = [];
   globalThis.document = {
     getElementById(id){ return els[id] ||= makeEl(id); },
+    querySelector(sel){ return els['sel'+sel] ||= makeEl('sel'+sel); },
     querySelectorAll(){ return [makeEl('x')]; },
+    createElement(tag){ return makeEl('new:'+tag); },
     documentElement: makeEl('root'),
     body: makeEl('body'),
     hidden: false,
@@ -78,6 +81,11 @@ function runPass(reduceMotion) {
   if (outlook) {
     for (const fn of outlook) fn({ stopPropagation(){} });
     if (click) for (const fn of click) fn({ clientX: 490, clientY: 242 });
+    // the browser reaches the outlook card path through the global
+    // showCard; headless, the page exposes it under a named hook
+    if (typeof globalThis.mwOutlookCard === 'function')
+      for (const b of ['energy', 'fx', 'liquidity'])
+        globalThis.mwOutlookCard(b);
     if (raf.length) raf.shift()(550);
     for (const fn of outlook) fn({ stopPropagation(){} });
     if (click) for (const fn of click) fn({ clientX: 490, clientY: 242 });

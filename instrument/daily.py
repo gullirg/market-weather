@@ -87,6 +87,66 @@ Registered checks, scored once, published whichever way they fall:
 Registered public gate: the daily chip appears on the site only if D1
 and D2 both hit. If the gate stays shut, the daily clock stays a
 shadow instrument on this architecture, permanently.
+
+D-HSMM v1, the daily decoder rebuilt. Registered here before any
+estimation of it, under the performance-1 campaign.
+
+Diagnosis, from the chain: exact-state and family agreement failed
+three times (PA1 0.567, G10 0.682, G11 0.703); the G12 family
+instrument scored D1 hit and D3 hit but D2 failed at 32.26 family
+flips per decade against a budget of 6. The mechanism of the chatter
+is the geometric sojourn implied by a vanilla hidden Markov model,
+which makes a one-day stay as cheap as a hundred-day stay. The cure
+under test is an explicit-duration model.
+
+1. States: the same four family states, calm, boom, fear and
+   downturn. The G12 feature panel is unchanged: 63 business-day
+   real Brent momentum, 21 business-day realized volatility, daily
+   OVX masked before 2007-05, and crude stocks ex-SPR carried
+   forward causally, each z-scored on a rolling 2520-day window with
+   a 504-day minimum. Missing dimensions are masked, never imputed.
+2. Sojourn: per state an explicit duration distribution, a negative
+   binomial on d minus five, so every stay lasts at least five
+   business days by construction and no shorter stay is
+   representable in the model.
+3. Estimation: all sojourn and emission parameters are estimated
+   once on full history by expectation maximization, diagonal
+   Gaussian emissions, maximum representable duration 250 business
+   days. EM stops at a relative log-likelihood change below 1e-5 or
+   after 60 iterations, whichever comes first.
+4. Labelling, fixed before estimation so the fit cannot choose its
+   own names: emission means are initialized at the G12 family
+   templates and each fitted component keeps the label of the
+   template it was initialized from.
+5. Decode: filtered and causal, the same semantics G12 used, so that
+   the flip rate below is comparable to the 32.26 it is trying to
+   beat and the only thing that changed is the sojourn model. The
+   family on day t uses data through day t and nothing later.
+
+Registered checks, scored once, published whichever way they fall:
+  DH1 Episode capture. For each of the five pinned episodes the
+      daily family equals the episode family on at least one
+      business day in the window running from the episode month's
+      first business day through the twenty-fifth business day after
+      it, inclusive. The check hits if at least 4 of the 5 episodes
+      are captured. Episode families are those already registered
+      for G12.
+  DH2 False-flip budget. Counting only business days outside the
+      five pinned episode months and their three-month halos, a
+      family flip is a day whose family differs from the previous
+      day's, counted only when both days are outside the halos. The
+      flip rate must be at most 6 per decade, a decade being 2520
+      business days.
+  DH3 Persistence. The median family run length over the whole
+      filtered series is at least 40 business days.
+
+Registered public gate: the daily family chip appears on the site
+only if DH1 and DH2 both hit. The G12 gate is not reopened by this
+work and its fail stands; this is a new instrument attempting the
+same question, not a rerun. The storm watch lamp is a different
+object and is unaffected either way: the watch is an alert, the chip
+is a state. If DH-GATE stays shut, the daily clock question is
+closed for the year.
 """
 
 import numpy as np

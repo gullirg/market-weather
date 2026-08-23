@@ -170,6 +170,11 @@ def _resolve(rule, a, b, preds, series):
     is not yet in the pipeline."""
     import numpy as np
     import pandas as pd
+    if rule["kind"] == "campaign":
+        # judged at maturity against named chain artifacts, never
+        # auto-resolved: the entry stays pending until it is scored
+        # deliberately.
+        return None
     side = rule.get("side")
     if side is None:
         return ("un", "no side: the stated probability was exactly one half")

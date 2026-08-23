@@ -1221,5 +1221,37 @@
   "window": "2026-08",
   "note": "The chain is append-only, so the original G2 row keeps its pending status and the published pending count still includes it. This entry is the closure record, not an edit.",
   "hash": "2a86ac389b3f5c49"
+ },
+ {
+  "id": "PERF-GOAL",
+  "group": "campaign goal, registered before work",
+  "status": "pending",
+  "auto": true,
+  "claim": "the performance-1 campaign succeeds if, at the first outlook scoring, a majority of instruments show positive ranked probability skill score against climatology and also beat persistence at the three month horizon, and the calibration upgrade of stage E shows a validated Brier improvement",
+  "window": "2026-12..2026-12",
+  "matures": "2026-12-31",
+  "rule": {
+   "kind": "campaign",
+   "judged_against": [
+    "OUTLOOK-S-2026Q4",
+    "CAL-1"
+   ],
+   "terms": [
+    "majority of instruments RPSS above zero against climatology at the three month horizon",
+    "the same majority beats persistence at the three month horizon",
+    "CAL-1 records a validated Brier improvement adopted under its registered rule"
+   ]
+  },
+  "note": "registered before any work in the campaign. December judges the campaign against these terms and against no others. The entry is auto-flagged but never auto-resolves: its terms read other chain entries rather than a pipeline series, so it stays pending until it is scored deliberately at maturity. Five stages are registered under it: A the daily decoder rebuilt as a hidden semi-Markov model, B decomposability sharpened, C commodity version two where a diagnosis exists, D a third forecaster, E the calibration audit. Stages are independent and a hard stop in one does not block the others.",
+  "hash": "2bb1a6dee7e42562"
+ },
+ {
+  "id": "REG-DHSMM",
+  "group": "registration, recorded before estimation",
+  "status": "note",
+  "claim": "D-HSMM v1 is registered as a new daily instrument before any estimation: four family states calm, boom, fear and downturn on the unchanged G12 daily feature panel, explicit negative binomial sojourn distributions on duration minus five so no stay shorter than five business days is representable, diagonal Gaussian emissions, all sojourn and emission parameters estimated once on full history by expectation maximization with a maximum duration of 250 business days, stopping at a relative log-likelihood change below 1e-5 or sixty iterations",
+  "window": "2026-08",
+  "note": "the diagnosis is on the chain: G12-D2 failed at 32.26 family flips per decade against a budget of 6 while G12-D1 and G12-D3 hit, and the mechanism is the geometric sojourn of a vanilla hidden Markov model. Labelling is fixed before estimation: emission means are initialized at the G12 family templates and each fitted component keeps its template's label. The decode is filtered and causal, the same semantics G12 used, so the flip rate is comparable and the sojourn model is the only thing that changed. Three held-out checks fixed here: DH1 episode capture within 25 business days for at least 4 of the 5 pinned episodes, DH2 at most 6 family flips per decade outside the pinned months and their 3-month halos, DH3 median family run at least 40 business days. The public gate is DH1 and DH2 both hitting. GATE-G12 is not reopened and its fail stands; this is a new instrument attempting the same question.",
+  "hash": "397909a8f950942d"
  }
 ]

@@ -397,6 +397,14 @@ const CHANGES = __CHANGES__;
     stk.insertAdjacentHTML('afterend','<span id=streakwhere>'+
       'Instrument validation history lives on the record page.'+
       '</span>');
+  // STREAK-DEF-2 renders retractions and revisions of published
+  // output as amber. The page's own colour map knows hit and miss, so
+  // the amber dots are painted here rather than by editing it.
+  if(stk&&stk.querySelectorAll&&DATA.streak&&DATA.streak.row){
+    var dots=stk.querySelectorAll('i');
+    for(var di=0;di<dots.length&&di<DATA.streak.row.length;di++)
+      if(DATA.streak.row[di].status==='amber'&&dots[di].style)
+        dots[di].style.background=getCss('--glut');}
   var tools=document.createElement('div');
   tools.innerHTML='<button class=mwbtn id=voutlook>OUTLOOK</button> '+
     '<button class=mwbtn id=legendbtn aria-label="what am I looking at">'+

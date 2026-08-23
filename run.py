@@ -54,16 +54,19 @@ def _raw_shiller(data_dir, col):
     return s
 
 
-# STREAK-DEF, chained 2026-08 before the first render. A chain entry is
-# a streak dot if and only if its group is one of these. The excluded
-# group strings are enumerated in the chain entry's note.
-STREAK_GROUPS = ("out of sample", "prediction upgrades", "corrections",
+# STREAK-DEF-2, chained 2026-08 before the render it governs. The
+# surface streak is published analyst calls only. Every other group
+# with a scored status is the laboratory record, which renders in full
+# on the record page: nothing is deleted, it is relabelled.
+STREAK_GROUPS = ("out of sample", "corrections",
                  "bulletin claim scoring", "outlook quarter scoring")
 STREAK_N = 40
+SCORED_STATUSES = ("hit", "miss", "fail", "null", "un", "oos",
+                   "ret", "rev")
 STREAK_DOT = {"hit": "hit", "oos": "hit",
               "miss": "miss", "fail": "miss",
-              "null": "null", "un": "null", "ret": "null",
-              "rev": "null", "pending": "pending"}
+              "null": "null", "un": "null",
+              "ret": "amber", "rev": "amber", "pending": "pending"}
 
 
 # state to family code, the same map the v3 strip uses. Carried into
@@ -87,9 +90,10 @@ def _streak(entries):
     """The public streak, derived from the chain at build time under
     STREAK-DEF. Nothing here is hand-kept."""
     sel = [e for e in entries if e.get("group") in STREAK_GROUPS]
-    tot = {"hits": 0, "misses": 0, "nulls": 0, "pending": 0}
+    tot = {"hits": 0, "misses": 0, "nulls": 0, "amber": 0,
+           "pending": 0}
     key = {"hit": "hits", "miss": "misses", "null": "nulls",
-           "pending": "pending"}
+           "amber": "amber", "pending": "pending"}
     for e in sel:
         d = STREAK_DOT.get(e.get("status"))
         if d:
@@ -110,8 +114,39 @@ def _streak(entries):
             # colours survive; the totals sentence is built here so its
             # numerals come from the same totals build_payload admits.
             "row": [{"status": r["dot"], "id": r["id"]} for r in rows],
-            "totals_words": (_plural(tot["hits"], "hit", "hits") + ", "
-                             + _plural(tot["misses"], "miss", "misses"))}
+            "definition": "STREAK-DEF-2",
+            "previous_totals_words": "1 hit, 3 misses, 4 null or "
+                                     "corrected under STREAK-DEF",
+            "totals_words": (
+                _plural(tot["hits"], "hit", "hits") + ", "
+                + _plural(tot["misses"], "miss", "misses")
+                + (", " + _plural(tot["amber"], "corrected", "corrected")
+                   if tot["amber"] else ""))}
+
+
+def _laboratory(entries):
+    """Every scored entry the surface does not carry, most recent
+    first. Development and qualification: instrument checks,
+    membership, upgrade gates and falsified diagnoses."""
+    sel = [e for e in entries
+           if e.get("group") not in STREAK_GROUPS
+           and e.get("status") in SCORED_STATUSES]
+    tot = {"hits": 0, "misses": 0, "nulls": 0, "amber": 0}
+    key = {"hit": "hits", "miss": "misses", "null": "nulls",
+           "amber": "amber"}
+    rows = []
+    for e in reversed(sel):
+        d = STREAK_DOT.get(e.get("status"), "null")
+        rows.append({"id": e.get("id"), "status": e.get("status"),
+                     "dot": d, "group": e.get("group"),
+                     "window": e.get("window"),
+                     "claim": e.get("claim", ""),
+                     "note": e.get("note", ""), "hash": e.get("hash")})
+    for e in sel:
+        d = STREAK_DOT.get(e.get("status"))
+        if d in key:
+            tot[key[d]] += 1
+    return {"entries": rows, "totals": tot, "matched": len(sel)}
 
 
 def _pendings(entries):
@@ -188,11 +223,6 @@ def cmd_month(args):
         site["current"][args.kill_feed]["stale"] = True
     json.dump(report, open(os.path.join(STATE, "feed_health.json"), "w"),
               indent=1)
-    sc = load_scorecard()
-    sc = B.score_pending(sc, diag["preds"], args.asof,
-                         series={"real_brent": nodes.real_brent(F)})
-    json.dump(sc, open(os.path.join(STATE, "scorecard.json"), "w"),
-              indent=1)
     sp = json.load(open(os.path.join(STATE, "spillovers.json")))
     site.update(sp)
     months = pd.PeriodIndex(site["months"], freq="M")
@@ -234,6 +264,22 @@ def cmd_month(args):
         json.dump(syn, open(os.path.join(STATE, "synoptic.json"), "w"))
     except Exception:
         site["synoptic"] = None
+    # scoring runs here, after the network preds are merged and the
+    # synoptic series exists, so a matured claim on any instrument or
+    # on the weather itself can resolve.
+    scoring_preds = dict(diag["preds"])
+    try:
+        _sj = json.load(open(os.path.join(STATE, "synoptic.json")))
+        _ss = pd.Series({pd.Period(k, "M"): v
+                         for k, v in _sj["series"].items()})
+        scoring_preds["synoptic"] = _ss.sort_index()
+    except Exception:
+        pass
+    sc = load_scorecard()
+    sc = B.score_pending(sc, scoring_preds, args.asof,
+                         series={"real_brent": nodes.real_brent(F)})
+    json.dump(sc, open(os.path.join(STATE, "scorecard.json"), "w"),
+              indent=1)
     try:
         hz = hazards.run(diag["preds"]["oil"], nodes.real_brent(F))
         site["hazard"] = {"current": hz["current"],
@@ -375,6 +421,7 @@ def cmd_month(args):
                       "bar": s2["bar"], "nodes": s2["n_nodes"],
                       "windows": s2["s2a"]["windows"]}
     site["streak"] = _streak(load_scorecard())
+    site["laboratory"] = _laboratory(load_scorecard())
     site["pendings"] = _pendings(load_scorecard())
     site["health"] = [{"feed": r_["feed"], "ok": not r_["FLAG"]}
                       for r_ in report]
@@ -456,10 +503,23 @@ def cmd_publish(args):
         sc = load_scorecard()
         B.verify(sc)
         have = {e["id"] for e in sc}
+        seen_fc = set()
+        for e in sc:
+            r = e.get("rule") or {}
+            if r.get("outlook_quarter"):
+                seen_fc.add((r.get("claim_kind"), r.get("node"),
+                             r["outlook_quarter"]))
         added = []
         for c in claims:
             if c["id"] in have:
                 continue
+            r = c.get("rule") or {}
+            if r.get("outlook_quarter"):
+                k = (r.get("claim_kind"), r.get("node"),
+                     r["outlook_quarter"])
+                if k in seen_fc:
+                    continue
+                seen_fc.add(k)
             sc = B.append(sc, c)
             added.append(c["id"])
         if added:

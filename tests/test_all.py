@@ -209,13 +209,33 @@ def test_jodi_and_cot_fixtures_parse():
     assert c.loc[pd.Period("2026-07", "M")] == 220000
 
 
-def _claim_site():
+def _claim_site(gate="open"):
+    """A site payload shaped like the real one, for the B-CLAIMS-REG
+    slate: one instrument well above the band, one well below, one
+    inside it, and a synoptic layer."""
     return {"months": ["2026-07", "2026-08"],
+            "synoptic": {"gate": gate},
             "hazard": {"current": {"state": "supply_glut", "elapsed": 3},
                        "lamp": {"supply_glut": {"tail_freq": 0.29},
                                 "unconditional": 0.15},
                        "durations": {"supply_glut": {
-                           "continuation_at_current": 0.7}}}}
+                           "continuation_at_current": 0.7}}},
+            "outlook": {
+                "asof": "2026-08", "quarter": "2026Q3",
+                "instruments": {
+                    "oil": {"analysis": {"state": "supply_glut"},
+                            "M": {"3": {"supply_glut": 0.80,
+                                        "calm": 0.20}}},
+                    "gas": {"analysis": {"state": "calm"},
+                            "M": {"3": {"calm": 0.55,
+                                        "squeeze": 0.45}}},
+                    "gold": {"analysis": {"state": "selloff"},
+                             "M": {"3": {"selloff": 0.20,
+                                         "calm": 0.80}}}},
+                "synoptic": {
+                    "analysis": {"state": "post_shock_glut"},
+                    "M": {"3": {"post_shock_glut": 0.70,
+                                "risk_on_calm": 0.30}}}}}
 
 
 def test_forward_claims_start_at_bulletin_002():
@@ -225,7 +245,9 @@ def test_forward_claims_start_at_bulletin_002():
     assert B.forward_claims(site, "001", "2026-08") == []
     cl = B.forward_claims(site, "002", "2026-08")
     ids = {c["id"] for c in cl}
-    assert ids == {"B002-LAMP", "B002-CONT"}
+    # gas sits inside the registered 0.15 band and is not claimed
+    assert ids == {"B002-LAMP", "B002-CONT-oil", "B002-CONT-gold",
+                   "B002-SYN"}, ids
     for c in cl:
         assert c["status"] == "pending" and c["auto"] is True
         assert c["group"] == B.CLAIM_GROUP
@@ -235,18 +257,35 @@ def test_forward_claims_start_at_bulletin_002():
     assert lamp["window"] == "2026-09..2026-11"
     assert lamp["matures"] == "2026-11"
     assert lamp["rule"]["side"] is False          # 0.29 is below one half
-    cont = next(c for c in cl if c["id"] == "B002-CONT")
-    assert cont["window"] == "2026-09..2026-09"
-    assert cont["rule"]["side"] is True           # 0.70 is above one half
+    oil = next(c for c in cl if c["id"] == "B002-CONT-oil")
+    assert oil["window"] == "2026-11..2026-11"
+    assert oil["rule"]["side"] is True            # 0.80 is above one half
+    assert oil["rule"]["claim_kind"] == "continuation"
+    assert oil["rule"]["outlook_quarter"] == "2026Q3"
+    gold = next(c for c in cl if c["id"] == "B002-CONT-gold")
+    assert gold["rule"]["side"] is False          # 0.20 is below one half
+    syn = next(c for c in cl if c["id"] == "B002-SYN")
+    assert syn["rule"]["node"] == "synoptic"
+    assert syn["rule"]["claim_kind"] == "synoptic"
 
 
-def test_forward_claim_ties_register_nothing():
-    """A stated probability of exactly one half commits to no side."""
+def test_synoptic_claim_only_while_the_banner_gate_is_open():
+    shut = B.forward_claims(_claim_site(gate="closed"), "002", "2026-08")
+    assert not any(c["id"] == "B002-SYN" for c in shut)
+    assert any(c["id"] == "B002-CONT-oil" for c in shut)
+
+
+def test_forward_claim_ties_and_the_band_register_nothing():
+    """Exactly one half commits to no side, and B-CLAIMS-REG's band
+    keeps every near-coin-flip continuation off the chain."""
     site = _claim_site()
-    site["hazard"]["durations"]["supply_glut"][
-        "continuation_at_current"] = 0.5
     site["hazard"]["lamp"]["supply_glut"]["tail_freq"] = 0.5
+    for n in site["outlook"]["instruments"]:
+        st = site["outlook"]["instruments"][n]["analysis"]["state"]
+        site["outlook"]["instruments"][n]["M"]["3"] = {st: 0.5}
+    site["outlook"]["synoptic"]["M"]["3"] = {"post_shock_glut": 0.5}
     assert B.forward_claims(site, "002", "2026-08") == []
+    assert B.CONT_BAND == 0.15 and B.CONT_HORIZON_M == 3
 
 
 def _mk_chain(claims):
@@ -285,14 +324,50 @@ def test_lamp_claim_resolves_both_ways_and_only_once():
 def test_continuation_claim_resolves_against_the_decoder():
     site = _claim_site()
     cl = [c for c in B.forward_claims(site, "002", "2026-08")
-          if c["id"] == "B002-CONT"]
-    idx = pd.period_range("2026-09", "2026-09", freq="M")
+          if c["id"] == "B002-CONT-oil"]
+    idx = pd.period_range("2026-11", "2026-11", freq="M")
     for state, want in [("supply_glut", "hit"), ("calm", "miss")]:
         chain = _mk_chain(cl)
         out = B.score_pending(chain, {"oil": pd.Series([state], index=idx)},
-                              "2026-09")
+                              "2026-11")
         new = out[len(chain):]
         assert len(new) == 1 and new[0]["status"] == want, new
+
+
+def test_synoptic_claim_resolves_against_the_weather_series():
+    site = _claim_site()
+    cl = [c for c in B.forward_claims(site, "002", "2026-08")
+          if c["id"] == "B002-SYN"]
+    idx = pd.period_range("2026-11", "2026-11", freq="M")
+    for state, want in [("post_shock_glut", "hit"),
+                        ("risk_on_calm", "miss")]:
+        chain = _mk_chain(cl)
+        out = B.score_pending(
+            chain, {"synoptic": pd.Series([state], index=idx)}, "2026-11")
+        new = out[len(chain):]
+        assert len(new) == 1 and new[0]["status"] == want, new
+
+
+def test_surface_and_laboratory_partition_the_scored_chain():
+    """STREAK-DEF-2: nothing scored is deleted, it is relabelled. Every
+    scored entry is on exactly one of the two surfaces."""
+    import runpy
+    run = runpy.run_path(os.path.join(ROOT, "run.py"))
+    chain = json.load(open(os.path.join(ROOT, "state", "scorecard.json")))
+    surf = run["_streak"](chain)
+    lab = run["_laboratory"](chain)
+    scored = [e for e in chain
+              if e.get("status") in run["SCORED_STATUSES"]]
+    surf_ids = {e["id"] for e in chain
+                if e.get("group") in run["STREAK_GROUPS"]}
+    lab_ids = {r["id"] for r in lab["entries"]}
+    assert not (surf_ids & lab_ids), surf_ids & lab_ids
+    assert len(scored) == len(surf_ids) + len(lab_ids)
+    assert "prediction upgrades" not in run["STREAK_GROUPS"]
+    assert {"T1", "T2", "T3", "N1", "N2"} <= lab_ids
+    assert run["STREAK_DOT"]["ret"] == "amber"
+    assert run["STREAK_DOT"]["rev"] == "amber"
+    assert surf["previous_totals_words"].startswith("1 hit, 3 misses")
 
 
 def test_unmatured_and_unrealized_claims_stay_pending():

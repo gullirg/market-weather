@@ -57,6 +57,9 @@ CLAIM_SCORE_GROUP = "bulletin claim scoring"
 FIRST_WIRED_BULLETIN = 2
 LAMP_THRESHOLD_PCT = -15.0
 LAMP_HORIZON_M = 3
+# B-CLAIMS-REG: the slate every bulletin registers from 002 onward.
+CONT_HORIZON_M = 3
+CONT_BAND = 0.15
 
 
 def _side(p):
@@ -131,37 +134,99 @@ def forward_claims(site, bulletin_no, asof):
                      "coarse and the accumulated set is what a Brier "
                      "score will later be computed over.")})
 
-    dr = (hz.get("durations") or {}).get(state, {})
-    cont = dr.get("continuation_at_current")
-    cside = _side(cont)
-    if cont is not None and cside is not None:
-        a = base + 1
-        out.append({
-            "id": f"B{no:03d}-CONT",
-            "group": CLAIM_GROUP,
-            "status": "pending",
-            "auto": True,
-            "claim": (f"continuation, bulletin {no:03d}: the stated "
-                      f"share of past {word} episodes that ran longer "
-                      f"than the current one is {cont}, which is the "
-                      f"chance the regime is still {word} next month"),
-            "window": f"{a}..{a}",
-            "matures": str(a),
-            "rule": {"kind": "state", "node": "oil", "target": state,
-                     "mode": "present", "p": cont, "side": cside,
-                     "source": (f"hazard.durations['{state}']"
-                                ".continuation_at_current")},
-            "note": ("resolution rule, registered at publish: at "
-                     "maturity the pipeline reads the decoded oil state "
-                     "for the window month from the monthly decoder. "
-                     f"The event is that the state is still {state}. "
-                     f"The stated probability is {cont}, so the "
-                     f"bulletin's side is that the regime does "
-                     f"{'continue' if cside else 'not continue'}; hit "
-                     "if the realization falls on that side, miss if it "
-                     "falls on the other. A stated probability of "
-                     "exactly one half resolves unscoreable and no "
-                     "claim is registered.")})
+    # Continuation and synoptic persistence, per B-CLAIMS-REG. Both
+    # read the current outlook issue's forecaster M at horizon three,
+    # so the stated probability and the resolution window share a base
+    # month. This supersedes the earlier one-month hazard continuation
+    # claim, which never fired.
+    ol = (site or {}).get("outlook") or {}
+    inst = ol.get("instruments") or {}
+    if inst and ol.get("asof"):
+        ob = pd.Period(ol["asof"], "M")
+        tgt = ob + CONT_HORIZON_M
+        q = ol.get("quarter")
+        for name in sorted(inst):
+            v = inst[name]
+            st = (v.get("analysis") or {}).get("state")
+            row = (v.get("M") or {}).get(str(CONT_HORIZON_M)) or {}
+            if not st:
+                continue
+            p = float(row.get(st, 0.0))
+            if abs(p - 0.5) < CONT_BAND:
+                continue
+            sd = _side(p)
+            if sd is None:
+                continue
+            out.append({
+                "id": f"B{no:03d}-CONT-{name}",
+                "group": CLAIM_GROUP,
+                "status": "pending",
+                "auto": True,
+                "claim": (f"continuation, bulletin {no:03d}: the "
+                          f"outlook issued for {ol['asof']} puts the "
+                          f"chance that {name} is still {st} three "
+                          f"months later at {p}"),
+                "window": f"{tgt}..{tgt}",
+                "matures": str(tgt),
+                "rule": {"kind": "state", "node": name, "target": st,
+                         "mode": "present", "p": p, "side": sd,
+                         "claim_kind": "continuation",
+                         "outlook_quarter": q,
+                         "source": (f"outlook.instruments['{name}']"
+                                    f".M['{CONT_HORIZON_M}']['{st}']")},
+                "note": ("resolution rule, registered at publish: at "
+                         "maturity the pipeline reads the decoded "
+                         f"state of {name} for the window month from "
+                         "the monthly decoder. The event is that the "
+                         f"state is still {st}. The stated "
+                         f"probability is {p}, so the bulletin's side "
+                         f"is that it does "
+                         f"{'continue' if sd else 'not continue'}; "
+                         "hit if the realization falls on that side, "
+                         "miss if it falls on the other. Claims "
+                         "within 0.15 of one half are not registered "
+                         "at all, and a forecast already registered "
+                         "for this outlook quarter is not registered "
+                         "again.")})
+        syn_o = ol.get("synoptic") or {}
+        gate = ((site.get("synoptic") or {}).get("gate"))
+        st = (syn_o.get("analysis") or {}).get("state")
+        if syn_o and st and gate == "open":
+            row = (syn_o.get("M") or {}).get(str(CONT_HORIZON_M)) or {}
+            p = float(row.get(st, 0.0))
+            sd = _side(p)
+            if sd is not None:
+                out.append({
+                    "id": f"B{no:03d}-SYN",
+                    "group": CLAIM_GROUP,
+                    "status": "pending",
+                    "auto": True,
+                    "claim": (f"synoptic persistence, bulletin "
+                              f"{no:03d}: the outlook issued for "
+                              f"{ol['asof']} puts the chance that the "
+                              f"weather system is still {st} three "
+                              f"months later at {p}"),
+                    "window": f"{tgt}..{tgt}",
+                    "matures": str(tgt),
+                    "rule": {"kind": "state", "node": "synoptic",
+                             "target": st, "mode": "present", "p": p,
+                             "side": sd, "claim_kind": "synoptic",
+                             "outlook_quarter": q,
+                             "source": (f"outlook.synoptic"
+                                        f".M['{CONT_HORIZON_M}']"
+                                        f"['{st}']")},
+                    "note": ("resolution rule, registered at publish: "
+                             "at maturity the pipeline reads the "
+                             "decoded synoptic series for the window "
+                             "month. The event is that the weather "
+                             f"system is still {st}. The stated "
+                             f"probability is {p}, so the bulletin's "
+                             f"side is that it does "
+                             f"{'persist' if sd else 'not persist'}. "
+                             "Registered only while the banner gate "
+                             "is open, and not registered again for "
+                             "an outlook quarter the chain already "
+                             "holds.")})
     return out
 
 

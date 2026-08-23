@@ -74,6 +74,7 @@
   .sdot.miss{background:var(--hot)}
   .sdot.null{background:var(--dim)}
   .sdot.pending{background:none;border:1px solid var(--dim)}
+  .sdot.amber{background:var(--glut)}
   tr.srow{cursor:pointer}
   tr.sdet td{color:var(--dim);font-size:11.5px;
     font-family:var(--mono);word-break:break-word}
@@ -135,6 +136,17 @@
     omitted, misses are never truncated, and the order is the chain's.
     Select a row for its full chain entry.</div>
   <div id="streaktbl"></div>
+
+  <h2 id="laboratory-record">The laboratory record</h2>
+  <div class="note">Development and qualification, most recent first:
+    instrument checks, membership decisions, upgrade gates and
+    falsified diagnoses. These are how the instruments were built and
+    tested, not calls made to a reader, so they do not sit on the
+    surface streak. Nothing here was deleted or rescored when the
+    surface was redefined; it was relabelled, and the counts on both
+    sides are shown together above. Select a row for its full chain
+    entry.</div>
+  <div id="labtbl"></div>
 
   <h2>The scorecard</h2>
   <div id="score"></div>
@@ -360,6 +372,29 @@ if(DATA.s2){
     'frequency band reached '+q.fast+' and the slow band '+q.slow+
     ', all short of the bar of '+q.bar+'.';
 }
+if(DATA.laboratory&&DATA.laboratory.entries){
+  const L=DATA.laboratory;
+  let lh='<table><tr><th>claim</th><th>group</th><th>result</th></tr>';
+  L.entries.forEach(function(r,i){
+    lh+='<tr class="lrow" data-i="'+i+'"><td><span class="sdot '+
+      r.dot+'"></span>'+sesc(r.claim||r.id)+'</td><td class="n">'+
+      sesc(r.group)+'</td><td class="n">'+sesc(r.id)+' '+
+      sesc(r.status)+'</td></tr>'+
+      '<tr class="sdet" id="ldet'+i+'" style="display:none">'+
+      '<td colspan=3>window: '+sesc(r.window)+'<br>status: '+
+      sesc(r.status)+(r.note?('<br>note: '+sesc(r.note)):'')+
+      '<br>chain hash: '+sesc(r.hash)+'</td></tr>';});
+  lh+='</table>';
+  const lhost=document.getElementById('labtbl');
+  lhost.innerHTML=lh;
+  lhost.addEventListener('click',function(ev){
+    let el=ev&&ev.target;
+    while(el&&!(el.className&&String(el.className).indexOf('lrow')>=0))
+      el=el.parentElement;
+    if(!el)return;
+    const d=document.getElementById('ldet'+el.getAttribute('data-i'));
+    if(d&&d.style)d.style.display=(d.style.display==='none')?'':'none';});
+}
 const SDESC={};
 for(const G of SCORE)for(const R of G[2])SDESC[R[0]]=R[1];
 function sclaim(r){
@@ -382,9 +417,17 @@ if(DATA.streak&&DATA.streak.entries){
       '<br>chain claim: '+sesc(r.claim)+
       '<br>chain hash: '+sesc(r.hash)+'</td></tr>';});
   th+='</table>';
-  th+='<div class="note">'+t.hits+' hits, '+t.misses+' misses, '+
-    t.nulls+' null or corrected, out of '+DATA.streak.matched+
-    ' scored forward-looking claims on the chain.</div>';
+  const L=DATA.laboratory;
+  th+='<div class="note">Surface, published analyst calls under '+
+    'STREAK-DEF-2: '+t.hits+' hits, '+t.misses+' misses, '+t.amber+
+    ' corrected, out of '+DATA.streak.matched+'. Laboratory, '+
+    'development and qualification: '+(L?L.totals.hits:0)+' hits, '+
+    (L?L.totals.misses:0)+' misses, '+(L?L.totals.nulls:0)+
+    ' null, out of '+(L?L.matched:0)+'. Under the previous '+
+    'definition the surface read '+DATA.streak.previous_totals_words+
+    '; the five entries that moved are the three failed prediction '+
+    'upgrades and the two registered nulls, and they are in '+
+    '<a href="#laboratory-record">the laboratory record</a>.</div>';
   const host=document.getElementById('streaktbl');
   host.innerHTML=th;
   host.addEventListener('click',function(ev){

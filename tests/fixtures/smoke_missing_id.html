@@ -1,0 +1,14 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>harness self-test</title></head>
+<body>
+<div id=present></div>
+<script>
+// The permanent self-test for tests/js_smoke.mjs. This page refers to an
+// element it does not have. A harness that fabricates elements passes it,
+// which is the bug this fixture exists to prevent; a harness that behaves
+// like a browser fails it. If this page ever passes the smoke runner, the
+// runner has stopped being able to see a missing element.
+document.getElementById('present').textContent = 'ok';
+document.getElementById('absent').innerHTML = 'this must throw';
+</script>
+</body></html>

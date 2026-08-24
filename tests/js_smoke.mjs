@@ -4,9 +4,26 @@
 // it on, so both render paths execute.
 import { readFileSync } from 'fs';
 const file = process.argv[2];
+// --expect-id=NAME asserts that the page ended up with that element,
+// whether it was in the markup or created at runtime. It turns "this
+// branch renders" into something a test can hold the page to.
+const expectIds = process.argv.slice(3)
+  .filter(a => a.startsWith('--expect-id='))
+  .map(a => a.slice('--expect-id='.length));
+const seenIds = new Set();
 const html = readFileSync(file, 'utf8');
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
   .map(m => m[1]).join('\n;');
+
+// Ids the page actually has. Scripts are stripped first so the embedded
+// data payload cannot invent ids. getElementById returns null for
+// anything not here, which is what a browser does and what the old stub
+// did not: it fabricated an element for every id, so a page referring to
+// an element it does not have went green headless and threw in Chrome.
+const markup = html.replace(/<script>[\s\S]*?<\/script>/g, '');
+function idsIn(s) {
+  return [...String(s).matchAll(/id=["']?([A-Za-z0-9_-]+)/g)].map(m => m[1]);
+}
 
 const CTX_NOOPS = ['quadraticCurveTo', 'arc', 'fill', 'stroke', 'save',
   'restore', 'scale', 'translate', 'beginPath', 'closePath', 'moveTo',
@@ -22,23 +39,45 @@ function runPass(reduceMotion) {
     return typeof t[k] !== 'undefined' ? t[k] : (() => {});
   }, set: () => true });
   const listeners = {};
-  function makeEl(id){ return {
-    id, innerHTML:'', textContent:'', value:'0', max:'1', min:'0',
-    style:{}, dataset:{},
-    classList:{ add(){}, remove(){}, toggle(){} },
-    appendChild(){}, querySelector(){ return { onclick:null, addEventListener(){} }; },
-    querySelectorAll(){ return []; },
-    addEventListener(ev, fn){ (listeners[id+':'+ev] ||= []).push(fn); },
-    insertAdjacentHTML(){}, className:'', title:'', remove(){},
-    getContext(){ return ctx; },
-    getBoundingClientRect(){ return { left:0, top:0, width:980, height:605 }; },
-    clientWidth:980, clientHeight:605, width:1960, height:1210,
-    parentElement:{ clientWidth:980 },
-  };}
+  const known = new Set(idsIn(markup));
+  known.forEach(i => seenIds.add(i));
+  function makeEl(id){
+    const el = {
+      textContent:'', value:'0', max:'1', min:'0',
+      style:{}, dataset:{},
+      classList:{ add(){}, remove(){}, toggle(){} },
+      appendChild(){},
+      querySelector(){ return { onclick:null, addEventListener(){} }; },
+      querySelectorAll(){ return []; },
+      addEventListener(ev, fn){ (listeners[el.id+':'+ev] ||= []).push(fn); },
+      // markup written at runtime can introduce ids, so they are learned
+      insertAdjacentHTML(pos, h){
+        idsIn(h).forEach(i => { known.add(i); seenIds.add(i); }); },
+      className:'', title:'', remove(){},
+      getContext(){ return ctx; },
+      getBoundingClientRect(){ return { left:0, top:0, width:980, height:605 }; },
+      clientWidth:980, clientHeight:605, width:1960, height:1210,
+      parentElement:{ clientWidth:980 },
+    };
+    let _id = id, _html = '';
+    Object.defineProperty(el, 'id', {
+      get(){ return _id; },
+      set(v){ _id = v; if (v) { known.add(v); seenIds.add(v); } },
+      enumerable: true });
+    Object.defineProperty(el, 'innerHTML', {
+      get(){ return _html; },
+      set(v){ _html = v;
+        idsIn(v).forEach(i => { known.add(i); seenIds.add(i); }); },
+      enumerable: true });
+    return el;
+  }
   const els = {};
   const raf = [];
   globalThis.document = {
-    getElementById(id){ return els[id] ||= makeEl(id); },
+    getElementById(id){
+      if (!known.has(id)) return null;
+      return els[id] ||= makeEl(id);
+    },
     querySelector(sel){ return els['sel'+sel] ||= makeEl('sel'+sel); },
     querySelectorAll(){ return [makeEl('x')]; },
     createElement(tag){ return makeEl('new:'+tag); },
@@ -123,4 +162,10 @@ for (const reduce of [false, true]) {
     process.exit(1);
   }
 }
-console.log('OK', file, '(both motion passes)');
+const missing = expectIds.filter(i => !seenIds.has(i));
+if (missing.length) {
+  console.error('EXPECTED ELEMENTS NEVER CREATED in', file, ':', missing);
+  process.exit(1);
+}
+console.log('OK', file, '(both motion passes)'
+  + (expectIds.length ? ' [' + expectIds.join(',') + ' created]' : ''));

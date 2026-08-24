@@ -1125,6 +1125,57 @@ def test_issue_weather_is_frozen_from_its_registered_month():
     assert "understates co-movement" in w["ensemble"]
 
 
+def _smoke(path, *extra):
+    import subprocess
+    return subprocess.run(
+        ["node", os.path.join(ROOT, "tests", "js_smoke.mjs"), path,
+         *extra], capture_output=True, text=True, cwd=ROOT)
+
+
+def test_smoke_harness_sees_a_missing_element():
+    """The permanent self-test. The old harness fabricated an element
+    for every id, so a page referring to an element it does not have
+    went green headless and threw in a browser. If this fixture ever
+    passes, the harness has gone blind again."""
+    fx = os.path.join(ROOT, "tests", "fixtures", "smoke_missing_id.html")
+    assert os.path.exists(fx)
+    r = _smoke(fx)
+    assert r.returncode != 0, "the harness did not notice a missing element"
+    assert "Cannot set properties of null" in (r.stderr + r.stdout)
+
+
+def test_smoke_harness_expect_id_holds_both_ways():
+    """--expect-id is what lets a test hold a page to rendering a
+    branch. It must pass for an element that exists and fail for one
+    that does not."""
+    idx = os.path.join(ROOT, "index.html")
+    assert _smoke(idx, "--expect-id=hero").returncode == 0
+    r = _smoke(idx, "--expect-id=definitelynotanelement")
+    assert r.returncode != 0
+    assert "EXPECTED ELEMENTS NEVER CREATED" in (r.stderr + r.stdout)
+
+
+def test_hero_note_fires_only_when_a_range_is_shown():
+    """The independence caveat is the only place a reader meets the
+    ensemble assumption, so it is held to appearing with the range and
+    to staying away without it."""
+    import json as _j, tempfile
+    tpl = open(os.path.join(ROOT, "site", "graph_v7.html")).read()
+    site = _j.load(open(os.path.join(ROOT, "state", "site_data.json")))
+    assert "next_low" not in site["weather"], "live data has no range yet"
+    assert _smoke(os.path.join(ROOT, "index.html"),
+                  "--expect-id=heronote").returncode != 0
+    site["weather"] = dict(site["weather"])
+    site["weather"]["next_low"] = 15
+    site["weather"]["next_high"] = 28
+    with tempfile.TemporaryDirectory() as d:
+        p = os.path.join(d, "withrange.html")
+        open(p, "w").write(tpl.replace("__DATA__",
+                                       _j.dumps(site, sort_keys=True)))
+        r = _smoke(p, "--expect-id=heronote")
+        assert r.returncode == 0, r.stderr + r.stdout
+
+
 def test_pages_execute_headlessly():
     """Both built pages must run without script errors: load, three
     animation frames, a scrub event, a canvas click."""

@@ -462,24 +462,7 @@ function renderToday(){
         :'<div class=s style="color:var(--faint)">awaiting</div>'+
          '<div class=p>&nbsp;</div>')+'</div>';}
   strip.innerHTML=ih;
-  const fcEl=document.getElementById('fc');
-  const F=DATA.outlook_display;
-  if(F&&F.rows&&F.rows.length){
-    let fh='';
-    if(F.synoptic){
-      fh+='<div class=fcrow><div class=n>WEATHER</div><div class=m>'+
-        F.synoptic.map(c=>fchip(c)).join('')+'</div></div>';}
-    for(const r of F.rows){
-      fh+='<div class=fcrow><div class=n>'+
-        (NAME[r.block]||r.block.toUpperCase())+
-        '</div><div class=m>'+r.months.map(c=>fchip(c)).join('')+
-        '</div></div>';}
-    fh+='<div class=fcnote>'+(F.note||'')+'</div>';
-    fcEl.innerHTML=fh;
-    document.getElementById('fchead').textContent='FORECAST';
-  } else {
-    fcEl.innerHTML='<div class=fcnote>forecast rows appear with the '+
-      'first monthly outlook issue</div>';}
+
 }
 function fchip(c){
   const col=FAMCOL[c.fam>=0?c.fam:0];
@@ -579,6 +562,7 @@ init();
   color:var(--ink);margin-bottom:6px}
 .olab{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
   color:var(--faint);text-transform:uppercase;margin:9px 0 3px}
+#heronote{color:var(--faint);font-size:11px;margin-top:2px}
 .bustlamp{margin-top:8px;color:var(--glut)}
 .bustlamp i{display:inline-block;width:7px;height:7px;border-radius:50%;
   background:var(--glut);box-shadow:0 0 6px var(--glut);margin-right:6px}
@@ -600,6 +584,15 @@ init();
     stk.insertAdjacentHTML('afterend','<span id=streakwhere>'+
       'Instrument validation history lives on the record page.'+
       '</span>');
+  // WEATHER-DIALS-REG pins the ensemble assumption; the hero range is
+  // the only place a reader meets it, so it is said there, in words,
+  // and only when a range is actually shown.
+  var wx=DATA.weather||{};
+  if(wx.next_low!==undefined&&wx.next_low!==null){
+    var hero=document.getElementById('hero');
+    if(hero&&hero.insertAdjacentHTML)
+      hero.insertAdjacentHTML('afterend','<div id=heronote>'+
+        'range assumes independent instrument paths</div>');}
   // STREAK-DEF-2 renders retractions and revisions of published
   // output as amber. The page's own colour map knows hit and miss, so
   // the amber dots are painted here rather than by editing it.

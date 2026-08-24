@@ -442,10 +442,9 @@ function renderToday(){
       getCss(SC[DATA.synoptic.current.state]||'--calm'):getCss('--calm');
     h.innerHTML=(cw?'<div class=cond style="color:'+cc+'">'+cw+
       '</div>':'')+
-      '<div class=temp>'+Wd.temp+'<small>&deg;</small></div>'+
+      '<div class=temp>'+Wd.temp+'<small> heat</small></div>'+
       (Wd.next_low!==undefined?'<div class=hl>next month '+
-       '<b>'+Wd.next_low+'&deg;</b> to <b>'+Wd.next_high+
-       '&deg;</b><br><span style="color:var(--faint)">world heat '+
+       '<b>'+Wd.next_low+'</b> to <b>'+Wd.next_high+'</b><br><span style="color:var(--faint)">world heat '+
        'index, 0 calm to 100 hot; range is forecast, assumes '+
        'independent instrument paths</span></div>':'');
     const ts=tempSeries();
@@ -454,7 +453,7 @@ function renderToday(){
       scaleBar(Wd.temp,100,{ticks:med!==null?[{v:med,l:'typical'}]:[],
         zones:['calm','unsettled','strained','storm'],
         tickcap:med!==null?'tick: typical, the median of the full '+
-          'record, '+Math.round(med)+' degrees':''})+
+          'record, '+Math.round(med):''})+
       '<div class=spark>'+ts.slice(-12).map(function(v){
         const vv=v===null?0:v;
         const col=vv<15?getCss('--calm'):vv<35?getCss('--glut')
@@ -485,7 +484,7 @@ function renderToday(){
         return '<div class=fccard style="border-color:'+col+'44">'+
           '<div class=mo3>'+c.month+'</div>'+
           '<div class=w style="color:'+col+'">'+c.word+'</div>'+
-          '<div class=t>'+lo+' to '+hi+' degrees</div>'+
+          '<div class=t>'+lo+' to '+hi+'</div>'+
           '<div class=rbar><div class=rng style="left:'+lo+
           '%;width:'+Math.max(2,hi-lo)+'%;background:'+col+
           '99"></div><div class=mid style="left:'+c.temp+'%"></div>'+
@@ -534,14 +533,7 @@ function renderToday(){
         :'<div class=s style="color:var(--faint)">awaiting</div>'+
          '<div class=p>&nbsp;</div>')+'</div>';}
   strip.innerHTML=ih;
-
 }
-function fchip(c){
-  const col=FAMCOL[c.fam>=0?c.fam:0];
-  return '<div class=fcchip style="border-color:'+col+'55">'+
-    '<div class=mo2>'+c.month+'</div>'+
-    '<div class=w style="color:'+col+'">'+c.word+'</div>'+
-    '<div class=pr>'+c.prob+'%</div></div>';}
 function setTab(t){
   document.getElementById('pane-today').style.display=
     (t==='today'?'block':'none');

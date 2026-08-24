@@ -1047,22 +1047,22 @@ def test_weather_dials_fire_every_arrow_direction():
             "inflation": 0, "breakevens": 0, "money": 0}
     flat = run["_weather"](_wx_site(base, dict(base)))
     dirs = {d["name"]: d["dir"] for d in flat["dials"]}
-    assert dirs["PRESSURE"] == 0 and dirs["HUMIDITY"] == 0
+    assert dirs["FINANCIAL PRESSURE"] == 0 and dirs["INFLATION HUMIDITY"] == 0
     # pressure falls when the risk panel heats up
     worse = dict(base); worse.update({"credit": 4, "equities": 4})
     down = run["_weather"](_wx_site(worse, dict(base)))
     dd = {d["name"]: d["dir"] for d in down["dials"]}
-    assert dd["PRESSURE"] == -1, down["dials"]
+    assert dd["FINANCIAL PRESSURE"] == -1, down["dials"]
     # and rises when it cools
     up = run["_weather"](_wx_site(base, worse))
     du = {d["name"]: d["dir"] for d in up["dials"]}
-    assert du["PRESSURE"] == 1, up["dials"]
+    assert du["FINANCIAL PRESSURE"] == 1, up["dials"]
     # humidity moves with the inflation panel, in the same direction
     hot = dict(base); hot.update({"inflation": 4, "money": 4})
     hu = run["_weather"](_wx_site(hot, dict(base)))
-    assert {d["name"]: d["dir"] for d in hu["dials"]}["HUMIDITY"] == 1
+    assert {d["name"]: d["dir"] for d in hu["dials"]}["INFLATION HUMIDITY"] == 1
     hd = run["_weather"](_wx_site(base, hot))
-    assert {d["name"]: d["dir"] for d in hd["dials"]}["HUMIDITY"] == -1
+    assert {d["name"]: d["dir"] for d in hd["dials"]}["INFLATION HUMIDITY"] == -1
 
 
 def test_weather_temperature_and_wind_follow_the_registered_formulas():
@@ -1074,11 +1074,11 @@ def test_weather_temperature_and_wind_follow_the_registered_formulas():
     assert allhot["temp"] == 100
     mid = run["_weather"](_wx_site({"a": 0, "b": 4}, {"a": 0, "b": 4}))
     assert mid["temp"] == 50
-    wind = next(d for d in mid["dials"] if d["name"] == "WIND")
+    wind = next(d for d in mid["dials"] if d["name"] == "TRANSMISSION WIND")
     # the later frame carries the larger total, so it is the top
     assert wind["value"] == "100"
     assert "gust credit to equities at 24.0 percent" in wind["detail"]
-    storm = next(d for d in mid["dials"] if d["name"] == "STORM RISK")
+    storm = next(d for d in mid["dials"] if d["name"] == "OIL STORM RISK")
     assert storm["value"] == "29%"
     assert storm["detail"].startswith("risk lamp:")
 
@@ -1089,13 +1089,13 @@ def test_weather_hero_and_forecast_have_both_branches():
     base = {"credit": 0, "equities": 0}
     empty = run["_weather"](_wx_site(base, dict(base)))
     assert "next_low" not in empty and "forecast" not in empty
-    vis = next(d for d in empty["dials"] if d["name"] == "VISIBILITY")
+    vis = next(d for d in empty["dials"] if d["name"] == "FORECAST VISIBILITY")
     assert vis["value"] == "not yet"
     full = run["_weather"](_wx_site(base, dict(base), with_issue=True))
     assert full["next_low"] == 15 and full["next_high"] == 28
     assert len(full["forecast"]) == 1
     assert full["forecast"][0]["storm"] == 86
-    v2 = next(d for d in full["dials"] if d["name"] == "VISIBILITY")
+    v2 = next(d for d in full["dials"] if d["name"] == "FORECAST VISIBILITY")
     assert v2["value"] == "~4 mo"
     assert full["note"].startswith("issued 2026-10-05")
 
@@ -1195,6 +1195,30 @@ def test_hero_caveat_fires_only_when_a_range_is_shown():
     assert r.returncode == 0, r.stderr + r.stdout
 
 
+def test_dial_names_and_the_unitless_index_render():
+    """WEATHER-DIALS-REG-3. The names must reach the page, and no
+    degree glyph may reach it anywhere: the heat index is 25 times a
+    mean family code and has no unit to borrow."""
+    r = _smoke(os.path.join(ROOT, "index.html"),
+               "--expect-text=FINANCIAL PRESSURE",
+               "--expect-text=INFLATION HUMIDITY",
+               "--expect-text=TRANSMISSION WIND",
+               "--expect-text=FORECAST VISIBILITY",
+               "--expect-text=OIL STORM RISK")
+    assert r.returncode == 0, r.stderr + r.stdout
+    built = open(os.path.join(ROOT, "index.html")).read()
+    assert "&deg;" not in built and "\u00b0" not in built
+    tpl = open(os.path.join(ROOT, "site", "graph_v8.html")).read()
+    assert "&deg;" not in tpl
+    # the range and the cards drop the unit too, not just the hero
+    p = _built_with({"next_low": 15, "next_high": 28,
+                     "forecast": [{"month": "2026-11", "word": "glut",
+                                   "fam": 3, "temp": 22, "lo": 15,
+                                   "hi": 30, "storm": 86}]})
+    assert _smoke(p, "--expect-text=15 to 30").returncode == 0
+    assert _smoke(p, "--expect-text=degrees").returncode != 0
+
+
 def test_every_scale_renders_on_the_live_build():
     """WEATHER-DIALS-REG-2's bands, the typical tick, the base-rate tick
     and the sparkline are all held to actually rendering."""
@@ -1217,7 +1241,7 @@ def test_forecast_range_bar_fires_and_is_absent_without_an_issue():
                                    "fam": 3, "temp": 22, "lo": 15,
                                    "hi": 30, "storm": 86}]})
     r = _smoke(p, "--expect-class=rbar", "--expect-class=rng",
-               "--expect-class=mid", "--expect-text=15 to 30 degrees")
+               "--expect-class=mid", "--expect-text=15 to 30")
     assert r.returncode == 0, r.stderr + r.stdout
 
 

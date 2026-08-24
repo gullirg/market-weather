@@ -1577,5 +1577,14 @@
   "window": "2026-08",
   "note": "three things are pinned so the bands cannot quietly become estimates. First, the typical tick and the twelve-month sparkline are derived client-side from the family strips already in the payload; they add no key and no computation to the pipeline, so a reader's historical context is the same object the strips already publish. Second, the forecast band's lo and hi are read from fields the issue freezes at issue time and are never recomputed at display; a card whose issue does not carry them is not shown at all, rather than shown with a fabricated band, because the template's guarded fallback of plus or minus six degrees is a preview convenience and must never reach a reader. Third, the band boundaries above are display vocabulary and carry no gate: nothing is published, withheld or scored on the strength of which zone a needle sits in. The independence caveat registered with the hero range applies unchanged to the forecast bands, which come from the same ensemble.",
   "hash": "ee90db40f446446e"
+ },
+ {
+  "id": "WEATHER-DIALS-REG-3",
+  "group": "registration, recorded before render",
+  "status": "hit",
+  "claim": "display naming for the meteorology layer. No formula from WEATHER-DIALS-REG changes, no band from WEATHER-DIALS-REG-2 changes, and nothing is rescored. The dials render as FINANCIAL PRESSURE, INFLATION HUMIDITY, TRANSMISSION WIND, FORECAST VISIBILITY and OIL STORM RISK. The world heat index renders its value with a small heat tag and no degree glyph anywhere, in the hero, the range or the forecast cards",
+  "window": "2026-08",
+  "note": "two reasons, both about not letting a borrowed vocabulary make a claim the numbers do not. The storm risk dial is renamed OIL STORM RISK because the hazard lamp is estimated on real Brent alone and on the oil regime alone; leaving it called STORM RISK on a page carrying twenty two instruments invited a reader to take it as a whole-system risk, which it is not and never was. And the heat index loses its degree glyph everywhere because it is 25 times a mean family code, a unitless index on an arbitrary 0 to 100 scale; a degree sign borrows the authority of a measured physical unit for a number that has none. The other four names simply say which instruments each mean is taken over, which the detail line already said and the title did not.",
+  "hash": "cf7dd33bfb86398d"
  }
 ]

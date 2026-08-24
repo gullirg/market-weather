@@ -208,7 +208,7 @@ def _weather(site):
     if p_now is not None:
         d = 0 if p_prev is None else (1 if p_cmp > p_prev
                                       else (-1 if p_cmp < p_prev else 0))
-        dials.append({"name": "PRESSURE", "value": str(int(round(p_now))),
+        dials.append({"name": "FINANCIAL PRESSURE", "value": str(int(round(p_now))),
                       "dir": d,
                       "scale": {"v": int(round(p_now)), "max": 100,
                                 "zones": PRESSURE_ZONES},
@@ -220,7 +220,7 @@ def _weather(site):
     if h_now is not None:
         d = 0 if h_prev is None else (1 if h_cmp > h_prev
                                       else (-1 if h_cmp < h_prev else 0))
-        dials.append({"name": "HUMIDITY", "value": str(int(round(h_now))),
+        dials.append({"name": "INFLATION HUMIDITY", "value": str(int(round(h_now))),
                       "dir": d,
                       "scale": {"v": int(round(h_now)), "max": 100,
                                 "zones": HUMIDITY_ZONES},
@@ -240,7 +240,7 @@ def _weather(site):
             detail += (f"; gust {gust['src'].replace('_', ' ')} to "
                        f"{gust['dst'].replace('_', ' ')} at "
                        f"{gust['pct']} percent")
-        dials.append({"name": "WIND", "value": str(pctl), "dir": 0,
+        dials.append({"name": "TRANSMISSION WIND", "value": str(pctl), "dir": 0,
                       "scale": {"v": pctl, "max": 100,
                                 "zones": WIND_ZONES},
                       "detail": detail})
@@ -248,7 +248,7 @@ def _weather(site):
     ol = site.get("outlook") or {}
     iw = ol.get("weather") or {}
     vis = iw.get("visibility_months")
-    vdial = {"name": "VISIBILITY",
+    vdial = {"name": "FORECAST VISIBILITY",
              "value": (f"~{vis} mo" if vis is not None else "not yet"),
              "dir": 0,
              "detail": ("months before the leading weather system "
@@ -264,7 +264,7 @@ def _weather(site):
     tf = ((hz.get("lamp") or {}).get(st) or {}).get("tail_freq")
     if tf is not None:
         base = (hz.get("lamp") or {}).get("unconditional")
-        sdial = {"name": "STORM RISK",
+        sdial = {"name": "OIL STORM RISK",
                  "value": f"{int(round(tf * 100))}%", "dir": 0,
                  "detail": hz.get("lampline") or ""}
         sc = {"v": int(round(tf * 100)), "max": STORM_MAX, "flat": True}

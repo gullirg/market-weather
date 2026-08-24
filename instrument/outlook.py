@@ -431,8 +431,14 @@ def issue_weather(trails, state_lists, syn_dists, syn_trail,
             word = str(st).replace("_", " ")
         else:
             f, word = 0, ""
+        # WEATHER-DIALS-REG-2: each card carries its own band, frozen
+        # here so the display never recomputes a forecast.
         cards.append({"month": str(b + h), "word": word, "fam": f,
                       "temp": int(round(float(temp[:, i].mean()))),
+                      "lo": int(round(float(
+                          np.percentile(temp[:, i], HERO_LO)))),
+                      "hi": int(round(float(
+                          np.percentile(temp[:, i], HERO_HI)))),
                       "storm": int(round(float(hot_any[:, i].mean()
                                                * 100)))})
     return {"visibility_months": vis, "hero": hero, "cards": cards,

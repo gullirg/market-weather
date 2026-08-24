@@ -10,7 +10,25 @@ const file = process.argv[2];
 const expectIds = process.argv.slice(3)
   .filter(a => a.startsWith('--expect-id='))
   .map(a => a.slice('--expect-id='.length));
+// --expect-class=NAME and --expect-text=STRING do the same job for
+// markup the page writes without an id: a class it must have produced,
+// or a phrase it must have said. Between them a test can hold a page to
+// rendering a branch whatever the design chose to mark it with.
+const expectClasses = process.argv.slice(3)
+  .filter(a => a.startsWith('--expect-class='))
+  .map(a => a.slice('--expect-class='.length));
+const expectTexts = process.argv.slice(3)
+  .filter(a => a.startsWith('--expect-text='))
+  .map(a => a.slice('--expect-text='.length));
 const seenIds = new Set();
+const seenClasses = new Set();
+let written = '';
+function noteHtml(h) {
+  const s = String(h);
+  written += s;
+  for (const m of s.matchAll(/class=["']?([A-Za-z0-9 _-]+)/g))
+    m[1].trim().split(/\s+/).forEach(c => c && seenClasses.add(c));
+}
 const html = readFileSync(file, 'utf8');
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
   .map(m => m[1]).join('\n;');
@@ -52,6 +70,7 @@ function runPass(reduceMotion) {
       addEventListener(ev, fn){ (listeners[el.id+':'+ev] ||= []).push(fn); },
       // markup written at runtime can introduce ids, so they are learned
       insertAdjacentHTML(pos, h){
+        noteHtml(h);
         idsIn(h).forEach(i => { known.add(i); seenIds.add(i); }); },
       className:'', title:'', remove(){},
       getContext(){ return ctx; },
@@ -66,7 +85,7 @@ function runPass(reduceMotion) {
       enumerable: true });
     Object.defineProperty(el, 'innerHTML', {
       get(){ return _html; },
-      set(v){ _html = v;
+      set(v){ _html = v; noteHtml(v);
         idsIn(v).forEach(i => { known.add(i); seenIds.add(i); }); },
       enumerable: true });
     return el;
@@ -163,9 +182,13 @@ for (const reduce of [false, true]) {
   }
 }
 const missing = expectIds.filter(i => !seenIds.has(i));
-if (missing.length) {
-  console.error('EXPECTED ELEMENTS NEVER CREATED in', file, ':', missing);
+const missingC = expectClasses.filter(c => !seenClasses.has(c));
+const missingT = expectTexts.filter(t => !written.includes(t));
+if (missing.length || missingC.length || missingT.length) {
+  console.error('EXPECTED OUTPUT NEVER RENDERED in', file, ':',
+    JSON.stringify({ ids: missing, classes: missingC, text: missingT }));
   process.exit(1);
 }
+const n = expectIds.length + expectClasses.length + expectTexts.length;
 console.log('OK', file, '(both motion passes)'
-  + (expectIds.length ? ' [' + expectIds.join(',') + ' created]' : ''));
+  + (n ? ' [' + n + ' expectation' + (n === 1 ? '' : 's') + ' met]' : ''));

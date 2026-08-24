@@ -506,9 +506,17 @@ def build_payload(site, scorecard_counts, bulletin_no, issued,
                                   str(d.get("value", "")) + " "
                                   + str(d.get("detail", ""))):
                 add(tok)
+        for d in wx.get("dials", []):
+            sc = d.get("scale") or {}
+            for k in ("v", "max"):
+                if sc.get(k) is not None:
+                    add(sc[k])
+            for t in sc.get("ticks", []):
+                add(t["v"])
         for c in wx.get("forecast", []):
-            for k in ("fam", "temp", "storm"):
-                add(c[k])
+            for k in ("fam", "temp", "storm", "lo", "hi"):
+                if c.get(k) is not None:
+                    add(c[k])
     od = site.get("outlook_display")
     if od:
         for r in od.get("rows", []):

@@ -1033,7 +1033,8 @@ def _wx_site(now, prev, with_issue=False):
             "visibility_months": 4,
             "hero": {"low": 15, "high": 28},
             "cards": [{"month": "2026-11", "word": "post shock glut",
-                       "fam": 3, "temp": 22, "storm": 86}]}
+                       "fam": 3, "temp": 22, "lo": 15, "hi": 30,
+                       "storm": 86}]}
     return site
 
 
@@ -1145,35 +1146,109 @@ def test_smoke_harness_sees_a_missing_element():
 
 
 def test_smoke_harness_expect_id_holds_both_ways():
-    """--expect-id is what lets a test hold a page to rendering a
-    branch. It must pass for an element that exists and fail for one
-    that does not."""
+    """The expectation flags are what let a test hold a page to
+    rendering a branch. Each must pass for output the page produces and
+    fail for output it does not."""
     idx = os.path.join(ROOT, "index.html")
     assert _smoke(idx, "--expect-id=hero").returncode == 0
+    assert _smoke(idx, "--expect-class=dial").returncode == 0
+    # "world heat index" only renders with a range, which live data has
+    # not got, so the positive case uses text the page does produce
+    assert _smoke(idx, "--expect-text=last twelve months").returncode == 0
+    assert _smoke(idx, "--expect-text=world heat index").returncode != 0
+    assert _smoke(idx, "--expect-class=nosuchclass").returncode != 0
+    assert _smoke(idx, "--expect-text=this phrase is not on the "
+                       "page").returncode != 0
     r = _smoke(idx, "--expect-id=definitelynotanelement")
     assert r.returncode != 0
-    assert "EXPECTED ELEMENTS NEVER CREATED" in (r.stderr + r.stdout)
+    assert "EXPECTED OUTPUT NEVER RENDERED" in (r.stderr + r.stdout)
 
 
-def test_hero_note_fires_only_when_a_range_is_shown():
-    """The independence caveat is the only place a reader meets the
-    ensemble assumption, so it is held to appearing with the range and
-    to staying away without it."""
+CAVEAT = "independent instrument paths"
+
+
+def _built_with(weather_patch, **extra):
+    """Build the current index template against a patched payload."""
     import json as _j, tempfile
-    tpl = open(os.path.join(ROOT, "site", "graph_v7.html")).read()
+    tpl = open(os.path.join(ROOT, "site", "graph_v8.html")).read()
+    site = _j.load(open(os.path.join(ROOT, "state", "site_data.json")))
+    site["weather"] = {**site["weather"], **weather_patch}
+    site.update(extra)
+    d = tempfile.mkdtemp()
+    p = os.path.join(d, "patched.html")
+    open(p, "w").write(tpl.replace("__DATA__", _j.dumps(site,
+                                                        sort_keys=True)))
+    return p
+
+
+def test_hero_caveat_fires_only_when_a_range_is_shown():
+    """The independence caveat is the only place a reader meets the
+    ensemble assumption. v8 says it inline in the hero, so it is held
+    to appearing with the range and staying away without it."""
+    import json as _j
     site = _j.load(open(os.path.join(ROOT, "state", "site_data.json")))
     assert "next_low" not in site["weather"], "live data has no range yet"
     assert _smoke(os.path.join(ROOT, "index.html"),
-                  "--expect-id=heronote").returncode != 0
-    site["weather"] = dict(site["weather"])
-    site["weather"]["next_low"] = 15
-    site["weather"]["next_high"] = 28
-    with tempfile.TemporaryDirectory() as d:
-        p = os.path.join(d, "withrange.html")
-        open(p, "w").write(tpl.replace("__DATA__",
-                                       _j.dumps(site, sort_keys=True)))
-        r = _smoke(p, "--expect-id=heronote")
-        assert r.returncode == 0, r.stderr + r.stdout
+                  "--expect-text=" + CAVEAT).returncode != 0
+    p = _built_with({"next_low": 15, "next_high": 28})
+    r = _smoke(p, "--expect-text=" + CAVEAT)
+    assert r.returncode == 0, r.stderr + r.stdout
+
+
+def test_every_scale_renders_on_the_live_build():
+    """WEATHER-DIALS-REG-2's bands, the typical tick, the base-rate tick
+    and the sparkline are all held to actually rendering."""
+    r = _smoke(os.path.join(ROOT, "index.html"),
+               "--expect-class=scale", "--expect-class=mk",
+               "--expect-class=zl", "--expect-class=tick",
+               "--expect-class=spark",
+               "--expect-text=tick: typical, the median of the full record",
+               "--expect-text=tick: the unconditional base rate")
+    assert r.returncode == 0, r.stderr + r.stdout
+
+
+def test_forecast_range_bar_fires_and_is_absent_without_an_issue():
+    """The range bar cannot render today, so it is fired against a
+    payload carrying a frozen band."""
+    idx = os.path.join(ROOT, "index.html")
+    assert _smoke(idx, "--expect-class=rbar").returncode != 0
+    p = _built_with({"next_low": 15, "next_high": 28,
+                     "forecast": [{"month": "2026-11", "word": "glut",
+                                   "fam": 3, "temp": 22, "lo": 15,
+                                   "hi": 30, "storm": 86}]})
+    r = _smoke(p, "--expect-class=rbar", "--expect-class=rng",
+               "--expect-class=mid", "--expect-text=15 to 30 degrees")
+    assert r.returncode == 0, r.stderr + r.stdout
+
+
+def test_a_card_without_a_frozen_band_is_withheld():
+    """The template has a plus or minus six fallback for previews.
+    WEATHER-DIALS-REG-2 says it must never reach a reader, so the
+    payload withholds the cards instead."""
+    import runpy
+    run = runpy.run_path(os.path.join(ROOT, "run.py"))
+    site = _wx_site({"credit": 0}, {"credit": 0}, with_issue=True)
+    ok = run["_weather"](site)
+    assert "forecast" in ok and ok["forecast"][0]["lo"] == 15
+    for c in site["outlook"]["weather"]["cards"]:
+        c.pop("lo", None)
+        c.pop("hi", None)
+    withheld = run["_weather"](site)
+    assert "forecast" not in withheld
+    assert "no band is drawn" in withheld["forecast_withheld"]
+
+
+def test_issue_cards_freeze_their_own_band():
+    import numpy as np
+    from instrument import outlook as O
+    trails = {"a": np.zeros((200, 12), dtype=int),
+              "b": np.ones((200, 12), dtype=int)}
+    states = {"a": ["calm", "supply_glut"], "b": ["calm", "surge"]}
+    syn = {str(h): {"post_shock_glut": 0.9} for h in O.HORIZONS}
+    w = O.issue_weather(trails, states, syn, None, [], "2026-10")
+    for c in w["cards"]:
+        assert c["lo"] is not None and c["hi"] is not None
+        assert c["lo"] <= c["temp"] <= c["hi"]
 
 
 def test_pages_execute_headlessly():

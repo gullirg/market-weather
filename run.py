@@ -143,6 +143,14 @@ OUTLOOK_DISPLAY_FORECASTER = "M"
 # an object the pipeline already computed.
 PRESSURE_SET = ("credit", "equities", "dollar", "em_dollar")
 HUMIDITY_SET = ("inflation", "breakevens", "money")
+# WEATHER-DIALS-REG-2: the scales the existing numbers are drawn on.
+# Zone words only; the boundaries live in the registration.
+TEMP_ZONES = ["calm", "unsettled", "strained", "storm"]
+PRESSURE_ZONES = ["stormy", "changeable", "fair"]
+HUMIDITY_ZONES = ["dry", "damp", "saturated"]
+WIND_ZONES = ["still", "typical", "gale"]
+STORM_MAX = 60
+VISIBILITY_MAX = 12
 
 
 def _fam_now_prev(site):
@@ -202,6 +210,8 @@ def _weather(site):
                                       else (-1 if p_cmp < p_prev else 0))
         dials.append({"name": "PRESSURE", "value": str(int(round(p_now))),
                       "dir": d,
+                      "scale": {"v": int(round(p_now)), "max": 100,
+                                "zones": PRESSURE_ZONES},
                       "detail": "falling is storm-side; credit, equities "
                                 "and the dollar"})
     hr = pair(HUMIDITY_SET, lambda x: 25.0 * x)
@@ -212,6 +222,8 @@ def _weather(site):
                                       else (-1 if h_cmp < h_prev else 0))
         dials.append({"name": "HUMIDITY", "value": str(int(round(h_now))),
                       "dir": d,
+                      "scale": {"v": int(round(h_now)), "max": 100,
+                                "zones": HUMIDITY_ZONES},
                       "detail": "inflation, breakevens and money"})
 
     bf = ((site.get("v3") or {}).get("block_frames")) or {}
@@ -229,26 +241,39 @@ def _weather(site):
                        f"{gust['dst'].replace('_', ' ')} at "
                        f"{gust['pct']} percent")
         dials.append({"name": "WIND", "value": str(pctl), "dir": 0,
+                      "scale": {"v": pctl, "max": 100,
+                                "zones": WIND_ZONES},
                       "detail": detail})
 
     ol = site.get("outlook") or {}
     iw = ol.get("weather") or {}
     vis = iw.get("visibility_months")
-    dials.append({"name": "VISIBILITY",
-                  "value": (f"~{vis} mo" if vis is not None else "not yet"),
-                  "dir": 0,
-                  "detail": ("months before the leading weather system "
-                             "falls below an even chance"
-                             if vis is not None else
-                             "arrives with the first monthly issue")})
+    vdial = {"name": "VISIBILITY",
+             "value": (f"~{vis} mo" if vis is not None else "not yet"),
+             "dir": 0,
+             "detail": ("months before the leading weather system "
+                        "falls below an even chance"
+                        if vis is not None else
+                        "arrives with the first monthly issue")}
+    if vis is not None:
+        vdial["scale"] = {"v": vis, "max": VISIBILITY_MAX, "flat": True}
+    dials.append(vdial)
 
     hz = site.get("hazard") or {}
     st = (hz.get("current") or {}).get("state")
     tf = ((hz.get("lamp") or {}).get(st) or {}).get("tail_freq")
     if tf is not None:
-        dials.append({"name": "STORM RISK",
-                      "value": f"{int(round(tf * 100))}%", "dir": 0,
-                      "detail": hz.get("lampline") or ""})
+        base = (hz.get("lamp") or {}).get("unconditional")
+        sdial = {"name": "STORM RISK",
+                 "value": f"{int(round(tf * 100))}%", "dir": 0,
+                 "detail": hz.get("lampline") or ""}
+        sc = {"v": int(round(tf * 100)), "max": STORM_MAX, "flat": True}
+        if base is not None:
+            sc["ticks"] = [{"v": int(round(base * 100)), "l": "base rate"}]
+            sc["tickcap"] = ("tick: the unconditional base rate, "
+                             f"{int(round(base * 100))} percent")
+        sdial["scale"] = sc
+        dials.append(sdial)
 
     out = {"temp": temp, "dials": dials,
            "instruments": len(fp),
@@ -260,8 +285,17 @@ def _weather(site):
     if iw.get("hero"):
         out["next_low"] = iw["hero"]["low"]
         out["next_high"] = iw["hero"]["high"]
-    if iw.get("cards"):
-        out["forecast"] = iw["cards"]
+    cards = iw.get("cards")
+    if cards:
+        # WEATHER-DIALS-REG-2: a card whose issue did not freeze its band
+        # is not shown at all. The template has a guarded plus or minus
+        # six fallback for previews; it must never reach a reader.
+        if all(c.get("lo") is not None and c.get("hi") is not None
+               for c in cards):
+            out["forecast"] = cards
+        else:
+            out["forecast_withheld"] = ("this issue froze no forecast "
+                                        "band, so no band is drawn")
     return out
 
 
@@ -764,7 +798,7 @@ def cmd_month(args):
     changes_line = _since_last_bulletin(site)
     og_desc = _og_description(site)
     import html as _html
-    for src, dst in [("graph_v7.html", "index.html"),
+    for src, dst in [("graph_v8.html", "index.html"),
                      ("template.html", "report.html")]:
         tpl = open(os.path.join(SITE, src)).read()
         page = tpl.replace("__DATA__", payload)

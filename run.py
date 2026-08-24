@@ -72,21 +72,7 @@ STREAK_DOT = {"hit": "hit", "oos": "hit",
               "ret": "amber", "rev": "amber", "pending": "pending"}
 
 
-# state to family code, the same map the v3 strip uses. Carried into
-# the outlook payload so the page colours forecast bands from the
-# pipeline rather than from a second hand-written table.
-FAM_CODE = {"calm": 0, "easing": 1, "real_easing": 1,
-            "boom": 2, "rally": 2, "steepening": 2,
-            "reflation": 2, "expansion": 2, "em_bid": 2,
-            "supply_glut": 3, "precautionary": 3, "inversion": 3,
-            "real_tightening": 3, "em_stress": 3, "correction": 3,
-            "fear_bid": 3,
-            "demand_collapse": 4, "bust": 4, "stress": 4,
-            "supply_squeeze": 4, "deflation_scare": 4,
-            "contraction": 4, "selloff": 4, "surge": 4}
-SYN_FAM = {"risk_on_calm": 0, "post_shock_glut": 3,
-           "commodity_shock": 3, "inflation_shock": 4,
-           "financial_stress": 4, "demand_collapse": 4}
+from instrument.families import FAM_CODE, SYN_FAM, FAM_WORD
 
 
 def _streak(entries):
@@ -153,6 +139,130 @@ def _laboratory(entries):
 
 
 OUTLOOK_DISPLAY_FORECASTER = "M"
+# WEATHER-DIALS-REG. Display only: every number here is a formula over
+# an object the pipeline already computed.
+PRESSURE_SET = ("credit", "equities", "dollar", "em_dollar")
+HUMIDITY_SET = ("inflation", "breakevens", "money")
+
+
+def _fam_now_prev(site):
+    """Each live instrument's latest decoded family and its reading one
+    month earlier. Instruments report at different lags, so this is a
+    cross-section of latest readings, not of one calendar month, which
+    is what WEATHER-DIALS-REG pins."""
+    strip = ((site.get("v3") or {}).get("fam_strip")) or {}
+    out = {}
+    for name, row in strip.items():
+        last = None
+        for k in range(len(row) - 1, -1, -1):
+            if isinstance(row[k], int) and row[k] >= 0:
+                last = k
+                break
+        if last is None:
+            continue
+        prev = row[last - 1] if last > 0 and isinstance(row[last - 1], int) \
+            and row[last - 1] >= 0 else None
+        out[name] = (row[last], prev)
+    return out
+
+
+def _mean_fam(fp, names=None, which=0):
+    vals = [v[which] for n, v in fp.items()
+            if (names is None or n in names) and v[which] is not None]
+    return (sum(vals) / len(vals)) if vals else None
+
+
+def _weather(site):
+    """The meteorology layer, registered as WEATHER-DIALS-REG."""
+    fp = _fam_now_prev(site)
+    if not fp:
+        return None
+    m_now = _mean_fam(fp)
+    if m_now is None:
+        return None
+    temp = int(round(25.0 * m_now))
+    dials = []
+
+    def pair(names, f):
+        """Now and prior over the same instruments, so the arrow
+        compares like with like rather than two different panels."""
+        both = {n: v for n, v in fp.items() if v[1] is not None}
+        a = _mean_fam(fp, names, 0)
+        b = _mean_fam(both, names, 1)
+        a_same = _mean_fam(both, names, 0)
+        if a_same is None or b is None:
+            return (None if a is None else f(a), None)
+        return (f(a), f(b), f(a_same))
+
+    pr = pair(PRESSURE_SET, lambda x: 100.0 - 25.0 * x)
+    p_now, p_prev = pr[0], pr[1]
+    p_cmp = pr[2] if len(pr) > 2 else None
+    if p_now is not None:
+        d = 0 if p_prev is None else (1 if p_cmp > p_prev
+                                      else (-1 if p_cmp < p_prev else 0))
+        dials.append({"name": "PRESSURE", "value": str(int(round(p_now))),
+                      "dir": d,
+                      "detail": "falling is storm-side; credit, equities "
+                                "and the dollar"})
+    hr = pair(HUMIDITY_SET, lambda x: 25.0 * x)
+    h_now, h_prev = hr[0], hr[1]
+    h_cmp = hr[2] if len(hr) > 2 else None
+    if h_now is not None:
+        d = 0 if h_prev is None else (1 if h_cmp > h_prev
+                                      else (-1 if h_cmp < h_prev else 0))
+        dials.append({"name": "HUMIDITY", "value": str(int(round(h_now))),
+                      "dir": d,
+                      "detail": "inflation, breakevens and money"})
+
+    bf = ((site.get("v3") or {}).get("block_frames")) or {}
+    frames = bf.get("frames") or []
+    if frames:
+        tot = [sum(e["pct"] for e in f.get("edges", [])) for f in frames]
+        cur = tot[-1]
+        pctl = int(round(100.0 * sum(1 for t in tot if t <= cur)
+                         / len(tot)))
+        edges = frames[-1].get("edges") or []
+        gust = max(edges, key=lambda e: e["pct"]) if edges else None
+        detail = "percentile of history"
+        if gust:
+            detail += (f"; gust {gust['src'].replace('_', ' ')} to "
+                       f"{gust['dst'].replace('_', ' ')} at "
+                       f"{gust['pct']} percent")
+        dials.append({"name": "WIND", "value": str(pctl), "dir": 0,
+                      "detail": detail})
+
+    ol = site.get("outlook") or {}
+    iw = ol.get("weather") or {}
+    vis = iw.get("visibility_months")
+    dials.append({"name": "VISIBILITY",
+                  "value": (f"~{vis} mo" if vis is not None else "not yet"),
+                  "dir": 0,
+                  "detail": ("months before the leading weather system "
+                             "falls below an even chance"
+                             if vis is not None else
+                             "arrives with the first monthly issue")})
+
+    hz = site.get("hazard") or {}
+    st = (hz.get("current") or {}).get("state")
+    tf = ((hz.get("lamp") or {}).get(st) or {}).get("tail_freq")
+    if tf is not None:
+        dials.append({"name": "STORM RISK",
+                      "value": f"{int(round(tf * 100))}%", "dir": 0,
+                      "detail": hz.get("lampline") or ""})
+
+    out = {"temp": temp, "dials": dials,
+           "instruments": len(fp),
+           "note": (f"issued {ol.get('issued') or ol.get('issue_month')}"
+                    f", revised monthly"
+                    if iw else
+                    "readings are each instrument's latest, not one "
+                    "calendar month")}
+    if iw.get("hero"):
+        out["next_low"] = iw["hero"]["low"]
+        out["next_high"] = iw["hero"]["high"]
+    if iw.get("cards"):
+        out["forecast"] = iw["cards"]
+    return out
 
 
 def _lead_instrument(block, site):
@@ -514,12 +624,6 @@ def cmd_month(args):
     except Exception as e:
         site["outlook"] = None
         print("outlook layer degraded:", e)
-    site["bust"] = _bust_lamp(site.get("outlook"), F, args.asof)
-    site["bust"]["on"] = (site["bust"].get("state") == "amber")
-    site["changed_line"] = _since_last_bulletin(site)
-    od = _outlook_display(site)
-    if od:
-        site["outlook_display"] = od
     site["outlook_issues"] = _outlook_issues()
     frames = transmission.frames(DATA, args.asof)
     json.dump(frames, open(os.path.join(STATE, "spill_frames.json"), "w"))
@@ -630,6 +734,17 @@ def cmd_month(args):
                       "slow": s2["s2b_slow"]["ratio"],
                       "bar": s2["bar"], "nodes": s2["n_nodes"],
                       "windows": s2["s2a"]["windows"]}
+    # the read layer reads v3 and the outlook, so it is assembled here,
+    # after both exist.
+    site["bust"] = _bust_lamp(site.get("outlook"), F, args.asof)
+    site["bust"]["on"] = (site["bust"].get("state") == "amber")
+    site["changed_line"] = _since_last_bulletin(site)
+    od = _outlook_display(site)
+    if od:
+        site["outlook_display"] = od
+    wx = _weather(site)
+    if wx:
+        site["weather"] = wx
     site["streak"] = _streak(load_scorecard())
     site["laboratory"] = _laboratory(load_scorecard())
     site["pendings"] = _pendings(load_scorecard())
@@ -649,7 +764,7 @@ def cmd_month(args):
     changes_line = _since_last_bulletin(site)
     og_desc = _og_description(site)
     import html as _html
-    for src, dst in [("graph_v6.html", "index.html"),
+    for src, dst in [("graph_v7.html", "index.html"),
                      ("template.html", "report.html")]:
         tpl = open(os.path.join(SITE, src)).read()
         page = tpl.replace("__DATA__", payload)

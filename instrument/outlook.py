@@ -47,6 +47,7 @@ import numpy as np
 import pandas as pd
 
 from instrument import analogue
+from instrument.families import FAM_CODE, SYN_FAM, FAM_WORD, HOT
 
 HORIZONS = list(range(1, 13))
 K_ANALOGUE = 20
@@ -64,6 +65,13 @@ MONTHLY_FROM = "2026-10"
 # BLEND-REG: forecaster E, the equal weight average of whichever
 # forecasters issue in a month. Weights are never fitted.
 E_FIRST_MONTH = "2026-10"
+# WEATHER-DIALS-REG: an issue stores its own derived weather at freeze
+# time, so the display reads frozen numbers and never recomputes a
+# forecast.
+WEATHER_FROM = "2026-10"
+WEATHER_CARDS = 3
+HERO_LO, HERO_HI = 10, 90
+VISIBILITY_P = 0.50
 LEADS = [3, 6, 12]
 # BUST-REG: the envelope and the only registered observable mapping.
 ENVELOPE_LO, ENVELOPE_HI = 10, 90
@@ -379,6 +387,62 @@ def simulate_synoptic_paths(sm, sseq, rng, n_paths=N_PATHS,
     return paths
 
 
+def issue_weather(trails, state_lists, syn_dists, syn_trail,
+                  syn_states, base, horizons=None):
+    """The derived quantities WEATHER-DIALS-REG lets an issue freeze:
+    visibility, the hero range and the forecast cards, all from this
+    issue's own sampled paths.
+
+    The ensemble pairs path i across instruments. Forecaster M draws
+    each instrument independently, so that pairing samples the product
+    of the marginals, not an estimated joint; the registration says so
+    and the page says so."""
+    horizons = horizons or HORIZONS
+    b = pd.Period(str(base), "M")
+    vis = None
+    for h in horizons:
+        d = (syn_dists or {}).get(str(h)) or {}
+        if not d:
+            break
+        if max(d.values()) < VISIBILITY_P:
+            vis = h - 1
+            break
+    if vis is None and syn_dists:
+        vis = max(horizons)
+    names = [n for n in trails if n in state_lists]
+    if not names:
+        return None
+    hmax = min(trails[names[0]].shape[1], max(horizons))
+    fam = np.stack([
+        np.asarray([FAM_CODE.get(s2, 0) for s2 in state_lists[n]],
+                   dtype=np.int16)[trails[n][:, :hmax]]
+        for n in names])                       # (inst, paths, h)
+    temp = 25.0 * fam.mean(axis=0)             # (paths, h)
+    hot_any = (fam == HOT).any(axis=0)         # (paths, h)
+    hero = {"low": int(round(float(np.percentile(temp[:, 0], HERO_LO)))),
+            "high": int(round(float(np.percentile(temp[:, 0], HERO_HI))))}
+    cards = []
+    for i in range(min(WEATHER_CARDS, hmax)):
+        h = i + 1
+        d = (syn_dists or {}).get(str(h)) or {}
+        if d:
+            st = max(d, key=lambda k: d[k])
+            f = SYN_FAM.get(st, 0)
+            word = str(st).replace("_", " ")
+        else:
+            f, word = 0, ""
+        cards.append({"month": str(b + h), "word": word, "fam": f,
+                      "temp": int(round(float(temp[:, i].mean()))),
+                      "storm": int(round(float(hot_any[:, i].mean()
+                                               * 100)))})
+    return {"visibility_months": vis, "hero": hero, "cards": cards,
+            "paths": int(temp.shape[0]),
+            "ensemble": "paths paired across instruments; forecaster M "
+                        "draws each instrument independently, so this "
+                        "samples the product of the marginals and "
+                        "understates co-movement"}
+
+
 def blend(dists):
     """BLEND-REG: equal weight average over the union of states. The
     inputs are distributions, so the mean is already normalized; it is
@@ -459,6 +523,7 @@ def run(preds, posts, syn_series, months, asof, issued=None,
     rng = np.random.default_rng(seed_for(asof))
     mlist = list(months)
     observables = observables or {}
+    _trails, _state_lists = {}, {}
     tab = analogue.state_table(preds, syn_series, months)
     monthly_issue = str(asof) >= MONTHLY_FROM
     out = {"asof": str(asof), "quarter": quarter_of(asof),
@@ -485,6 +550,8 @@ def run(preds, posts, syn_series, months, asof, issued=None,
             row = po.iloc[-1]
             post_now = {str(c): float(row[c]) for c in po.columns}
         m, trail = simulate(sm, seq, post_now, rng)
+        _trails[name] = trail
+        _state_lists[name] = list(sm["states"])
         a, nk = analogue_ensemble(tab, mlist, preds[name], name)
         out["instruments"][name] = {
             "states": sm["states"],
@@ -566,6 +633,7 @@ def run(preds, posts, syn_series, months, asof, issued=None,
     if len(sseq) >= 24:
         sm = semi_markov(sseq)
         m, _syn_trail = simulate(sm, sseq, {sseq[-1]: 1.0}, rng)
+        _syn_states = list(sm["states"])
         sser = pd.Series(
             {p: syn_series.get(str(p)) for p in months})
         a, nk = analogue_ensemble(tab, mlist, sser, "synoptic")
@@ -579,6 +647,12 @@ def run(preds, posts, syn_series, months, asof, issued=None,
             "persistence": persistence(sseq),
             "sr_occupancy": successor_representation(sseq),
             "analogues_used": nk}
+        if str(asof) >= WEATHER_FROM:
+            w = issue_weather(_trails, _state_lists,
+                              out["synoptic"].get("M"), _syn_trail,
+                              _syn_states, asof)
+            if w:
+                out["weather"] = w
         if str(asof) >= E_FIRST_MONTH:
             sp = [f for f in ("M", "A", "C") if f in out["synoptic"]]
             out["synoptic"]["E"] = {

@@ -496,6 +496,19 @@ def build_payload(site, scorecard_counts, bulletin_no, issued,
         add(len(nw.get("awaiting") or []))
         add(len([m for m in (nw.get("membership") or [])
                  if m.get("member")]))
+    wx = site.get("weather")
+    if wx:
+        for k in ("temp", "next_low", "next_high", "instruments"):
+            if wx.get(k) is not None:
+                add(wx[k])
+        for d in wx.get("dials", []):
+            for tok in re.findall(r"\d+(?:\.\d+)?",
+                                  str(d.get("value", "")) + " "
+                                  + str(d.get("detail", ""))):
+                add(tok)
+        for c in wx.get("forecast", []):
+            for k in ("fam", "temp", "storm"):
+                add(c[k])
     od = site.get("outlook_display")
     if od:
         for r in od.get("rows", []):

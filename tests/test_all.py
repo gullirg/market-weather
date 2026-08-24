@@ -1005,6 +1005,126 @@ def test_v6_lamp_keys_are_bound_and_absent_when_they_should_be():
     assert "daily_obs" not in site
 
 
+def _wx_site(now, prev, with_issue=False):
+    """A site payload shaped like the real one, with each instrument's
+    latest family and the one before it placed on the strip."""
+    strip = {}
+    for n in set(now) | set(prev):
+        row = [-1] * 10
+        if n in prev and prev[n] is not None:
+            row[7] = prev[n]
+        if n in now:
+            row[8] = now[n]
+        strip[n] = row
+    site = {"v3": {"fam_strip": strip,
+                   "block_frames": {"frames": [
+                       {"end": "2026-05", "edges": [
+                           {"src": "a", "dst": "b", "pct": 5.0}]},
+                       {"end": "2026-06", "edges": [
+                           {"src": "credit", "dst": "equities",
+                            "pct": 24.0}]}]}},
+            "hazard": {"current": {"state": "supply_glut"},
+                       "lamp": {"supply_glut": {"tail_freq": 0.286}},
+                       "lampline": "risk lamp: tail move in 3 months "
+                                   "29 percent vs 15 percent base"},
+            "outlook": {"issued": "2026-10-05", "issue_month": "2026-10"}}
+    if with_issue:
+        site["outlook"]["weather"] = {
+            "visibility_months": 4,
+            "hero": {"low": 15, "high": 28},
+            "cards": [{"month": "2026-11", "word": "post shock glut",
+                       "fam": 3, "temp": 22, "storm": 86}]}
+    return site
+
+
+def test_weather_dials_fire_every_arrow_direction():
+    """WEATHER-DIALS-REG. Live data has every instrument flat, so the
+    up and down arrows are driven here or they are never executed."""
+    import runpy
+    run = runpy.run_path(os.path.join(ROOT, "run.py"))
+    base = {"credit": 0, "equities": 0, "dollar": 0,
+            "inflation": 0, "breakevens": 0, "money": 0}
+    flat = run["_weather"](_wx_site(base, dict(base)))
+    dirs = {d["name"]: d["dir"] for d in flat["dials"]}
+    assert dirs["PRESSURE"] == 0 and dirs["HUMIDITY"] == 0
+    # pressure falls when the risk panel heats up
+    worse = dict(base); worse.update({"credit": 4, "equities": 4})
+    down = run["_weather"](_wx_site(worse, dict(base)))
+    dd = {d["name"]: d["dir"] for d in down["dials"]}
+    assert dd["PRESSURE"] == -1, down["dials"]
+    # and rises when it cools
+    up = run["_weather"](_wx_site(base, worse))
+    du = {d["name"]: d["dir"] for d in up["dials"]}
+    assert du["PRESSURE"] == 1, up["dials"]
+    # humidity moves with the inflation panel, in the same direction
+    hot = dict(base); hot.update({"inflation": 4, "money": 4})
+    hu = run["_weather"](_wx_site(hot, dict(base)))
+    assert {d["name"]: d["dir"] for d in hu["dials"]}["HUMIDITY"] == 1
+    hd = run["_weather"](_wx_site(base, hot))
+    assert {d["name"]: d["dir"] for d in hd["dials"]}["HUMIDITY"] == -1
+
+
+def test_weather_temperature_and_wind_follow_the_registered_formulas():
+    import runpy
+    run = runpy.run_path(os.path.join(ROOT, "run.py"))
+    allcalm = run["_weather"](_wx_site({"a": 0, "b": 0}, {"a": 0, "b": 0}))
+    assert allcalm["temp"] == 0
+    allhot = run["_weather"](_wx_site({"a": 4, "b": 4}, {"a": 4, "b": 4}))
+    assert allhot["temp"] == 100
+    mid = run["_weather"](_wx_site({"a": 0, "b": 4}, {"a": 0, "b": 4}))
+    assert mid["temp"] == 50
+    wind = next(d for d in mid["dials"] if d["name"] == "WIND")
+    # the later frame carries the larger total, so it is the top
+    assert wind["value"] == "100"
+    assert "gust credit to equities at 24.0 percent" in wind["detail"]
+    storm = next(d for d in mid["dials"] if d["name"] == "STORM RISK")
+    assert storm["value"] == "29%"
+    assert storm["detail"].startswith("risk lamp:")
+
+
+def test_weather_hero_and_forecast_have_both_branches():
+    import runpy
+    run = runpy.run_path(os.path.join(ROOT, "run.py"))
+    base = {"credit": 0, "equities": 0}
+    empty = run["_weather"](_wx_site(base, dict(base)))
+    assert "next_low" not in empty and "forecast" not in empty
+    vis = next(d for d in empty["dials"] if d["name"] == "VISIBILITY")
+    assert vis["value"] == "not yet"
+    full = run["_weather"](_wx_site(base, dict(base), with_issue=True))
+    assert full["next_low"] == 15 and full["next_high"] == 28
+    assert len(full["forecast"]) == 1
+    assert full["forecast"][0]["storm"] == 86
+    v2 = next(d for d in full["dials"] if d["name"] == "VISIBILITY")
+    assert v2["value"] == "~4 mo"
+    assert full["note"].startswith("issued 2026-10-05")
+
+
+def test_issue_weather_is_frozen_from_its_registered_month():
+    """Items 5, 7 and 8 are computed at freeze time from the issue's own
+    paths, and only from 2026-10."""
+    import numpy as np
+    from instrument import outlook as O
+    assert O.WEATHER_FROM == "2026-10"
+    assert (O.HERO_LO, O.HERO_HI) == (10, 90)
+    rng = np.random.default_rng(0)
+    trails = {"a": np.zeros((100, 12), dtype=int),
+              "b": np.ones((100, 12), dtype=int)}
+    states = {"a": ["calm", "supply_glut"], "b": ["calm", "surge"]}
+    syn = {str(h): ({"post_shock_glut": 0.9} if h <= 4
+                    else {"post_shock_glut": 0.4, "risk_on_calm": 0.3})
+           for h in O.HORIZONS}
+    w = O.issue_weather(trails, states, syn, None, [], "2026-10")
+    assert w["visibility_months"] == 4
+    # a is always calm (0), b is always surge (4), so the mean is 2
+    assert w["hero"]["low"] == 50 and w["hero"]["high"] == 50
+    assert len(w["cards"]) == 3
+    c = w["cards"][0]
+    assert c["month"] == "2026-11" and c["temp"] == 50
+    assert c["storm"] == 100, "b is hot in every path"
+    assert c["word"] == "post shock glut"
+    assert "understates co-movement" in w["ensemble"]
+
+
 def test_pages_execute_headlessly():
     """Both built pages must run without script errors: load, three
     animation frames, a scrub event, a canvas click."""

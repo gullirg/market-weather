@@ -30,17 +30,7 @@ from instrument.outlook import HORIZONS, N_PATHS, semi_markov, simulate
 MIN_HISTORY = 60
 LEADS = list(range(1, 13))
 
-# mirrors run.FAM_CODE; a test asserts the two are identical, so this
-# copy cannot drift into a different ordering.
-FAM_CODE = {"calm": 0, "easing": 1, "real_easing": 1,
-            "boom": 2, "rally": 2, "steepening": 2,
-            "reflation": 2, "expansion": 2, "em_bid": 2,
-            "supply_glut": 3, "precautionary": 3, "inversion": 3,
-            "real_tightening": 3, "em_stress": 3, "correction": 3,
-            "fear_bid": 3,
-            "demand_collapse": 4, "bust": 4, "stress": 4,
-            "supply_squeeze": 4, "deflation_scare": 4,
-            "contraction": 4, "selloff": 4, "surge": 4}
+from instrument.families import FAM_CODE
 
 
 def order_states(states):

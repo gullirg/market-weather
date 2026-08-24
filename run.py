@@ -798,7 +798,7 @@ def cmd_month(args):
     changes_line = _since_last_bulletin(site)
     og_desc = _og_description(site)
     import html as _html
-    for src, dst in [("graph_v8.html", "index.html"),
+    for src, dst in [("graph_v9.html", "index.html"),
                      ("template.html", "report.html")]:
         tpl = open(os.path.join(SITE, src)).read()
         page = tpl.replace("__DATA__", payload)

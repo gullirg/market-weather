@@ -521,9 +521,20 @@ function renderToday(){
       '<div class=s style="color:'+col+'">'+word+'</div>'+
       '<div class=p>'+(conf!==null?conf+'% conf':'no data')+'</div></div>';}
   tl.innerHTML=th;
-  const strip=document.getElementById('istrip');
+  paintDetail();
+}
+/* Progressive disclosure, v9. The permanent ALL INSTRUMENTS strip is
+   gone, so the instrument tiles it used to hold are now rendered on
+   demand into #blockdetail: one block's members when a tile is
+   clicked, every member when "show all instruments" is. Same tiles,
+   same states, same colours, same order as the strip they replace.
+   Nothing here computes a number the strip did not already show.
+   openB is null when closed, a block key when one block is open, and
+   '*' when showing all. */
+let openB=null;
+function instrHTML(order){
+  const mi=monthIdx((FR[LIVEI]||{members:{}}).end);
   let ih='';
-  const order=[].concat(...Object.keys(P).map(b=>MEM[b]||[]));
   for(const m of order){
     const st=stateOf(m);
     const fam=nodeFam(m,mi);
@@ -535,8 +546,17 @@ function renderToday(){
         '<div class=p>'+Math.round(st.prob*100)+'%</div>'+'<div class=cbar><i style="width:'+Math.round(st.prob*100)+'%;background:'+col+'"></i></div>'
         :'<div class=s style="color:var(--faint)">awaiting</div>'+
          '<div class=p>&nbsp;</div>')+'</div>';}
-  strip.innerHTML=ih;
-}
+  return ih;}
+function paintDetail(){
+  const strip=document.getElementById('blockdetail');
+  if(!strip)return;
+  if(openB===null){strip.innerHTML='';strip.style.display='none';return;}
+  const order=(openB==='*')
+    ?[].concat(...Object.keys(P).map(b=>MEM[b]||[]))
+    :(MEM[openB]||[]);
+  strip.innerHTML=instrHTML(order);
+  strip.style.display='flex';}
+function toggleBlock(b){openB=(openB===b)?null:b;paintDetail();}
 function setTab(t){
   document.getElementById('pane-today').style.display=
     (t==='today'?'block':'none');
@@ -598,8 +618,259 @@ function init(){
     ()=>setTab('today'));
   document.getElementById('tab-map').addEventListener('click',
     ()=>setTab('map'));
+  // delegated, because renderToday rewrites the tiles on every frame
+  // change and a listener bound to a tile would not survive it
+  document.getElementById('tiles').addEventListener('click',ev=>{
+    const t=ev.target;
+    const el=(t&&t.closest)?t.closest('.tile'):t;
+    if(el&&el.dataset&&el.dataset.b)toggleBlock(el.dataset.b);});
+  document.getElementById('showall').addEventListener('click',
+    ()=>toggleBlock('*'));
   setTab('today');
   if(!REDUCED)requestAnimationFrame(draw);}
 init();
+</script>
+<style id=mw-addons>
+/* Reconnection layer for v6. Additive only: nothing above this block
+   is touched. The outlook and legend panels overlay the MAP pane's
+   graph box, their buttons sit in the global footer, and the streak
+   clause and amber painter are global because the streak row is. The
+   changed-since line is a payload key on this page and is rendered by
+   the template, so nothing here injects it. */
+#streakwhere{color:var(--faint);font-family:var(--mono);font-size:11px;
+  margin-left:6px}
+.mwbtn{font:600 10px/1 Inter;letter-spacing:.08em;color:var(--dim);
+  border:1px solid var(--line);border-radius:14px;padding:5px 11px;
+  cursor:pointer;background:none}
+.mwbtn.on{color:var(--ink);border-color:#3A4652;background:#0D1116}
+.mwpanel{position:absolute;z-index:40;display:none;
+  background:rgba(13,16,22,.82);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);border:1px solid #1E2530;
+  border-radius:12px;padding:14px 16px;font-size:11.5px;
+  color:var(--dim)}
+#legendpanel{right:0;bottom:0;max-width:330px}
+#legendpanel div{margin-bottom:5px}
+#legendpanel a{color:var(--dim);text-decoration:none;
+  border-bottom:1px solid var(--line)}
+#outlookpanel{right:0;top:0;width:334px}
+#outlookpanel .hd{font-size:12px;letter-spacing:.1em;font-weight:650;
+  color:var(--ink);margin-bottom:6px}
+.olab{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
+  color:var(--faint);text-transform:uppercase;margin:9px 0 3px}
+.bustlamp{margin-top:8px;color:var(--glut)}
+.bustlamp i{display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:var(--glut);box-shadow:0 0 6px var(--glut);margin-right:6px}
+#card .meteo{margin:2px 0 6px;display:block}
+#card.wide{width:288px;max-height:74vh;overflow-y:auto}
+</style>
+<script>
+/* Reconnection layer: the OUTLOOK overlay, the legend and the
+   changed-since-last-bulletin line, mounted onto the v5 page without
+   altering its rendering. */
+(function(){
+  var box=document.getElementById('graphbox');
+  var ftr=document.querySelector('.ftr');
+  // the registered streak context line has two clauses. The v5 page
+  // renders the first inside the streak row; the second is restored
+  // here beside it rather than by overwriting what the page drew.
+  var stk=document.getElementById('streak');
+  if(stk&&stk.insertAdjacentHTML&&DATA.streak&&DATA.streak.row)
+    stk.insertAdjacentHTML('afterend','<span id=streakwhere>'+
+      'Instrument validation history lives on the record page.'+
+      '</span>');
+  // STREAK-DEF-2 renders retractions and revisions of published
+  // output as amber. The page's own colour map knows hit and miss, so
+  // the amber dots are painted here rather than by editing it.
+  if(stk&&stk.querySelectorAll&&DATA.streak&&DATA.streak.row){
+    var dots=stk.querySelectorAll('i');
+    for(var di=0;di<dots.length&&di<DATA.streak.row.length;di++)
+      if(DATA.streak.row[di].status==='amber'&&dots[di].style)
+        dots[di].style.background=getCss('--glut');}
+  var tools=document.createElement('div');
+  tools.innerHTML='<button class=mwbtn id=voutlook>OUTLOOK</button> '+
+    '<button class=mwbtn id=legendbtn aria-label="what am I looking at">'+
+    '?</button>';
+  if(ftr&&ftr.appendChild)ftr.appendChild(tools);
+  var lp=document.createElement('div');
+  lp.className='mwpanel';lp.id='legendpanel';
+  lp.innerHTML='<div>A node is one block of the economy, holding the '+
+    'instruments that belong to it.</div>'+
+    '<div>Colour is the family that block is reading now, from calm '+
+    'through easing, up, strained and hot.</div>'+
+    '<div>An edge percentage is the share of one block\'s forecast '+
+    'error variance that another block explains.</div>'+
+    '<div>Size and pulse are confidence: the surer the reading, the '+
+    'larger and slower the node.</div>'+
+    '<div>Every instrument passes registered checks before it joins, '+
+    'and failures publish beside the hits in '+
+    '<a href="report.html">the record</a>.</div>';
+  var op=document.createElement('div');
+  op.className='mwpanel';op.id='outlookpanel';
+  if(box&&box.appendChild){box.appendChild(lp);box.appendChild(op);}
+
+  var outlookOn=false;
+  function famOf(state,syn){
+    var O=DATA.outlook;if(!O)return -1;
+    var m=syn?O.synoptic_family_map:O.family_map;
+    var v=m?m[state]:undefined;
+    return (v===undefined||v===null)?-1:v;}
+  function famProbs(dist,syn){
+    var out=[0,0,0,0,0],tot=0;
+    for(var st in dist){var f=famOf(st,syn);
+      if(f>=0){out[f]+=dist[st];tot+=dist[st];}}
+    return {p:out,tot:tot};}
+  function bandsSvg(node,syn){
+    var O=DATA.outlook;if(!O)return '';
+    var src=syn?O.synoptic:(O.instruments||{})[node];
+    if(!src)return '';
+    var HS=O.horizons,WD=250,PH=13,AH=13,GAP=3,LW=26;
+    var nb=HS.length,cw=(WD-LW)/(nb*2),g='';
+    var past=syn?((DATA.synoptic&&DATA.synoptic.strip)||null)
+                :((V3.fam_strip&&V3.fam_strip[node])||null);
+    if(past){
+      var tail=past.slice(-nb);
+      for(var i=0;i<tail.length;i++){
+        var c=tail[i]>=0?FAMCOL[Math.min(4,tail[i])]:getCss('--faint');
+        g+='<rect x="'+(LW+i*cw)+'" y="0" width="'+(cw+0.4)+
+          '" height="'+AH+'" fill="'+c+'" fill-opacity=".85"/>';}}
+    var rows=[['M',AH+GAP,PH],['A',AH+GAP+PH+2,PH-4]];
+    if(src.C)rows.push(['C',AH+GAP+PH+2+(PH-4)+2,PH-4]);
+    var lastRow=rows[rows.length-1];
+    for(var r=0;r<rows.length;r++){
+      for(var j=0;j<nb;j++){
+        var d=src[rows[r][0]][String(HS[j])]||{};
+        var fp=famProbs(d,syn);
+        if(fp.tot<=0)continue;
+        var y=rows[r][1];
+        for(var f2=0;f2<5;f2++){
+          var hh=(fp.p[f2]/fp.tot)*rows[r][2];
+          if(hh<=0)continue;
+          g+='<rect x="'+(LW+nb*cw+j*cw)+'" y="'+y+'" width="'+(cw+0.4)+
+            '" height="'+hh+'" fill="'+FAMCOL[f2]+'" fill-opacity=".8"/>';
+          y+=hh;}}
+      g+='<text x="0" y="'+(rows[r][1]+rows[r][2]-2)+'" fill="'+
+        getCss('--faint')+'" font-size="8">'+rows[r][0]+'</text>';}
+    g+='<text x="0" y="'+(AH-3)+'" fill="'+getCss('--faint')+
+      '" font-size="8">now</text>';
+    var HT=lastRow[1]+lastRow[2]+11;
+    // OUTLOOK-REG-3: probabilities are labelled by the calendar month
+    // they refer to, never by a relative horizon.
+    var LM=O.lead_months||{};
+    var firstM=LM[String(HS[0])],lastM=LM[String(HS[nb-1])];
+    if(firstM)g+='<text x="'+(LW+nb*cw+1)+'" y="'+(AH-3)+
+      '" fill="'+getCss('--faint')+'" font-size="8" '+
+      'text-anchor="start">'+firstM+'</text>';
+    if(lastM)g+='<text x="'+(WD-1)+'" y="'+(AH-3)+
+      '" fill="'+getCss('--faint')+'" font-size="8" '+
+      'text-anchor="end">'+lastM+'</text>';
+    g+='<line x1="'+(LW+nb*cw)+'" y1="0" x2="'+(LW+nb*cw)+'" y2="'+
+      (HT-11)+'" stroke="'+getCss('--dim')+'" stroke-width=".7"/>';
+    g+='<text x="'+(LW+nb*cw*0.5)+'" y="'+(HT-2)+'" fill="'+
+      getCss('--faint')+'" font-size="8" text-anchor="middle">analysis</text>';
+    g+='<text x="'+(LW+nb*cw*1.5)+'" y="'+(HT-2)+'" fill="'+
+      getCss('--faint')+'" font-size="8" text-anchor="middle">outlook</text>';
+    return '<svg class=meteo width="'+WD+'" height="'+HT+
+      '" viewBox="0 0 '+WD+' '+HT+'">'+g+'</svg>';}
+  function coneSvg(){
+    var O=DATA.outlook;if(!O||!O.synoptic)return '';
+    var HS=O.horizons,WD=300,HT=104,X0=24,MID=HT/2-8;
+    var src=O.synoptic,g='',pts=[],pts2=[];
+    for(var i=0;i<HS.length;i++){
+      var d=src.M[String(HS[i])]||{},ent=0;
+      for(var st in d){var pv=d[st];if(pv>0)ent-=pv*Math.log(pv);}
+      var maxent=Math.log(Math.max(2,(src.states||[]).length));
+      var spread=Math.max(0.04,Math.min(1,ent/maxent));
+      var x=X0+(i+1)*((WD-X0-6)/HS.length),hw=spread*(MID-6);
+      pts.push([x,MID-hw]);pts2.push([x,MID+hw]);}
+    var poly=[[X0,MID]].concat(pts).concat(pts2.slice().reverse())
+      .concat([[X0,MID]]);
+    var fn=famOf(src.analysis.state,true);
+    var col=fn>=0?FAMCOL[fn]:getCss('--dim');
+    g+='<polygon points="'+poly.map(function(q){
+      return q[0].toFixed(1)+','+q[1].toFixed(1);}).join(' ')+
+      '" fill="'+col+'" fill-opacity=".18" stroke="'+col+
+      '" stroke-opacity=".45" stroke-width="1"/>';
+    g+='<circle cx="'+X0+'" cy="'+MID+'" r="3" fill="'+col+'"/>';
+    g+='<text x="'+X0+'" y="'+(MID+18)+'" fill="'+getCss('--faint')+
+      '" font-size="8" text-anchor="middle">now</text>';
+    var LM=O.lead_months||{};
+    var marks=(O.leads||[HS[2],HS[5],HS[11]]);
+    for(var k=0;k<marks.length;k++){
+      var idx=HS.indexOf(marks[k]);
+      if(idx<0)continue;
+      var mx=X0+(idx+1)*((WD-X0-6)/HS.length);
+      var lab=LM[String(marks[k])]||String(marks[k]);
+      var last=(k===marks.length-1);
+      g+='<text x="'+(last?(WD-1):mx)+'" y="'+(HT-3)+'" fill="'+
+        getCss('--faint')+'" font-size="8" text-anchor="'+
+        (last?'end':'middle')+'">'+lab+'</text>';}
+    return '<svg width="'+WD+'" height="'+HT+'" viewBox="0 0 '+WD+
+      ' '+HT+'">'+g+'</svg>';}
+  function renderPanel(){
+    if(!op)return;
+    if(!outlookOn||!DATA.outlook||!DATA.outlook.synoptic){
+      if(op.style)op.style.display='none';return;}
+    var O=DATA.outlook,h='<div class=hd>OUTLOOK <span '+
+      'style="color:var(--faint);font-weight:400">synoptic cone</span>'+
+      '</div>';
+    h+='<div class=olab>issued '+(O.issued||O.issue_month||'')+
+      ' &middot; '+(O.cadence||'')+' issue '+(O.issue||'')+'</div>';
+    h+='<div class=olab>analysis: '+
+      String(O.synoptic.analysis.state).replace(/_/g,' ')+'</div>';
+    h+=coneSvg();
+    h+='<div>Uncertainty widens with horizon. The cone is the spread '+
+      'of the synoptic outlook, not a track.</div>';
+    h+=bandsSvg(null,true);
+    var fc=(O.synoptic&&O.synoptic.C)?'M, then A, then C':'M above A';
+    h+='<div>Bands are probabilities by family, forecaster '+fc+
+      ', labelled by letter, and every column is the calendar month '+
+      'it refers to. Nothing here is a state word prediction: the '+
+      'bulletin stays silent until a forecaster is scored skillful.'+
+      '</div>';
+    var bu=DATA.bust;
+    if(bu&&bu.state==='amber')
+      h+='<div class=bustlamp><i></i>'+bu.words+
+        '. Next revision '+bu.next_revision+'.</div>';
+    op.innerHTML=h;
+    if(op.style)op.style.display='block';}
+  var origShow=(typeof window!=='undefined'&&window.showCard)||
+    (typeof showCard!=='undefined'?showCard:null);
+  function wrappedShow(b){
+    if(origShow)origShow(b);
+    if(card&&card.classList)card.classList.toggle('wide',outlookOn);
+    if(!outlookOn||!DATA.outlook)return;
+    var mem=(V3.members&&V3.members[b])||[],add='';
+    for(var i=0;i<mem.length;i++){
+      if(!((DATA.outlook.instruments||{})[mem[i]]))continue;
+      add+='<div class=olab>outlook &middot; '+mem[i]+'</div>'+
+        bandsSvg(mem[i],false);}
+    if(add&&card&&card.insertAdjacentHTML)
+      card.insertAdjacentHTML('beforeend',
+        '<div class=olab>analysis above, outlook below &middot; '+
+        'issue '+((DATA.outlook||{}).issue||'')+'</div>'+add);}
+  if(typeof window!=='undefined'){
+    window.showCard=wrappedShow;
+    // named hook so the headless harness can execute the outlook card
+    // path, which the browser reaches through the global showCard
+    window.mwOutlookCard=wrappedShow;}
+  var vo=document.getElementById('voutlook');
+  if(vo&&vo.addEventListener)vo.addEventListener('click',function(ev){
+    if(ev&&ev.stopPropagation)ev.stopPropagation();
+    outlookOn=!outlookOn;
+    if(vo.classList)vo.classList.toggle('on',outlookOn);
+    renderPanel();
+    if(typeof sel!=='undefined'&&sel)wrappedShow(sel);});
+  var lb=document.getElementById('legendbtn');
+  if(lb&&lb.addEventListener)lb.addEventListener('click',function(ev){
+    if(ev&&ev.stopPropagation)ev.stopPropagation();
+    if(lb.classList)lb.classList.toggle('on');
+    if(lp.style)lp.style.display=
+      (lp.style.display==='block')?'none':'block';});
+  if(document.addEventListener)document.addEventListener('click',
+    function(ev){
+      var tg=ev&&ev.target;
+      if(lp.style&&lp.style.display==='block'&&tg!==lb&&tg!==lp)
+        lp.style.display='none';});
+})();
 </script>
 </body></html>

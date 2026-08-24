@@ -10,42 +10,42 @@
   --glut:#E08B3C; --fear:#C86BD8; --warn:#E0C23C}
 *{box-sizing:border-box;margin:0}
 html,body{background:var(--bg);color:var(--ink);
-  font:15px/1.55 Inter,-apple-system,'Segoe UI',sans-serif;
+  font:14px/1.55 Inter,-apple-system,'Segoe UI',sans-serif;
   -webkit-font-smoothing:antialiased}
 body{min-height:100vh;display:flex;flex-direction:column;
   max-width:1060px;margin:0 auto;padding:22px 26px 10px}
 .hdr{display:flex;justify-content:space-between;align-items:baseline}
 .wordmark{font-weight:650;letter-spacing:.01em}
 .wordmark span{color:var(--dim);font-weight:400}
-.issued{font-family:var(--mono);font-size:11.5px;color:var(--dim)}
-.syn{margin:20px 0 2px;font-size:21px;font-weight:550;letter-spacing:-.01em}
-.subsyn{color:var(--dim);font-size:13.5px}
+.issued{font-family:var(--mono);font-size:12px;color:var(--dim)}
+.syn{margin:20px 0 2px;font-size:22px;font-weight:550;letter-spacing:-.01em}
+.subsyn{color:var(--dim);font-size:13px}
 .streak{margin:10px 0 0;display:flex;align-items:center;gap:10px;
-  font-family:var(--mono);font-size:11px;color:var(--dim);
+  font-family:var(--mono);font-size:12px;color:var(--dim);
   text-decoration:none}
 .streak i{width:6px;height:6px;border-radius:2px;display:inline-block;
   margin-right:3px}
 .streak .note{color:var(--faint)}
 .tabs{display:flex;gap:4px;margin:16px 0 10px;
   border-bottom:1px solid var(--line)}
-.tab{font:600 11px/1 Inter;letter-spacing:.12em;color:var(--dim);
+.tab{font:600 12px/1 Inter;letter-spacing:.12em;color:var(--dim);
   padding:8px 14px;cursor:pointer;border-bottom:2px solid transparent}
 .tab.on{color:var(--ink);border-bottom-color:var(--ink)}
 .alerts{display:flex;gap:10px;flex-wrap:wrap;margin:2px 0 6px;
-  font:600 11px Inter;letter-spacing:.04em}
+  font:600 12px Inter;letter-spacing:.04em}
 .alerts .lamp2{display:flex;align-items:center;gap:6px;
   border:1px solid var(--line);border-radius:14px;padding:5px 12px;
   color:var(--dim)}
 .alerts .lamp2 i{width:8px;height:8px;border-radius:50%;
   box-shadow:0 0 8px currentColor}
-.changed{font-size:12.5px;color:var(--dim);margin:0 0 10px}
+.changed{font-size:13px;color:var(--dim);margin:0 0 10px}
 .hero{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;
   margin:6px 0 12px}
 .hero .cond{font-size:22px;font-weight:600}
 .hero .temp{font-family:var(--mono);font-size:44px;font-weight:500;
   letter-spacing:-.02em}
 .hero .temp small{font-size:18px;color:var(--dim)}
-.hero .hl{font-family:var(--mono);font-size:12.5px;color:var(--dim)}
+.hero .hl{font-family:var(--mono);font-size:13px;color:var(--dim)}
 .hero .hl b{color:var(--ink);font-weight:500}
 .scale{position:relative;height:6px;border-radius:3px;
   margin:8px 0 3px;background:linear-gradient(90deg,#5B6478,#8a8253,
@@ -57,9 +57,9 @@ body{min-height:100vh;display:flex;flex-direction:column;
 .scale .tick{position:absolute;top:-2px;width:2px;height:10px;
   background:var(--dim);opacity:.7;transform:translateX(-50%)}
 .zl{display:flex;justify-content:space-between;
-  font-family:var(--mono);font-size:8.5px;color:var(--faint);
+  font-family:var(--mono);font-size:10.5px;color:var(--faint);
   letter-spacing:.06em;margin-bottom:2px}
-.tickcap{font-family:var(--mono);font-size:9px;color:var(--faint)}
+.tickcap{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
 .spark{display:flex;align-items:flex-end;gap:2px;height:22px;
   margin:6px 0 0}
 .spark i{flex:1;border-radius:1px;min-height:2px;opacity:.85}
@@ -75,14 +75,14 @@ body{min-height:100vh;display:flex;flex-direction:column;
   gap:8px;margin:4px 0 14px}
 .dial{border:1px solid var(--line);border-radius:12px;padding:10px 12px;
   background:rgba(13,16,22,.5)}
-.dial .n{font:600 9.5px Inter;letter-spacing:.12em;color:var(--faint)}
-.dial .v{font-family:var(--mono);font-size:17px;margin:3px 0 1px}
+.dial .n{font:600 10.5px Inter;letter-spacing:.12em;color:var(--faint)}
+.dial .v{font-family:var(--mono);font-size:18px;margin:3px 0 1px}
 .dial .v .ar{font-size:12px;margin-left:4px}
 .dial .d{font-size:10.5px;color:var(--dim);line-height:1.35}
 .fcstrip{display:flex;gap:8px;margin:0 0 4px;flex-wrap:wrap}
 .fccard{flex:1;min-width:120px;border:1px solid var(--line);
   border-radius:12px;padding:10px 12px;background:rgba(13,16,22,.5)}
-.fccard .mo3{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.fccard .mo3{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
 .fccard .w{font:600 13px Inter;margin:3px 0 1px}
 .fccard .t{font-family:var(--mono);font-size:12px;color:var(--dim)}
 .fccard .r{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
@@ -90,19 +90,19 @@ body{min-height:100vh;display:flex;flex-direction:column;
   gap:8px;margin:2px 0 14px}
 .tile{border:1px solid var(--line);border-radius:12px;padding:10px 12px;
   background:rgba(13,16,22,.5)}
-.tile .n{font:600 10px Inter;letter-spacing:.1em;color:var(--dim)}
+.tile .n{font:600 10.5px Inter;letter-spacing:.1em;color:var(--dim)}
 .tile .s{font:600 14px Inter;margin:3px 0 1px}
 .tile .p{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
-.k2{font-family:var(--mono);font-size:10px;color:var(--faint);
+.k2{font-family:var(--mono);font-size:10.5px;color:var(--faint);
   letter-spacing:.12em;margin:10px 0 6px}
 .istrip{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;
   scrollbar-width:none}
 .istrip::-webkit-scrollbar{display:none}
 .itile{flex:none;width:92px;border:1px solid var(--line);
   border-radius:10px;padding:8px 10px;background:rgba(13,16,22,.4)}
-.itile .n{font:600 9.5px Inter;letter-spacing:.06em;color:var(--dim)}
+.itile .n{font:600 10.5px Inter;letter-spacing:.06em;color:var(--dim)}
 .itile .s{font:600 12px Inter;margin:2px 0 0}
-.itile .p{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.itile .p{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
 .fc{display:flex;flex-direction:column;gap:6px;margin:0 0 8px}
 .fcrow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);
   border-radius:12px;padding:9px 12px;background:rgba(13,16,22,.4)}
@@ -112,13 +112,13 @@ body{min-height:100vh;display:flex;flex-direction:column;
 .fcchip{display:flex;flex-direction:column;align-items:center;
   border-radius:9px;padding:5px 9px;min-width:74px;
   border:1px solid var(--line)}
-.fcchip .mo2{font-family:var(--mono);font-size:9px;color:var(--faint)}
-.fcchip .w{font:600 11.5px Inter}
-.fcchip .pr{font-family:var(--mono);font-size:10px;color:var(--dim)}
-.fcnote{font-family:var(--mono);font-size:10px;color:var(--faint);
+.fcchip .mo2{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+.fcchip .w{font:600 12px Inter}
+.fcchip .pr{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.fcnote{font-family:var(--mono);font-size:10.5px;color:var(--faint);
   margin:2px 0 10px}
 .pins{display:flex;gap:6px;margin:16px 0 4px;flex-wrap:wrap}
-.pin{font:600 10px/1 Inter;letter-spacing:.08em;color:var(--dim);
+.pin{font:600 10.5px/1 Inter;letter-spacing:.08em;color:var(--dim);
   border:1px solid var(--line);border-radius:14px;padding:5px 11px;
   cursor:pointer;background:none}
 .pin.on{color:var(--ink);border-color:#3A4652;background:#0D1116}
@@ -128,9 +128,9 @@ body{min-height:100vh;display:flex;flex-direction:column;
 #scrub::-webkit-slider-thumb{-webkit-appearance:none;
   width:13px;height:13px;border-radius:50%;background:var(--ink);
   cursor:pointer}
-.mo{font-family:var(--mono);font-size:11.5px;color:var(--dim);
+.mo{font-family:var(--mono);font-size:12px;color:var(--dim);
   min-width:120px;text-align:right}
-.evt{font-family:var(--mono);font-size:11px;color:var(--faint);
+.evt{font-family:var(--mono);font-size:12px;color:var(--faint);
   height:15px;margin-top:2px}
 #graphbox{position:relative;flex:1;min-height:430px}
 #g{width:100%;height:auto;display:block}
@@ -138,21 +138,21 @@ body{min-height:100vh;display:flex;flex-direction:column;
   backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   border:1px solid #1E2530;border-radius:12px;padding:14px 16px;
   opacity:0;pointer-events:none;transition:opacity .15s;z-index:30;
-  font-size:12.5px}
+  font-size:13px}
 #card.on{opacity:1;pointer-events:auto}
 #card h3{font-size:12px;letter-spacing:.1em;font-weight:650}
 #card .st{font-weight:600;font-size:13px;margin:2px 0 1px}
 #card .meta{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
-#card .k{font-family:var(--mono);font-size:10px;color:var(--faint);
+#card .k{font-family:var(--mono);font-size:10.5px;color:var(--faint);
   letter-spacing:.08em;margin:9px 0 3px;text-transform:uppercase}
 #card .row{display:flex;align-items:baseline;gap:6px;margin:2px 0}
 #card .row i{width:7px;height:7px;border-radius:50%;flex:none;
   box-shadow:0 0 6px currentColor}
-#card .row .sh{font-family:var(--mono);font-size:10px;color:var(--faint)}
-#card .row .tag{font-family:var(--mono);font-size:9.5px;color:var(--faint)}
+#card .row .sh{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+#card .row .tag{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
 #card .x{position:absolute;top:8px;right:12px;color:var(--faint);
-  cursor:pointer;font-size:15px}
-#card .mut{color:var(--faint);font-size:11px;margin-top:8px}
+  cursor:pointer;font-size:14px}
+#card .mut{color:var(--faint);font-size:12px;margin-top:8px}
 .ticker{display:flex;gap:18px;flex-wrap:wrap;margin:4px 0 0;
   font-family:var(--mono);font-size:10.5px;color:var(--dim)}
 .ticker b{color:var(--ink);font-weight:500}
@@ -184,10 +184,12 @@ body{min-height:100vh;display:flex;flex-direction:column;
   <div class=k2 id=fchead>NEXT MONTHS</div>
   <div class=fcstrip id=fcstrip></div>
   <div class=changed id=changed></div>
-  <div class=k2>BLOCKS</div>
+  <div class=k2>BLOCKS <span id=showall style="cursor:pointer;
+    color:var(--dim);letter-spacing:.06em">&middot; show all
+    instruments</span></div>
   <div class=tiles id=tiles></div>
-  <div class=k2>ALL INSTRUMENTS</div>
-  <div class=istrip id=istrip></div>
+  <div class=istrip id=blockdetail style="display:none;margin-top:2px">
+  </div>
 </div>
 <div id=pane-map>
 <div class=pins id=pins></div>
@@ -513,14 +515,26 @@ function renderToday(){
     const col=inF?FAMCOL[Math.max(0,fam)]:getCss('--faint');
     const word=inF?(fam>0?FAMWORD[fam]:'calm'):'awaiting';
     const conf=inF?Math.round(blockConf(b)*100):null;
-    th+='<div class=tile style="border-color:'+col+'44">'+
+    th+='<div class=tile data-b="'+b+'" style="cursor:pointer;'+
+      'border-color:'+col+'44">'+
       '<div class=n>'+NAME[b]+'</div>'+
       '<div class=s style="color:'+col+'">'+word+'</div>'+
       '<div class=p>'+(conf!==null?conf+'% conf':'no data')+'</div></div>';}
   tl.innerHTML=th;
-  const strip=document.getElementById('istrip');
+  paintDetail();
+}
+/* Progressive disclosure, v9. The permanent ALL INSTRUMENTS strip is
+   gone, so the instrument tiles it used to hold are now rendered on
+   demand into #blockdetail: one block's members when a tile is
+   clicked, every member when "show all instruments" is. Same tiles,
+   same states, same colours, same order as the strip they replace.
+   Nothing here computes a number the strip did not already show.
+   openB is null when closed, a block key when one block is open, and
+   '*' when showing all. */
+let openB=null;
+function instrHTML(order){
+  const mi=monthIdx((FR[LIVEI]||{members:{}}).end);
   let ih='';
-  const order=[].concat(...Object.keys(P).map(b=>MEM[b]||[]));
   for(const m of order){
     const st=stateOf(m);
     const fam=nodeFam(m,mi);
@@ -532,8 +546,17 @@ function renderToday(){
         '<div class=p>'+Math.round(st.prob*100)+'%</div>'+'<div class=cbar><i style="width:'+Math.round(st.prob*100)+'%;background:'+col+'"></i></div>'
         :'<div class=s style="color:var(--faint)">awaiting</div>'+
          '<div class=p>&nbsp;</div>')+'</div>';}
-  strip.innerHTML=ih;
-}
+  return ih;}
+function paintDetail(){
+  const strip=document.getElementById('blockdetail');
+  if(!strip)return;
+  if(openB===null){strip.innerHTML='';strip.style.display='none';return;}
+  const order=(openB==='*')
+    ?[].concat(...Object.keys(P).map(b=>MEM[b]||[]))
+    :(MEM[openB]||[]);
+  strip.innerHTML=instrHTML(order);
+  strip.style.display='flex';}
+function toggleBlock(b){openB=(openB===b)?null:b;paintDetail();}
 function setTab(t){
   document.getElementById('pane-today').style.display=
     (t==='today'?'block':'none');
@@ -595,6 +618,14 @@ function init(){
     ()=>setTab('today'));
   document.getElementById('tab-map').addEventListener('click',
     ()=>setTab('map'));
+  // delegated, because renderToday rewrites the tiles on every frame
+  // change and a listener bound to a tile would not survive it
+  document.getElementById('tiles').addEventListener('click',ev=>{
+    const t=ev.target;
+    const el=(t&&t.closest)?t.closest('.tile'):t;
+    if(el&&el.dataset&&el.dataset.b)toggleBlock(el.dataset.b);});
+  document.getElementById('showall').addEventListener('click',
+    ()=>toggleBlock('*'));
   setTab('today');
   if(!REDUCED)requestAnimationFrame(draw);}
 init();

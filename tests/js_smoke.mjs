@@ -61,7 +61,7 @@ function runPass(reduceMotion) {
   known.forEach(i => seenIds.add(i));
   function makeEl(id){
     const el = {
-      textContent:'', value:'0', max:'1', min:'0',
+      value:'0', max:'1', min:'0',
       style:{}, dataset:{},
       classList:{ add(){}, remove(){}, toggle(){} },
       appendChild(){},
@@ -78,7 +78,14 @@ function runPass(reduceMotion) {
       clientWidth:980, clientHeight:605, width:1960, height:1210,
       parentElement:{ clientWidth:980 },
     };
-    let _id = id, _html = '';
+    let _id = id, _html = '', _text = '';
+    // text the page renders counts as output too. Without this,
+    // --expect-text is blind to anything written with textContent,
+    // which is how a page says a plain sentence with no markup in it.
+    Object.defineProperty(el, 'textContent', {
+      get(){ return _text; },
+      set(v){ _text = String(v); noteHtml(_text); },
+      enumerable: true });
     Object.defineProperty(el, 'id', {
       get(){ return _id; },
       set(v){ _id = v; if (v) { known.add(v); seenIds.add(v); } },

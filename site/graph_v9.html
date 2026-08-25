@@ -1,0 +1,876 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Market Weather Report</title>
+<style>
+:root{
+  --bg:#060809; --ink:#E8EAED; --dim:#8B939A; --faint:#3A4046;
+  --line:#171C20; --mono:'JetBrains Mono',ui-monospace,monospace;
+  --calm:#5B6478; --up:#37C98B; --down:#5B8DEF; --hot:#E05555;
+  --glut:#E08B3C; --fear:#C86BD8; --warn:#E0C23C}
+*{box-sizing:border-box;margin:0}
+html,body{background:var(--bg);color:var(--ink);
+  font:14px/1.55 Inter,-apple-system,'Segoe UI',sans-serif;
+  -webkit-font-smoothing:antialiased}
+body{min-height:100vh;display:flex;flex-direction:column;
+  max-width:1060px;margin:0 auto;padding:22px 26px 10px}
+.hdr{display:flex;justify-content:space-between;align-items:baseline}
+.wordmark{font-weight:650;letter-spacing:.01em}
+.wordmark span{color:var(--dim);font-weight:400}
+.issued{font-family:var(--mono);font-size:12px;color:var(--dim)}
+.syn{margin:20px 0 2px;font-size:22px;font-weight:550;letter-spacing:-.01em}
+.subsyn{color:var(--dim);font-size:13px}
+.streak{margin:10px 0 0;display:flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-size:12px;color:var(--dim);
+  text-decoration:none}
+.streak i{width:6px;height:6px;border-radius:2px;display:inline-block;
+  margin-right:3px}
+.streak .note{color:var(--faint)}
+.tabs{display:flex;gap:4px;margin:16px 0 10px;
+  border-bottom:1px solid var(--line)}
+.tab{font:600 12px/1 Inter;letter-spacing:.12em;color:var(--dim);
+  padding:8px 14px;cursor:pointer;border-bottom:2px solid transparent}
+.tab.on{color:var(--ink);border-bottom-color:var(--ink)}
+.alerts{display:flex;gap:10px;flex-wrap:wrap;margin:2px 0 6px;
+  font:600 12px Inter;letter-spacing:.04em}
+.alerts .lamp2{display:flex;align-items:center;gap:6px;
+  border:1px solid var(--line);border-radius:14px;padding:5px 12px;
+  color:var(--dim)}
+.alerts .lamp2 i{width:8px;height:8px;border-radius:50%;
+  box-shadow:0 0 8px currentColor}
+.changed{font-size:13px;color:var(--dim);margin:0 0 10px}
+.hero{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;
+  margin:6px 0 12px}
+.hero .cond{font-size:22px;font-weight:600}
+.hero .temp{font-family:var(--mono);font-size:44px;font-weight:500;
+  letter-spacing:-.02em}
+.hero .temp small{font-size:18px;color:var(--dim)}
+.hero .hl{font-family:var(--mono);font-size:13px;color:var(--dim)}
+.hero .hl b{color:var(--ink);font-weight:500}
+.scale{position:relative;height:6px;border-radius:3px;
+  margin:8px 0 3px;background:linear-gradient(90deg,#5B6478,#8a8253,
+  #E08B3C,#E05555)}
+.scale.flat{background:var(--line)}
+.scale .mk{position:absolute;top:-3px;width:12px;height:12px;
+  border-radius:50%;background:#fff;border:2px solid #0b0e14;
+  transform:translateX(-50%);box-shadow:0 0 8px rgba(255,255,255,.5)}
+.scale .tick{position:absolute;top:-2px;width:2px;height:10px;
+  background:var(--dim);opacity:.7;transform:translateX(-50%)}
+.zl{display:flex;justify-content:space-between;
+  font-family:var(--mono);font-size:10.5px;color:var(--faint);
+  letter-spacing:.06em;margin-bottom:2px}
+.tickcap{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+.spark{display:flex;align-items:flex-end;gap:2px;height:22px;
+  margin:6px 0 0}
+.spark i{flex:1;border-radius:1px;min-height:2px;opacity:.85}
+.rbar{position:relative;height:6px;border-radius:3px;
+  background:var(--line);margin:6px 0 2px}
+.rbar .rng{position:absolute;top:0;height:6px;border-radius:3px}
+.rbar .mid{position:absolute;top:-2px;width:2px;height:10px;
+  background:#fff;transform:translateX(-50%)}
+.cbar{height:3px;border-radius:2px;background:var(--line);
+  margin-top:5px;position:relative}
+.cbar i{position:absolute;left:0;top:0;height:3px;border-radius:2px}
+.dials{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));
+  gap:8px;margin:4px 0 14px}
+.dial{border:1px solid var(--line);border-radius:12px;padding:10px 12px;
+  background:rgba(13,16,22,.5)}
+.dial .n{font:600 10.5px Inter;letter-spacing:.12em;color:var(--faint)}
+.dial .v{font-family:var(--mono);font-size:18px;margin:3px 0 1px}
+.dial .v .ar{font-size:12px;margin-left:4px}
+.dial .d{font-size:10.5px;color:var(--dim);line-height:1.35}
+.fcstrip{display:flex;gap:8px;margin:0 0 4px;flex-wrap:wrap}
+.fccard{flex:1;min-width:120px;border:1px solid var(--line);
+  border-radius:12px;padding:10px 12px;background:rgba(13,16,22,.5)}
+.fccard .mo3{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+.fccard .w{font:600 13px Inter;margin:3px 0 1px}
+.fccard .t{font-family:var(--mono);font-size:12px;color:var(--dim)}
+.fccard .r{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));
+  gap:8px;margin:2px 0 14px}
+.tile{border:1px solid var(--line);border-radius:12px;padding:10px 12px;
+  background:rgba(13,16,22,.5)}
+.tile .n{font:600 10.5px Inter;letter-spacing:.1em;color:var(--dim)}
+.tile .s{font:600 14px Inter;margin:3px 0 1px}
+.tile .p{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.k2{font-family:var(--mono);font-size:10.5px;color:var(--faint);
+  letter-spacing:.12em;margin:10px 0 6px}
+.istrip{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;
+  scrollbar-width:none}
+.istrip::-webkit-scrollbar{display:none}
+.itile{flex:none;width:92px;border:1px solid var(--line);
+  border-radius:10px;padding:8px 10px;background:rgba(13,16,22,.4)}
+.itile .n{font:600 10.5px Inter;letter-spacing:.06em;color:var(--dim)}
+.itile .s{font:600 12px Inter;margin:2px 0 0}
+.itile .p{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+.fc{display:flex;flex-direction:column;gap:6px;margin:0 0 8px}
+.fcrow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);
+  border-radius:12px;padding:9px 12px;background:rgba(13,16,22,.4)}
+.fcrow .n{font:600 10.5px Inter;letter-spacing:.1em;color:var(--dim);
+  width:92px;flex:none}
+.fcrow .m{flex:1;display:flex;gap:6px;flex-wrap:wrap}
+.fcchip{display:flex;flex-direction:column;align-items:center;
+  border-radius:9px;padding:5px 9px;min-width:74px;
+  border:1px solid var(--line)}
+.fcchip .mo2{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+.fcchip .w{font:600 12px Inter}
+.fcchip .pr{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.fcnote{font-family:var(--mono);font-size:10.5px;color:var(--faint);
+  margin:2px 0 10px}
+.pins{display:flex;gap:6px;margin:16px 0 4px;flex-wrap:wrap}
+.pin{font:600 10.5px/1 Inter;letter-spacing:.08em;color:var(--dim);
+  border:1px solid var(--line);border-radius:14px;padding:5px 11px;
+  cursor:pointer;background:none}
+.pin.on{color:var(--ink);border-color:#3A4652;background:#0D1116}
+.scrubrow{display:flex;align-items:center;gap:12px;margin:4px 0 0}
+#scrub{flex:1;-webkit-appearance:none;height:2px;
+  background:var(--line);border-radius:2px;outline:none}
+#scrub::-webkit-slider-thumb{-webkit-appearance:none;
+  width:13px;height:13px;border-radius:50%;background:var(--ink);
+  cursor:pointer}
+.mo{font-family:var(--mono);font-size:12px;color:var(--dim);
+  min-width:120px;text-align:right}
+.evt{font-family:var(--mono);font-size:12px;color:var(--faint);
+  height:15px;margin-top:2px}
+#graphbox{position:relative;flex:1;min-height:430px}
+#g{width:100%;height:auto;display:block}
+#card{position:absolute;width:250px;background:rgba(13,16,22,.82);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid #1E2530;border-radius:12px;padding:14px 16px;
+  opacity:0;pointer-events:none;transition:opacity .15s;z-index:30;
+  font-size:13px}
+#card.on{opacity:1;pointer-events:auto}
+#card h3{font-size:12px;letter-spacing:.1em;font-weight:650}
+#card .st{font-weight:600;font-size:13px;margin:2px 0 1px}
+#card .meta{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+#card .k{font-family:var(--mono);font-size:10.5px;color:var(--faint);
+  letter-spacing:.08em;margin:9px 0 3px;text-transform:uppercase}
+#card .row{display:flex;align-items:baseline;gap:6px;margin:2px 0}
+#card .row i{width:7px;height:7px;border-radius:50%;flex:none;
+  box-shadow:0 0 6px currentColor}
+#card .row .sh{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+#card .row .tag{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+#card .x{position:absolute;top:8px;right:12px;color:var(--faint);
+  cursor:pointer;font-size:14px}
+#card .mut{color:var(--faint);font-size:12px;margin-top:8px}
+.ticker{display:flex;gap:18px;flex-wrap:wrap;margin:4px 0 0;
+  font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.ticker b{color:var(--ink);font-weight:500}
+.ftr{display:flex;justify-content:space-between;align-items:center;
+  gap:14px;flex-wrap:wrap;margin:10px 0 4px;
+  font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+.ftr a{color:var(--dim);text-decoration:none;
+  border-bottom:1px solid var(--line)}
+.lights i{width:7px;height:7px;border-radius:50%;display:inline-block;
+  margin-left:4px}
+</style></head><body>
+<div class=hdr>
+  <div class=wordmark>THE MARKET WEATHER <span>REPORT</span></div>
+  <div class=issued id=issued></div>
+</div>
+<div class=syn id=syn></div>
+<div class=subsyn id=subsyn></div>
+<a class=streak id=streak href="report.html#scorecard-streak"
+   style="display:none"></a>
+<div class=tabs>
+  <div class=tab id=tab-today data-t=today>TODAY</div>
+  <div class=tab id=tab-map data-t=map>MAP</div>
+  <a class=tab href="report.html" style="text-decoration:none">RECORD</a>
+</div>
+<div id=pane-today>
+  <div class=hero id=hero></div>
+  <div class=alerts id=alerts></div>
+  <div class=dials id=dials></div>
+  <div class=k2 id=fchead>NEXT MONTHS</div>
+  <div class=fcstrip id=fcstrip></div>
+  <div class=changed id=changed></div>
+  <div class=k2>BLOCKS <span id=showall style="cursor:pointer;
+    color:var(--dim);letter-spacing:.06em">&middot; show all
+    instruments</span></div>
+  <div class=tiles id=tiles></div>
+  <div class=istrip id=blockdetail style="display:none;margin-top:2px">
+  </div>
+</div>
+<div id=pane-map>
+<div class=pins id=pins></div>
+<div class=scrubrow>
+  <input id=scrub type=range min=0 max=1 value=0 step=1>
+  <div class=mo id=scrubmo></div>
+</div>
+<div class=evt id=evt></div>
+<div id=graphbox>
+  <canvas id=g width=1960 height=1050></canvas>
+  <div id=card></div>
+</div>
+</div>
+<div class=ticker id=ticker></div>
+<div class=ftr>
+  <div id=honesty>block spillovers re-estimated per window; edges at
+    3%+; each card states what its window is computed from</div>
+  <div class=lights id=lights></div>
+  <div><a href="report.html">the record</a></div>
+</div>
+<script>
+const DATA = __DATA__;
+function getCss(v){return getComputedStyle(document.documentElement)
+  .getPropertyValue(v).trim()||'#5B6478';}
+const FAMCOL=[getCss('--calm'),getCss('--down'),getCss('--up'),
+  getCss('--warn'),getCss('--hot')];
+const FAMWORD={0:'calm',1:'easing',2:'up',3:'strained',4:'hot'};
+const V3=DATA.v3||{}, FR=(V3.block_frames&&V3.block_frames.frames)||[];
+const MB=(V3.block_frames&&V3.block_frames.blocks)||[];
+const MEM=V3.members||{}, JOINED=V3.joined||{}, FAM=V3.fam_strip||{};
+const M=DATA.months||[];
+const W=980,H=525,DPR=2;
+const P={energy:[490,86],liquidity:[886,62],rates_expectations:[812,208],
+  credit:[758,398],equities:[490,474],fx:[222,398],metals:[168,208],
+  activity:[94,62]};
+const LBL={energy:'top',liquidity:'right',rates_expectations:'right',
+  credit:'right',equities:'bottom',fx:'left',metals:'left',
+  activity:'left'};
+const NAME={energy:'ENERGY',rates_expectations:'RATES',credit:'CREDIT',
+  fx:'FX',equities:'EQUITIES',metals:'METALS',activity:'ACTIVITY',
+  liquidity:'LIQUIDITY'};
+const REDUCED=(typeof matchMedia!=='undefined')&&
+  matchMedia('(prefers-reduced-motion: reduce)').matches;
+let fi=Math.max(0,FR.length-1), sel=null, livePaths=null;
+const LIVEI=FR.length-1;
+function monthIdx(l){return M.indexOf(l);}
+function nodeFam(n,mi){return (FAM[n]&&FAM[n][mi]!==undefined)?FAM[n][mi]:-1;}
+function blockFam(b,mi){let best=-1;
+  for(const m of (MEM[b]||[])){const f=nodeFam(m,mi);if(f>best)best=f;}
+  return best;}
+function blockConf(b){let best=0;
+  for(const m of (MEM[b]||[])){
+    const c=(DATA.current&&DATA.current[m])||
+      (DATA.network&&DATA.network.current&&DATA.network.current[m]);
+    if(c&&c.state!=='calm'&&c.prob>best)best=c.prob;
+    else if(c&&!best)best=Math.max(best,c.prob*.55);}
+  return best||.55;}
+function stateOf(m){
+  return (DATA.current&&DATA.current[m])||
+    (DATA.network&&DATA.network.current&&DATA.network.current[m])||null;}
+function edgePath(e){
+  const [x1,y1]=P[e.a],[x2,y2]=P[e.b];
+  const mx=(x1+x2)/2,my=(y1+y2)/2;
+  const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1;
+  const bend=26*(e.a<e.b?1:-1);
+  return {x1,y1,x2,y2,cxp:mx-dy/L*bend,cyp:my+dx/L*bend};}
+function qpoint(p,t){const a=(1-t)*(1-t),b=2*(1-t)*t,c=t*t;
+  return [a*p.x1+b*p.cxp+c*p.x2,a*p.y1+b*p.cyp+c*p.y2];}
+function rebuildPaths(){
+  const f=FR[fi]; if(!f){livePaths=[];return;}
+  livePaths=f.edges.filter(e=>P[e.src]&&P[e.dst])
+    .map(e=>({a:e.src,b:e.dst,v:e.pct,p:edgePath({a:e.src,b:e.dst}),
+      dots:Math.max(2,Math.round(e.pct/2.2)),
+      speed:.0022+e.pct*.00012,phase:Math.random()}))
+    .sort((x,y)=>y.v-x.v);}
+const cv=document.getElementById('g'),cx=cv.getContext('2d');
+function baseR(b,mi,live){
+  return live? 11+13*blockConf(b) : 15;}
+let t0=(typeof performance!=='undefined')?performance.now():0;
+function draw(now){
+  const t=((now||0)-t0)/1000;
+  cx.setTransform(DPR,0,0,DPR,0,0);
+  cx.clearRect(0,0,W,H);
+  const f=FR[fi]||{members:{},edges:[]};
+  const mi=monthIdx(f.end), live=(fi===LIVEI);
+  for(const e of (livePaths||[])){
+    const dim=sel&&e.a!==sel&&e.b!==sel;
+    cx.globalAlpha=dim?.12:1;
+    cx.strokeStyle='rgba(139,147,154,'+(0.10+e.v/140)+')';
+    cx.lineWidth=.8+e.v/9;
+    cx.beginPath();cx.moveTo(e.p.x1,e.p.y1);
+    cx.quadraticCurveTo(e.p.cxp,e.p.cyp,e.p.x2,e.p.y2);cx.stroke();
+    const col=FAMCOL[Math.max(0,blockFam(e.a,mi))];
+    if(!REDUCED){
+      for(let i=0;i<e.dots;i++){
+        const u=((t*e.speed*60)+(i/e.dots)+e.phase)%1;
+        const [x,y]=qpoint(e.p,u);
+        cx.globalAlpha=dim?.05:.25+.6*Math.sin(Math.PI*u);
+        cx.fillStyle=col;
+        cx.beginPath();cx.arc(x,y,1.4+e.v/22,0,7);cx.fill();
+        cx.globalAlpha=1;}}
+    const [mx,my]=qpoint(e.p,.5);
+    cx.font='10.5px JetBrains Mono,monospace';
+    cx.fillStyle='rgba(139,147,154,'+(dim?.15:.8)+')';
+    cx.textAlign='center';
+    cx.fillText(e.v.toFixed(0)+'%',mx,my-6);}
+  for(const b of Object.keys(P)){
+    const [x,y]=P[b];
+    const inFrame=!!f.members[b];
+    const fam=inFrame?blockFam(b,mi):-1;
+    const col=inFrame?FAMCOL[Math.max(0,fam)]:getCss('--faint');
+    const base=inFrame?baseR(b,mi,live):13;
+    const pulse=REDUCED?1:1+.10*Math.sin(t*2.1+x*.05);
+    if(inFrame){
+      const g=cx.createRadialGradient(x,y,base*.3,x,y,base*2.5*pulse);
+      g.addColorStop(0,col+'55');g.addColorStop(1,col+'00');
+      cx.fillStyle=g;
+      cx.beginPath();cx.arc(x,y,base*2.5*pulse,0,7);cx.fill();}
+    cx.strokeStyle=col;cx.lineWidth=(sel===b?2.6:1.4);
+    if(!inFrame)cx.setLineDash([4,5]);
+    cx.beginPath();cx.arc(x,y,base*pulse,0,7);cx.stroke();
+    cx.setLineDash([]);
+    if(inFrame){cx.fillStyle=col;
+      cx.beginPath();cx.arc(x,y,base*.42,0,7);cx.fill();}
+    const young=(MEM[b]||[]).some(m=>JOINED[m]&&JOINED[m]!=='founding');
+    if(inFrame&&young){cx.strokeStyle=col;cx.globalAlpha=.3;
+      cx.lineWidth=1;cx.beginPath();cx.arc(x,y,base*pulse+6,0,7);
+      cx.stroke();cx.globalAlpha=1;}
+    const side=LBL[b];
+    const word=inFrame?(fam>0?FAMWORD[fam]:'calm'):'awaiting data';
+    const info=live?(f.end):(f.end);
+    let lx=x,ly=y,al='left';
+    if(side==='left'){lx=x-base*2.6-8;al='right';}
+    if(side==='right'){lx=x+base*2.6+8;}
+    if(side==='top'){ly=y-base*2.7-16;al='center';}
+    if(side==='bottom'){ly=y+base*2.7+22;al='center';}
+    cx.textAlign=al;
+    cx.font='600 12px Inter,sans-serif';cx.fillStyle='#E8EAED';
+    cx.fillText(NAME[b],lx,ly-6);
+    cx.font='600 11.5px Inter,sans-serif';cx.fillStyle=col;
+    cx.fillText(word,lx,ly+8);}
+  if(!REDUCED)requestAnimationFrame(draw);}
+const card=document.getElementById('card');
+function hideCard(){sel=null;card.classList.remove('on');}
+function showCard(b){
+  sel=b;
+  const f=FR[fi]||{members:{}},mi=monthIdx(f.end),live=(fi===LIVEI);
+  const inFrame=f.members[b]||[];
+  let h='<span class=x>&times;</span><h3>'+NAME[b]+
+    ' <span style="color:var(--faint);font-weight:400">'+f.end+
+    (live?' &middot; live':'')+'</span></h3>';
+  for(const m of (MEM[b]||[])){
+    const fam=nodeFam(m,mi),known=fam>=0;
+    const col=known?FAMCOL[fam]:getCss('--faint');
+    const st=live?stateOf(m):null;
+    let line='<div class=row><i style="background:'+col+
+      ';color:'+col+'"></i><span>'+m+'</span>';
+    if(live&&st)line+='<span style="color:'+col+'">'+
+      (st.word||st.state).replace('_',' ')+'</span>'+
+      '<span class=sh>'+Math.round(st.prob*100)+'%</span>';
+    else if(known)line+='<span style="color:'+col+'">'+
+      FAMWORD[fam]+'</span>';
+    else line+='<span class=sh>no data yet</span>';
+    if(JOINED[m]&&JOINED[m]!=='founding')
+      line+='<span class=tag>joined '+JOINED[m]+'</span>';
+    h+=line+'</div>';}
+  const T=(V3.tree&&V3.tree.structure)||{};
+  const tk=b==='energy'?'energy':(b==='fx'?'currencies':null);
+  if(tk&&T[tk]){
+    const hv=V3.tree.heat&&V3.tree.heat[tk]?V3.tree.heat[tk][mi]:null;
+    h+='<div class=k>composition'+
+      (hv!==null&&hv!==undefined?' &middot; heat '+
+       Number(hv).toFixed(2)+' of 4':'')+'</div>';
+    for(const cn in T[tk].children){
+      const c=T[tk].children[cn],lf=c.leaf;
+      const fam=lf?nodeFam(lf,mi):-1,known=fam>=0;
+      const col=known?FAMCOL[fam]:getCss('--faint');
+      h+='<div class=row><i style="background:'+col+';color:'+col+
+        '"></i><span>'+cn+'</span><span class=sh>'+
+        Math.round(c.share*100)+'%</span>'+
+        (lf?(known?'<span style="color:'+col+'">'+FAMWORD[fam]+
+         '</span>':'<span class=sh>awaiting</span>')
+         :'<span class=sh>share only</span>')+'</div>';}
+    if(tk==='currencies')
+      h+='<div class=mut>the dollar is the numeraire; every major '+
+        'is priced against it</div>';}
+  if(inFrame.length&&inFrame.length<(MEM[b]||[]).length)
+    h+='<div class=mut>this window computed from: '+
+      inFrame.join(', ')+'</div>';
+  if(!f.members[b])h+='<div class=mut>no data in this window</div>';
+  card.innerHTML=h;
+  const px=P[b][0]/W*100,py=P[b][1]/H*100;
+  card.style.left=(P[b][0]>W/2?'auto':'calc('+px+'% + 34px)');
+  card.style.right=(P[b][0]>W/2?'calc('+(100-px)+'% + 34px)':'auto');
+  card.style.top='min(calc('+py+'% - 30px), calc(100% - 250px))';
+  card.classList.add('on');
+  card.querySelector('.x').onclick=ev=>{ev.stopPropagation();hideCard();};}
+cv.addEventListener('click',ev=>{
+  const r=cv.getBoundingClientRect();
+  const mx=(ev.clientX-r.left)*W/(r.width||W),
+        my=(ev.clientY-r.top)*H/(r.height||H);
+  let hit=null;
+  for(const b of Object.keys(P)){const [x,y]=P[b];
+    if(Math.hypot(mx-x,my-y)<34)hit=b;}
+  if(hit)showCard(hit);else hideCard();});
+function setFrame(i){
+  fi=Math.max(0,Math.min(LIVEI,i));hideCard();rebuildPaths();
+  const f=FR[fi];
+  document.getElementById('scrubmo').innerHTML=
+    (fi>=LIVEI?'<b>now</b> &middot; '+(f?f.end:''):
+     '<b>'+(f?f.end:'')+'</b>');
+  document.querySelectorAll('.pin').forEach(el=>{
+    el.classList.toggle('on',String(el.dataset.f)===String(fi));});
+  let ev='';
+  for(const p of (V3.pins||[])){
+    if(f&&Math.abs(monthIdx(p[0])-monthIdx(f.end))<=3&&p[1]!=='LIVE')
+      ev=p[0]+' &middot; '+p[1];}
+  document.getElementById('evt').innerHTML=(fi<LIVEI?ev:'');
+  if(REDUCED)draw(0);}
+function tempSeries(){
+  const out=[];
+  for(let k=0;k<M.length;k++){
+    const vals=[];
+    for(const n in FAM){const v=FAM[n][k];
+      if(v!==null&&v!==undefined&&v>=0)vals.push(v);}
+    out.push(vals.length?25*vals.reduce((a,b)=>a+b,0)/vals.length:null);}
+  return out;}
+function scaleBar(val,max,opts){
+  opts=opts||{};
+  const pos=Math.max(0,Math.min(100,100*val/max));
+  let h='<div class="scale'+(opts.flat?' flat':'')+'">';
+  for(const t of (opts.ticks||[]))
+    h+='<div class=tick style="left:'+
+      Math.max(0,Math.min(100,100*t.v/max))+'%" title="'+t.l+'"></div>';
+  h+='<div class=mk style="left:'+pos+'%"></div></div>';
+  if(opts.zones)h+='<div class=zl>'+opts.zones.map(z=>'<span>'+z+
+    '</span>').join('')+'</div>';
+  if(opts.tickcap)h+='<div class=tickcap>'+opts.tickcap+'</div>';
+  return h;}
+function median(a){const s=a.filter(x=>x!==null).slice().sort((x,y)=>x-y);
+  return s.length?s[Math.floor(s.length/2)]:null;}
+function renderToday(){
+  const Wd=DATA.weather;
+  if(Wd){
+    const h=document.getElementById('hero');
+    const SC={risk_on_calm:'--up',financial_stress:'--down',
+      demand_collapse:'--down',inflation_shock:'--hot',
+      commodity_shock:'--fear',post_shock_glut:'--glut'};
+    const cw=(DATA.synoptic&&DATA.synoptic.gate==='open')?
+      DATA.synoptic.current.word:'';
+    const cc=(DATA.synoptic&&DATA.synoptic.gate==='open')?
+      getCss(SC[DATA.synoptic.current.state]||'--calm'):getCss('--calm');
+    h.innerHTML=(cw?'<div class=cond style="color:'+cc+'">'+cw+
+      '</div>':'')+
+      '<div class=temp>'+Wd.temp+'<small> heat</small></div>'+
+      (Wd.next_low!==undefined?'<div class=hl>next month '+
+       '<b>'+Wd.next_low+'</b> to <b>'+Wd.next_high+'</b><br><span style="color:var(--faint)">world heat '+
+       'index, 0 calm to 100 hot; range is forecast, assumes '+
+       'independent instrument paths</span></div>':'');
+    const ts=tempSeries();
+    const med=median(ts);
+    h.innerHTML+='<div style="flex-basis:100%">'+
+      scaleBar(Wd.temp,100,{ticks:med!==null?[{v:med,l:'typical'}]:[],
+        zones:['calm','unsettled','strained','storm'],
+        tickcap:med!==null?'tick: typical, the median of the full '+
+          'record, '+Math.round(med):''})+
+      '<div class=spark>'+ts.slice(-12).map(function(v){
+        const vv=v===null?0:v;
+        const col=vv<15?getCss('--calm'):vv<35?getCss('--glut')
+          :vv<60?getCss('--warn'):getCss('--hot');
+        return '<i style="height:'+Math.max(6,vv*0.22)+
+          'px;background:'+col+'"></i>';}).join('')+'</div>'+
+      '<div class=tickcap>last twelve months</div></div>';
+    const dl=document.getElementById('dials');
+    let dh='';
+    for(const d of (Wd.dials||[])){
+      const ar=d.dir>0?'<span class=ar style="color:var(--hot)">&#8599;</span>':
+        (d.dir<0?'<span class=ar style="color:var(--down)">&#8600;</span>':'');
+      let sc='';
+      if(d.scale){
+        sc=scaleBar(d.scale.v,d.scale.max,{ticks:d.scale.ticks||[],
+          zones:d.scale.zones,flat:!!d.scale.flat,
+          tickcap:d.scale.tickcap});}
+      dh+='<div class=dial><div class=n>'+d.name+'</div>'+
+        '<div class=v>'+d.value+ar+'</div>'+sc+
+        '<div class=d>'+d.detail+'</div></div>';}
+    dl.innerHTML=dh;
+    const fs=document.getElementById('fcstrip');
+    if(Wd.forecast&&Wd.forecast.length){
+      fs.innerHTML=Wd.forecast.map(c=>{
+        const col=FAMCOL[c.fam>=0?c.fam:0];
+        const lo=(c.lo!==undefined?c.lo:Math.max(0,c.temp-6)),
+              hi=(c.hi!==undefined?c.hi:Math.min(100,c.temp+6));
+        return '<div class=fccard style="border-color:'+col+'44">'+
+          '<div class=mo3>'+c.month+'</div>'+
+          '<div class=w style="color:'+col+'">'+c.word+'</div>'+
+          '<div class=t>'+lo+' to '+hi+'</div>'+
+          '<div class=rbar><div class=rng style="left:'+lo+
+          '%;width:'+Math.max(2,hi-lo)+'%;background:'+col+
+          '99"></div><div class=mid style="left:'+c.temp+'%"></div>'+
+          '</div>'+
+          '<div class=r>storm chance '+c.storm+'%</div></div>';}).join('')+
+        '<div class=fcnote style="flex-basis:100%">'+(Wd.note||'')+
+        '</div>';
+    } else {
+      fs.innerHTML='<div class=fcnote>forecast appears with the '+
+        'first monthly outlook issue</div>';}
+  }
+  const liveF=FR[LIVEI]||{members:{}};
+  const mi=monthIdx(liveF.end);
+  const al=document.getElementById('alerts');
+  let ah='';
+  if(DATA.watch&&DATA.watch.on)ah+='<div class=lamp2><i style="background:var(--warn);color:var(--warn)"></i>storm watch on</div>';
+  if(DATA.bust&&DATA.bust.on)ah+='<div class=lamp2><i style="background:var(--warn);color:var(--warn)"></i>outside this outlook&#39;s expected range</div>';
+  al.innerHTML=ah; al.style.display=ah?'flex':'none';
+  if(DATA.changed_line){const c=document.getElementById('changed');
+    c.textContent=DATA.changed_line;}
+  const tl=document.getElementById('tiles');
+  let th='';
+  for(const b of Object.keys(P)){
+    const inF=!!liveF.members[b];
+    const fam=inF?blockFam(b,mi):-1;
+    const col=inF?FAMCOL[Math.max(0,fam)]:getCss('--faint');
+    const word=inF?(fam>0?FAMWORD[fam]:'calm'):'awaiting';
+    const conf=inF?Math.round(blockConf(b)*100):null;
+    th+='<div class=tile data-b="'+b+'" style="cursor:pointer;'+
+      'border-color:'+col+'44">'+
+      '<div class=n>'+NAME[b]+'</div>'+
+      '<div class=s style="color:'+col+'">'+word+'</div>'+
+      '<div class=p>'+(conf!==null?conf+'% conf':'no data')+'</div></div>';}
+  tl.innerHTML=th;
+  paintDetail();
+}
+/* Progressive disclosure, v9. The permanent ALL INSTRUMENTS strip is
+   gone, so the instrument tiles it used to hold are now rendered on
+   demand into #blockdetail: one block's members when a tile is
+   clicked, every member when "show all instruments" is. Same tiles,
+   same states, same colours, same order as the strip they replace.
+   Nothing here computes a number the strip did not already show.
+   openB is null when closed, a block key when one block is open, and
+   '*' when showing all. */
+let openB=null;
+function instrHTML(order){
+  const mi=monthIdx((FR[LIVEI]||{members:{}}).end);
+  let ih='';
+  for(const m of order){
+    const st=stateOf(m);
+    const fam=nodeFam(m,mi);
+    const col=(fam>=0)?FAMCOL[fam]:getCss('--faint');
+    ih+='<div class=itile style="border-color:'+col+'33">'+
+      '<div class=n>'+m.replace('_',' ')+'</div>'+
+      (st?'<div class=s style="color:'+col+'">'+
+        (st.word||st.state).replace('_',' ')+'</div>'+
+        '<div class=p>'+Math.round(st.prob*100)+'%</div>'+'<div class=cbar><i style="width:'+Math.round(st.prob*100)+'%;background:'+col+'"></i></div>'
+        :'<div class=s style="color:var(--faint)">awaiting</div>'+
+         '<div class=p>&nbsp;</div>')+'</div>';}
+  return ih;}
+function paintDetail(){
+  const strip=document.getElementById('blockdetail');
+  if(!strip)return;
+  if(openB===null){strip.innerHTML='';strip.style.display='none';return;}
+  const order=(openB==='*')
+    ?[].concat(...Object.keys(P).map(b=>MEM[b]||[]))
+    :(MEM[openB]||[]);
+  strip.innerHTML=instrHTML(order);
+  strip.style.display='flex';}
+function toggleBlock(b){openB=(openB===b)?null:b;paintDetail();}
+function setTab(t){
+  document.getElementById('pane-today').style.display=
+    (t==='today'?'block':'none');
+  document.getElementById('pane-map').style.display=
+    (t==='map'?'block':'none');
+  document.getElementById('tab-today').classList.toggle('on',t==='today');
+  document.getElementById('tab-map').classList.toggle('on',t==='map');
+  if(t==='map'&&!REDUCED)requestAnimationFrame(draw);}
+function init(){
+  const syn=document.getElementById('syn');
+  if(DATA.synoptic&&DATA.synoptic.gate==='open'){
+    const SC={risk_on_calm:'--up',financial_stress:'--down',
+      demand_collapse:'--down',inflation_shock:'--hot',
+      commodity_shock:'--fear',post_shock_glut:'--glut'};
+    syn.innerHTML='Weather system: <b style="color:'+
+      getCss(SC[DATA.synoptic.current.state]||'--calm')+'">'+
+      DATA.synoptic.current.word+'</b>.';}
+  document.getElementById('subsyn').textContent=
+    'blocks at rest; tap one for its instruments';
+  document.getElementById('issued').textContent=
+    'data to '+(M[M.length-1]||'')+' · issued '+(DATA.issued||'');
+  if(DATA.streak&&DATA.streak.row){
+    const el=document.getElementById('streak');
+    const CM={hit:getCss('--up'),miss:getCss('--hot')};
+    el.innerHTML=DATA.streak.row.map(d=>'<i style="background:'+
+      (CM[d.status]||getCss('--faint'))+'"></i>').join('')+
+      '<span>'+(DATA.streak.totals_words||'')+'</span>'+
+      '<span class=note>forward record begins with bulletin 002</span>';
+    el.style.display='flex';}
+  if(DATA.daily_obs&&DATA.daily_obs.series){
+    document.getElementById('ticker').innerHTML=
+      '<span style="color:var(--faint)">observations</span>'+
+      DATA.daily_obs.series.map(s=>'<span>'+s.name+' <b>'+s.value+
+      '</b> '+(s.delta||'')+'</span>').join('');}
+  if(DATA.health){
+    document.getElementById('lights').innerHTML='feeds'+
+      DATA.health.map(h=>'<i title="'+h.feed+'" style="background:'+
+      (h.ok?getCss('--up'):getCss('--hot'))+'"></i>').join('');}
+  const pr=document.getElementById('pins');
+  let ph='';
+  for(const p of (V3.pins||[])){
+    let best=0,bd=1e9;
+    for(let k=0;k<FR.length;k++){
+      const d=Math.abs(monthIdx(FR[k].end)-monthIdx(p[0]));
+      if(d<bd){bd=d;best=k;}}
+    ph+='<button class=pin data-f="'+best+'">'+p[1]+'</button>';}
+  pr.innerHTML=ph;
+  document.querySelectorAll('.pin').forEach(el=>{
+    el.addEventListener('click',()=>{
+      setFrame(parseInt(el.dataset.f)||0);});});
+  const sc=document.getElementById('scrub');
+  sc.max=String(Math.max(1,LIVEI));sc.value=String(fi);
+  sc.addEventListener('input',ev=>{
+    let v=parseInt(ev.target.value);if(!(v>=0))v=0;
+    setFrame(v);});
+  setFrame(LIVEI);
+  renderToday();
+  document.getElementById('tab-today').addEventListener('click',
+    ()=>setTab('today'));
+  document.getElementById('tab-map').addEventListener('click',
+    ()=>setTab('map'));
+  // delegated, because renderToday rewrites the tiles on every frame
+  // change and a listener bound to a tile would not survive it
+  document.getElementById('tiles').addEventListener('click',ev=>{
+    const t=ev.target;
+    const el=(t&&t.closest)?t.closest('.tile'):t;
+    if(el&&el.dataset&&el.dataset.b)toggleBlock(el.dataset.b);});
+  document.getElementById('showall').addEventListener('click',
+    ()=>toggleBlock('*'));
+  setTab('today');
+  if(!REDUCED)requestAnimationFrame(draw);}
+init();
+</script>
+<style id=mw-addons>
+/* Reconnection layer for v6. Additive only: nothing above this block
+   is touched. The outlook and legend panels overlay the MAP pane's
+   graph box, their buttons sit in the global footer, and the streak
+   clause and amber painter are global because the streak row is. The
+   changed-since line is a payload key on this page and is rendered by
+   the template, so nothing here injects it. */
+#streakwhere{color:var(--faint);font-family:var(--mono);font-size:11px;
+  margin-left:6px}
+.mwbtn{font:600 10px/1 Inter;letter-spacing:.08em;color:var(--dim);
+  border:1px solid var(--line);border-radius:14px;padding:5px 11px;
+  cursor:pointer;background:none}
+.mwbtn.on{color:var(--ink);border-color:#3A4652;background:#0D1116}
+.mwpanel{position:absolute;z-index:40;display:none;
+  background:rgba(13,16,22,.82);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);border:1px solid #1E2530;
+  border-radius:12px;padding:14px 16px;font-size:11.5px;
+  color:var(--dim)}
+#legendpanel{right:0;bottom:0;max-width:330px}
+#legendpanel div{margin-bottom:5px}
+#legendpanel a{color:var(--dim);text-decoration:none;
+  border-bottom:1px solid var(--line)}
+#outlookpanel{right:0;top:0;width:334px}
+#outlookpanel .hd{font-size:12px;letter-spacing:.1em;font-weight:650;
+  color:var(--ink);margin-bottom:6px}
+.olab{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
+  color:var(--faint);text-transform:uppercase;margin:9px 0 3px}
+.bustlamp{margin-top:8px;color:var(--glut)}
+.bustlamp i{display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:var(--glut);box-shadow:0 0 6px var(--glut);margin-right:6px}
+#card .meteo{margin:2px 0 6px;display:block}
+#card.wide{width:288px;max-height:74vh;overflow-y:auto}
+</style>
+<script>
+/* Reconnection layer: the OUTLOOK overlay, the legend and the
+   changed-since-last-bulletin line, mounted onto the v5 page without
+   altering its rendering. */
+(function(){
+  var box=document.getElementById('graphbox');
+  var ftr=document.querySelector('.ftr');
+  // the registered streak context line has two clauses. The v5 page
+  // renders the first inside the streak row; the second is restored
+  // here beside it rather than by overwriting what the page drew.
+  var stk=document.getElementById('streak');
+  if(stk&&stk.insertAdjacentHTML&&DATA.streak&&DATA.streak.row)
+    stk.insertAdjacentHTML('afterend','<span id=streakwhere>'+
+      'Instrument validation history lives on the record page.'+
+      '</span>');
+  // STREAK-DEF-2 renders retractions and revisions of published
+  // output as amber. The page's own colour map knows hit and miss, so
+  // the amber dots are painted here rather than by editing it.
+  if(stk&&stk.querySelectorAll&&DATA.streak&&DATA.streak.row){
+    var dots=stk.querySelectorAll('i');
+    for(var di=0;di<dots.length&&di<DATA.streak.row.length;di++)
+      if(DATA.streak.row[di].status==='amber'&&dots[di].style)
+        dots[di].style.background=getCss('--glut');}
+  var tools=document.createElement('div');
+  tools.innerHTML='<button class=mwbtn id=voutlook>OUTLOOK</button> '+
+    '<button class=mwbtn id=legendbtn aria-label="what am I looking at">'+
+    '?</button>';
+  if(ftr&&ftr.appendChild)ftr.appendChild(tools);
+  var lp=document.createElement('div');
+  lp.className='mwpanel';lp.id='legendpanel';
+  lp.innerHTML='<div>A node is one block of the economy, holding the '+
+    'instruments that belong to it.</div>'+
+    '<div>Colour is the family that block is reading now, from calm '+
+    'through easing, up, strained and hot.</div>'+
+    '<div>An edge percentage is the share of one block\'s forecast '+
+    'error variance that another block explains.</div>'+
+    '<div>Size and pulse are confidence: the surer the reading, the '+
+    'larger and slower the node.</div>'+
+    '<div>Every instrument passes registered checks before it joins, '+
+    'and failures publish beside the hits in '+
+    '<a href="report.html">the record</a>.</div>';
+  var op=document.createElement('div');
+  op.className='mwpanel';op.id='outlookpanel';
+  if(box&&box.appendChild){box.appendChild(lp);box.appendChild(op);}
+
+  var outlookOn=false;
+  function famOf(state,syn){
+    var O=DATA.outlook;if(!O)return -1;
+    var m=syn?O.synoptic_family_map:O.family_map;
+    var v=m?m[state]:undefined;
+    return (v===undefined||v===null)?-1:v;}
+  function famProbs(dist,syn){
+    var out=[0,0,0,0,0],tot=0;
+    for(var st in dist){var f=famOf(st,syn);
+      if(f>=0){out[f]+=dist[st];tot+=dist[st];}}
+    return {p:out,tot:tot};}
+  function bandsSvg(node,syn){
+    var O=DATA.outlook;if(!O)return '';
+    var src=syn?O.synoptic:(O.instruments||{})[node];
+    if(!src)return '';
+    var HS=O.horizons,WD=250,PH=13,AH=13,GAP=3,LW=26;
+    var nb=HS.length,cw=(WD-LW)/(nb*2),g='';
+    var past=syn?((DATA.synoptic&&DATA.synoptic.strip)||null)
+                :((V3.fam_strip&&V3.fam_strip[node])||null);
+    if(past){
+      var tail=past.slice(-nb);
+      for(var i=0;i<tail.length;i++){
+        var c=tail[i]>=0?FAMCOL[Math.min(4,tail[i])]:getCss('--faint');
+        g+='<rect x="'+(LW+i*cw)+'" y="0" width="'+(cw+0.4)+
+          '" height="'+AH+'" fill="'+c+'" fill-opacity=".85"/>';}}
+    var rows=[['M',AH+GAP,PH],['A',AH+GAP+PH+2,PH-4]];
+    if(src.C)rows.push(['C',AH+GAP+PH+2+(PH-4)+2,PH-4]);
+    var lastRow=rows[rows.length-1];
+    for(var r=0;r<rows.length;r++){
+      for(var j=0;j<nb;j++){
+        var d=src[rows[r][0]][String(HS[j])]||{};
+        var fp=famProbs(d,syn);
+        if(fp.tot<=0)continue;
+        var y=rows[r][1];
+        for(var f2=0;f2<5;f2++){
+          var hh=(fp.p[f2]/fp.tot)*rows[r][2];
+          if(hh<=0)continue;
+          g+='<rect x="'+(LW+nb*cw+j*cw)+'" y="'+y+'" width="'+(cw+0.4)+
+            '" height="'+hh+'" fill="'+FAMCOL[f2]+'" fill-opacity=".8"/>';
+          y+=hh;}}
+      g+='<text x="0" y="'+(rows[r][1]+rows[r][2]-2)+'" fill="'+
+        getCss('--faint')+'" font-size="8">'+rows[r][0]+'</text>';}
+    g+='<text x="0" y="'+(AH-3)+'" fill="'+getCss('--faint')+
+      '" font-size="8">now</text>';
+    var HT=lastRow[1]+lastRow[2]+11;
+    // OUTLOOK-REG-3: probabilities are labelled by the calendar month
+    // they refer to, never by a relative horizon.
+    var LM=O.lead_months||{};
+    var firstM=LM[String(HS[0])],lastM=LM[String(HS[nb-1])];
+    if(firstM)g+='<text x="'+(LW+nb*cw+1)+'" y="'+(AH-3)+
+      '" fill="'+getCss('--faint')+'" font-size="8" '+
+      'text-anchor="start">'+firstM+'</text>';
+    if(lastM)g+='<text x="'+(WD-1)+'" y="'+(AH-3)+
+      '" fill="'+getCss('--faint')+'" font-size="8" '+
+      'text-anchor="end">'+lastM+'</text>';
+    g+='<line x1="'+(LW+nb*cw)+'" y1="0" x2="'+(LW+nb*cw)+'" y2="'+
+      (HT-11)+'" stroke="'+getCss('--dim')+'" stroke-width=".7"/>';
+    g+='<text x="'+(LW+nb*cw*0.5)+'" y="'+(HT-2)+'" fill="'+
+      getCss('--faint')+'" font-size="8" text-anchor="middle">analysis</text>';
+    g+='<text x="'+(LW+nb*cw*1.5)+'" y="'+(HT-2)+'" fill="'+
+      getCss('--faint')+'" font-size="8" text-anchor="middle">outlook</text>';
+    return '<svg class=meteo width="'+WD+'" height="'+HT+
+      '" viewBox="0 0 '+WD+' '+HT+'">'+g+'</svg>';}
+  function coneSvg(){
+    var O=DATA.outlook;if(!O||!O.synoptic)return '';
+    var HS=O.horizons,WD=300,HT=104,X0=24,MID=HT/2-8;
+    var src=O.synoptic,g='',pts=[],pts2=[];
+    for(var i=0;i<HS.length;i++){
+      var d=src.M[String(HS[i])]||{},ent=0;
+      for(var st in d){var pv=d[st];if(pv>0)ent-=pv*Math.log(pv);}
+      var maxent=Math.log(Math.max(2,(src.states||[]).length));
+      var spread=Math.max(0.04,Math.min(1,ent/maxent));
+      var x=X0+(i+1)*((WD-X0-6)/HS.length),hw=spread*(MID-6);
+      pts.push([x,MID-hw]);pts2.push([x,MID+hw]);}
+    var poly=[[X0,MID]].concat(pts).concat(pts2.slice().reverse())
+      .concat([[X0,MID]]);
+    var fn=famOf(src.analysis.state,true);
+    var col=fn>=0?FAMCOL[fn]:getCss('--dim');
+    g+='<polygon points="'+poly.map(function(q){
+      return q[0].toFixed(1)+','+q[1].toFixed(1);}).join(' ')+
+      '" fill="'+col+'" fill-opacity=".18" stroke="'+col+
+      '" stroke-opacity=".45" stroke-width="1"/>';
+    g+='<circle cx="'+X0+'" cy="'+MID+'" r="3" fill="'+col+'"/>';
+    g+='<text x="'+X0+'" y="'+(MID+18)+'" fill="'+getCss('--faint')+
+      '" font-size="8" text-anchor="middle">now</text>';
+    var LM=O.lead_months||{};
+    var marks=(O.leads||[HS[2],HS[5],HS[11]]);
+    for(var k=0;k<marks.length;k++){
+      var idx=HS.indexOf(marks[k]);
+      if(idx<0)continue;
+      var mx=X0+(idx+1)*((WD-X0-6)/HS.length);
+      var lab=LM[String(marks[k])]||String(marks[k]);
+      var last=(k===marks.length-1);
+      g+='<text x="'+(last?(WD-1):mx)+'" y="'+(HT-3)+'" fill="'+
+        getCss('--faint')+'" font-size="8" text-anchor="'+
+        (last?'end':'middle')+'">'+lab+'</text>';}
+    return '<svg width="'+WD+'" height="'+HT+'" viewBox="0 0 '+WD+
+      ' '+HT+'">'+g+'</svg>';}
+  function renderPanel(){
+    if(!op)return;
+    if(!outlookOn||!DATA.outlook||!DATA.outlook.synoptic){
+      if(op.style)op.style.display='none';return;}
+    var O=DATA.outlook,h='<div class=hd>OUTLOOK <span '+
+      'style="color:var(--faint);font-weight:400">synoptic cone</span>'+
+      '</div>';
+    h+='<div class=olab>issued '+(O.issued||O.issue_month||'')+
+      ' &middot; '+(O.cadence||'')+' issue '+(O.issue||'')+'</div>';
+    h+='<div class=olab>analysis: '+
+      String(O.synoptic.analysis.state).replace(/_/g,' ')+'</div>';
+    h+=coneSvg();
+    h+='<div>Uncertainty widens with horizon. The cone is the spread '+
+      'of the synoptic outlook, not a track.</div>';
+    h+=bandsSvg(null,true);
+    var fc=(O.synoptic&&O.synoptic.C)?'M, then A, then C':'M above A';
+    h+='<div>Bands are probabilities by family, forecaster '+fc+
+      ', labelled by letter, and every column is the calendar month '+
+      'it refers to. Nothing here is a state word prediction: the '+
+      'bulletin stays silent until a forecaster is scored skillful.'+
+      '</div>';
+    var bu=DATA.bust;
+    if(bu&&bu.state==='amber')
+      h+='<div class=bustlamp><i></i>'+bu.words+
+        '. Next revision '+bu.next_revision+'.</div>';
+    op.innerHTML=h;
+    if(op.style)op.style.display='block';}
+  var origShow=(typeof window!=='undefined'&&window.showCard)||
+    (typeof showCard!=='undefined'?showCard:null);
+  function wrappedShow(b){
+    if(origShow)origShow(b);
+    if(card&&card.classList)card.classList.toggle('wide',outlookOn);
+    if(!outlookOn||!DATA.outlook)return;
+    var mem=(V3.members&&V3.members[b])||[],add='';
+    for(var i=0;i<mem.length;i++){
+      if(!((DATA.outlook.instruments||{})[mem[i]]))continue;
+      add+='<div class=olab>outlook &middot; '+mem[i]+'</div>'+
+        bandsSvg(mem[i],false);}
+    if(add&&card&&card.insertAdjacentHTML)
+      card.insertAdjacentHTML('beforeend',
+        '<div class=olab>analysis above, outlook below &middot; '+
+        'issue '+((DATA.outlook||{}).issue||'')+'</div>'+add);}
+  if(typeof window!=='undefined'){
+    window.showCard=wrappedShow;
+    // named hook so the headless harness can execute the outlook card
+    // path, which the browser reaches through the global showCard
+    window.mwOutlookCard=wrappedShow;}
+  var vo=document.getElementById('voutlook');
+  if(vo&&vo.addEventListener)vo.addEventListener('click',function(ev){
+    if(ev&&ev.stopPropagation)ev.stopPropagation();
+    outlookOn=!outlookOn;
+    if(vo.classList)vo.classList.toggle('on',outlookOn);
+    renderPanel();
+    if(typeof sel!=='undefined'&&sel)wrappedShow(sel);});
+  var lb=document.getElementById('legendbtn');
+  if(lb&&lb.addEventListener)lb.addEventListener('click',function(ev){
+    if(ev&&ev.stopPropagation)ev.stopPropagation();
+    if(lb.classList)lb.classList.toggle('on');
+    if(lp.style)lp.style.display=
+      (lp.style.display==='block')?'none':'block';});
+  if(document.addEventListener)document.addEventListener('click',
+    function(ev){
+      var tg=ev&&ev.target;
+      if(lp.style&&lp.style.display==='block'&&tg!==lb&&tg!==lp)
+        lp.style.display='none';});
+})();
+</script>
+</body></html>

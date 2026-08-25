@@ -3,6 +3,7 @@ prompt's registered criteria."""
 
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -1353,6 +1354,29 @@ def test_replayed_slates_close_on_the_live_slate_rule():
     assert (full["slates"] == d["pre_2016"]["slates"]
             + d["post_2016"]["slates"])
     assert full["hits"] == sum(1 for r in d["row"] if r["status"] == "hit")
+
+
+def test_block_tiles_disclose_their_instruments():
+    """v9 progressive disclosure. The permanent ALL INSTRUMENTS strip is
+    gone, so an .itile now exists on the index only as the result of a
+    click. That makes the class a real assertion: it cannot be satisfied
+    by static markup the way an id in the template can. Asserting on
+    #blockdetail alone would pass with the wiring cut out, which is how
+    the supplied package shipped."""
+    r = _smoke(os.path.join(ROOT, "index.html"),
+               "--expect-id=blockdetail", "--expect-id=showall",
+               "--expect-class=itile")
+    assert r.returncode == 0, r.stderr + r.stdout
+    assert "3 expectations met" in r.stdout
+
+
+def test_the_index_has_no_permanent_instrument_strip():
+    """The other half of the same change: if the strip came back the
+    disclosure test above would pass without the disclosure working."""
+    page = open(os.path.join(ROOT, "index.html")).read()
+    markup = re.sub(r"<script>[\s\S]*?</script>", "", page)
+    assert "ALL INSTRUMENTS" not in markup
+    assert 'id=istrip' not in markup and 'id="istrip"' not in markup
 
 
 def test_fred_provider_parses_fixture():

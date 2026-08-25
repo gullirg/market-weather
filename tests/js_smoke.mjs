@@ -172,6 +172,23 @@ function runPass(reduceMotion) {
     for (const fn of streak) fn({ target: {
       className: 'nothing', parentElement: null } });
   }
+  // v9 progressive disclosure: the instrument tiles exist only as the
+  // result of a click now, so the pass fires one. The block key is read
+  // back out of the markup the page itself just wrote, so the test
+  // drives the real wiring with a real block rather than a fabricated
+  // key that would silently resolve to an empty member list. Open,
+  // close, then show-all, so all three paths run.
+  const tiles = listeners['tiles:click'];
+  const bkey = (written.match(/data-b="([^"]+)"/) || [])[1];
+  if (tiles && bkey) {
+    const tgt = { dataset: { b: bkey } };
+    tgt.closest = () => tgt;
+    for (const fn of tiles) fn({ target: tgt });
+    for (const fn of tiles) fn({ target: tgt });
+    for (const fn of tiles) fn({ target: tgt });
+  }
+  const showall = listeners['showall:click'];
+  if (showall) for (const fn of showall) fn({});
   const legend = listeners['legendbtn:click'];
   if (legend) for (const fn of legend) fn({ stopPropagation(){}, target:{} });
   if (click) for (const fn of click) fn({ clientX: 5, clientY: 5 });

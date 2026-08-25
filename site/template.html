@@ -75,6 +75,8 @@
   .sdot.null{background:var(--dim)}
   .sdot.pending{background:none;border:1px solid var(--dim)}
   .sdot.amber{background:var(--glut)}
+  .rrow{display:flex;flex-wrap:wrap;gap:3px;margin:2px 0 10px}
+  .rrow .sdot{margin-right:0}
   tr.srow{cursor:pointer}
   tr.sdet td{color:var(--dim);font-size:11.5px;
     font-family:var(--mono);word-break:break-word}
@@ -126,6 +128,19 @@
     the printed confidence against how often it was right. A point on
     the diagonal is an honest number.</div>
   <div id="caltbl"></div>
+
+  <h2 id="replayed-record">The replayed record</h2>
+  <div class="note">BACKTEST-1. The same claim slate the bulletin
+    registers every month, generated for every origin month from
+    2002-01 through 2026-05 on the data available at each origin, and
+    scored at maturity against the states the record settled on. One
+    dot per closed slate, on the same slate rule the live surface
+    uses: a hit if the slate's mean Brier beats the persistence
+    baseline's over the same claims, a tie a miss. Laboratory only. It
+    is a note on the chain rather than a scored entry, so it moves
+    neither the surface totals nor the laboratory totals.</div>
+  <div id="retrorow"></div>
+  <div class="note" id="retrocaveat"></div>
 
   <h2 id="scorecard-streak">The streak</h2>
   <div class="note">Scored forward-looking claims only, most recent
@@ -388,6 +403,36 @@ if(DATA.s2){
     q.baseline+' on the same panel un-removed, while the fast '+
     'frequency band reached '+q.fast+' and the slow band '+q.slow+
     ', all short of the bar of '+q.bar+'.';
+}
+if(DATA.backtest&&DATA.backtest.row&&DATA.backtest.row.length){
+  const B=DATA.backtest, A=B.aggregate, P=B.pre_2016, Q=B.post_2016;
+  let rh='<div class="rrow">';
+  for(const r of B.row)
+    rh+='<span class="sdot '+r.status+'" title="'+r.month+', '+
+      r.status+', '+r.claims+' claims"></span>';
+  rh+='</div><div class="note">'+B.label+'. '+A.slates+
+    ' closed slates over '+B.window+': '+A.hits+' hits and '+A.misses+
+    ' misses, a slate win rate of '+A.win_rate+'. Split at '+
+    B.dur1_cut+' on the DUR1 duration break: '+P.hits+' of '+
+    P.slates+' slates before it, '+P.win_rate+', and '+Q.hits+
+    ' of '+Q.slates+' from it, '+Q.win_rate+', so the replay is no '+
+    'worse after the break than before it. Underneath those slates sit '+
+    A.claims+' individual claims, of which '+A.claim_wins+
+    ' beat their own persistence baseline. Those two rates answer '+
+    'different questions and both are reported because either alone '+
+    'misleads: persistence is a point mass, scoring zero when a '+
+    'state continues and one when it does not, so it wins most '+
+    'single comparisons outright and loses the slate mean on the '+
+    'months it is wrong. The slate rule rewards not being '+
+    'catastrophically wrong rather than being right most often. '+
+    'By kind, '+
+    Object.keys(B.by_kind).sort().map(function(k){
+      return B.by_kind[k].wins+' of '+B.by_kind[k].claims+' '+k;
+    }).join(', ')+'. The synoptic gate would have been open at '+
+    B.gate_open_origins+' origins. Estimated at '+B.estimated_at+
+    ', one run and one scoring, chained as BACKTEST-1-SCORED.</div>';
+  document.getElementById('retrorow').innerHTML=rh;
+  document.getElementById('retrocaveat').textContent=B.caveat;
 }
 if(DATA.horizon&&DATA.horizon.curve&&DATA.horizon.curve.length){
   const H=DATA.horizon;

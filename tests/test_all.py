@@ -494,7 +494,8 @@ FROZEN = ["bulletins/2026-08.md", "bulletins/2026-08.html",
           "bulletins/2026-08_record.html",
           "bulletins/outlook_2026Q3.json",
           "state/outlook_2026Q3.json",
-          "state/horizon1.json", "state/horizon2.json"]
+          "state/horizon1.json", "state/horizon2.json",
+          "state/backtest1.json"]
 
 
 def test_every_frozen_artifact_survives_a_rebuild_byte_identical():
@@ -1284,6 +1285,74 @@ def test_pages_execute_headlessly():
                             os.path.join(ROOT, page)],
                            capture_output=True, text=True)
         assert r.returncode == 0, f"{page}: {r.stderr}"
+
+
+def test_replayed_record_renders_with_its_caveat():
+    """BACKTEST-1, fired rather than assumed. The retro row's own class
+    and the registered caveat are the assertions with teeth: #retrorow
+    is in the static markup and would pass with the renderer deleted,
+    so it is asserted alongside them, not instead of them."""
+    import instrument.backtest as BT
+    r = _smoke(os.path.join(ROOT, "report.html"),
+               "--expect-id=retrorow", "--expect-id=retrocaveat",
+               "--expect-class=rrow",
+               "--expect-text=" + BT.CAVEAT)
+    assert r.returncode == 0, r.stderr + r.stdout
+    assert "4 expectations met" in r.stdout
+
+
+def test_the_replayed_record_moves_neither_published_total():
+    """The whole point of the caveat. A hindsight replay must not move
+    a number published as an uncontaminated test, so its chain entries
+    are notes and neither total may shift when they are removed."""
+    import run as R
+    sc = json.load(open(os.path.join(ROOT, "state", "scorecard.json")))
+    without = [e for e in sc if not str(e["id"]).startswith("BACKTEST-1")]
+    assert len(without) == len(sc) - 2, "expected exactly two entries"
+    assert R._streak(sc)["totals"] == R._streak(without)["totals"]
+    assert (R._laboratory(sc)["totals"]
+            == R._laboratory(without)["totals"])
+    assert R._laboratory(sc)["matched"] == R._laboratory(without)["matched"]
+
+
+def test_the_replayed_record_stays_off_the_index():
+    """BACKTEST-1 publishes on the record page only. The index must not
+    even carry the payload: it is laboratory replay the front page
+    never renders, and 'record page only' should be checkable rather
+    than merely intended."""
+    idx = open(os.path.join(ROOT, "index.html")).read()
+    assert '"backtest"' not in idx
+    rep = open(os.path.join(ROOT, "report.html")).read()
+    assert '"backtest"' in rep
+
+
+def test_the_replayed_record_is_one_run():
+    """BACKTEST-1 registered one run and one scoring, so the runner
+    refuses a second rather than relying on nobody typing it."""
+    r = subprocess.run([sys.executable, "scripts/run_backtest1.py"],
+                       cwd=ROOT, capture_output=True, text=True)
+    assert r.returncode != 0
+    assert "refusing to rerun" in (r.stdout + r.stderr)
+
+
+def test_replayed_slates_close_on_the_live_slate_rule():
+    """The replay is scored by the code the live record is scored by,
+    so the artifact must obey PROPER-SCORE-REG-2: a slate is a hit if
+    and only if its mean Brier is strictly below the baseline's, and a
+    tie is a miss."""
+    d = json.load(open(os.path.join(ROOT, "state", "backtest1.json")))
+    assert d["row"], "no replayed slates"
+    for r in d["row"]:
+        want = "hit" if r["brier"] < r["brier_baseline"] else "miss"
+        assert r["status"] == want, r
+    ties = [r for r in d["row"] if r["brier"] == r["brier_baseline"]]
+    assert all(r["status"] == "miss" for r in ties)
+    full = d["aggregate"]
+    assert full["hits"] + full["misses"] == full["slates"]
+    assert full["slates"] == len(d["row"])
+    assert (full["slates"] == d["pre_2016"]["slates"]
+            + d["post_2016"]["slates"])
+    assert full["hits"] == sum(1 for r in d["row"] if r["status"] == "hit")
 
 
 def test_fred_provider_parses_fixture():

@@ -748,6 +748,23 @@ def cmd_month(args):
             hz2["crossing_materially_different"]
         site["horizon"]["persistence_crossing"] = \
             hz2["per_instrument_crossing"]
+    # BACKTEST-1, the replayed record. Record page only and laboratory
+    # only: it is a note on the chain, not a scored status, so it moves
+    # neither the surface streak totals nor the laboratory record
+    # totals. A hindsight replay must not move a number published as an
+    # uncontaminated test.
+    btp = os.path.join(STATE, "backtest1.json")
+    if os.path.exists(btp):
+        bt = json.load(open(btp))
+        site["backtest"] = {
+            "label": bt["label"], "caveat": bt["caveat"],
+            "window": bt["window"], "estimated_at": bt["estimated_at"],
+            "dur1_cut": bt["dur1_cut"],
+            "aggregate": bt["aggregate"], "pre_2016": bt["pre_2016"],
+            "post_2016": bt["post_2016"], "by_kind": bt["by_kind"],
+            "gate_open_origins": bt["gate_open_origins"],
+            "row": [{"month": r["month"], "status": r["status"],
+                     "claims": r["claims"]} for r in bt["row"]]}
     calp = os.path.join(STATE, "cal_result.json")
     if os.path.exists(calp):
         c = json.load(open(calp))
@@ -791,6 +808,11 @@ def cmd_month(args):
               sort_keys=True)
     # site build: minimal animated graph as index, full record alongside
     payload = json.dumps(site, sort_keys=True)
+    # BACKTEST-1 publishes on the record page only, so the index does
+    # not carry it: sixteen kilobytes of laboratory replay on the front
+    # page that nothing there renders.
+    index_payload = json.dumps({k: v for k, v in site.items()
+                                if k != "backtest"}, sort_keys=True)
     # Page-only injections. Neither touches site_data.json, the decoders
     # or the bulletin: they are strings substituted into the templates
     # at build time so crawlers and the resting view see words rather
@@ -801,7 +823,8 @@ def cmd_month(args):
     for src, dst in [("graph_v8.html", "index.html"),
                      ("template.html", "report.html")]:
         tpl = open(os.path.join(SITE, src)).read()
-        page = tpl.replace("__DATA__", payload)
+        page = tpl.replace("__DATA__", index_payload
+                            if dst == "index.html" else payload)
         page = page.replace("__CHANGES__", json.dumps(changes_line))
         page = page.replace("__OGDESC__", _html.escape(og_desc,
                                                        quote=True))
